@@ -4,6 +4,7 @@
 #include "abstractsource.h"
 #include "mqttlink.h"
 
+#include <map>
 #include <memory>
 #include <map>
 
@@ -54,6 +55,8 @@ public:
 
     ~MqttLogSource() override;
 
+	auto pre_run() -> int override;
+
 protected:
     /**
      * @brief step implementation from ThreadRunner
@@ -61,14 +64,9 @@ protected:
      */
     [[nodiscard]] auto step() -> int override;
 
-    [[nodiscard]] auto pre_run() -> int override;
-
 private:
     std::shared_ptr<MqttLink::Subscriber> m_link { nullptr };
-
-    void process(LogItem item);
-
-    std::map<std::size_t, LogItem> m_buffer {};
+	std::map<std::size_t, LogMessage> m_logbuffer { }; 
 };
 
 }

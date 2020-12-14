@@ -3,6 +3,7 @@
 
 #include "abstractsource.h"
 #include "mqttlink.h"
+#include "logmessage.h"
 
 #include <map>
 #include <memory>
@@ -10,36 +11,12 @@
 
 namespace MuonPi {
 
-class LogMessage;
-class MessageParser;
 
-struct LogItem {
-    static constexpr std::uint8_t s_default_status { 0xFF };
-    std::string id {};
-    std::uint8_t status { s_default_status };
-
-    struct {
-        double h;
-        double lat;
-        double lon;
-        double h_acc;
-        double v_acc;
-        double dop;
-    } geo;
-
-    struct {
-        double accuracy;
-        double dop;
-    } time;
-
-    void reset();
-
-    [[nodiscard]] auto add(MessageParser& message) -> bool;
-
-    [[nodiscard]] auto complete() -> bool;
-
+struct PartialLogEntry {
+	LogMessage logmessage { LogMessage(std::size_t {}, Location {}) };
+	std::uint8_t completeness {0x00};
+	static constexpr std::uint8_t max_completeness { 0x1f };
 };
-
 
 /**
  * @brief The MqttLogSource class
@@ -66,7 +43,7 @@ protected:
 
 private:
     std::shared_ptr<MqttLink::Subscriber> m_link { nullptr };
-	std::map<std::size_t, LogMessage> m_logbuffer { }; 
+	std::map<std::size_t, PartialLogEntry> m_logbuffer { }; 
 };
 
 }

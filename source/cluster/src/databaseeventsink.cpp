@@ -17,26 +17,24 @@ auto DatabaseEventSink::step() -> int
 void DatabaseEventSink::process(Event event)
 {
     if (event.n() == 1) {
-		// by default, don't write the single events to the db
-		return;
-	}
-	
-	std::vector<Event> events = event.events();
-	auto evt_it = events.begin();
-	for (;evt_it != events.end(); evt_it++) {
-		DbEntry entry { };
-		// measurement name
-		entry.measurement()="L1Event";
-		// timestamp
-		entry.timestamp()=std::to_string(evt_it->start());
-		// tags
-		entry.tags().push_back(std::make_pair("user", evt_it->data().user));
-		entry.tags().push_back(std::make_pair("detector", evt_it->data().station_id));
-		entry.tags().push_back(std::make_pair("site_id", evt_it->data().user+evt_it->data().station_id));
-		// fields
-		entry.fields().push_back(std::make_pair("accuracy", std::to_string(evt_it->data().time_acc)));
-		if (m_link->write_entry(entry)) return;
-	}
+        // by default, don't write the single events to the db
+        return;
+    }
+
+    for (auto& evt: event.events()) {
+        DbEntry entry { "L1Event" };
+        // timestamp
+        entry.timestamp()=std::to_string(evt.start());
+        // tags
+        entry.tags().push_back(std::make_pair("user", evt.data().user));
+        entry.tags().push_back(std::make_pair("detector", evt.data().station_id));
+        entry.tags().push_back(std::make_pair("site_id", evt.data().user+evt.data().station_id));
+        // fields
+        entry.fields().push_back(std::make_pair("accuracy", std::to_string(evt.data().time_acc)));
+        if (m_link->write_entry(entry)) {
+            return;
+        }
+    }
     // todo: construct message string
 }
 

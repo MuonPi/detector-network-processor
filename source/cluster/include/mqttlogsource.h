@@ -3,7 +3,7 @@
 
 #include "abstractsource.h"
 #include "mqttlink.h"
-#include "logmessage.h"
+#include "detectorlog.h"
 
 #include <map>
 #include <memory>
@@ -11,7 +11,7 @@
 
 namespace MuonPi {
 
-class LogMessage;
+class DetectorLog;
 class MessageParser;
 
 struct LogItem {
@@ -48,7 +48,7 @@ struct PartialLogEntry {
 /**
  * @brief The MqttLogSource class
  */
-class MqttLogSource : public AbstractSource<LogMessage>
+class MqttLogSource : public AbstractSource<DetectorLog>
 {
 public:
     /**

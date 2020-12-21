@@ -63,23 +63,18 @@ auto DatabaseLogSink<T>::step() -> int
 template <>
 void DatabaseLogSink<ClusterLog>::process(ClusterLog log)
 {
-    DbEntry entry { "Log" };
-    // timestamp must not be ommited!
-	unsigned long long nanosecondsUTC = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	entry.timestamp()=std::to_string(nanosecondsUTC);
-	Log::debug()<<"DatabaseLogSink::process(ClusterLog log): cluster log timestamp="<<std::to_string(nanosecondsUTC);
-	// tags
-    entry.tags().push_back(std::make_pair("user", "MuonPi"));
-
-	// fields
-    entry.fields().push_back(std::make_pair("timeout", static_cast<int>(log.data().timeout)));
-    entry.fields().push_back(std::make_pair("frequency_in", std::make_pair(static_cast<double>(log.data().frequency.single_in),5)));
-    entry.fields().push_back(std::make_pair("frequency_l1_out", std::make_pair(static_cast<double>(log.data().frequency.l1_out),5)));
-    entry.fields().push_back(std::make_pair("buffer_length", static_cast<int>(log.data().buffer_length)));
-    entry.fields().push_back(std::make_pair("total_detectors", static_cast<int>(log.data().total_detectors)));
-    entry.fields().push_back(std::make_pair("reliable_detectors", static_cast<int>(log.data().reliable_detectors)));
-    entry.fields().push_back(std::make_pair("max_multiplicity", static_cast<int>(log.data().maximum_n)));
-    entry.fields().push_back(std::make_pair("incoming", static_cast<int>(log.data().incoming)));
+    auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
+    auto fields { std::move(m_link.measurement("cluster_log")
+            <<Influx::Tag{"user", "muonpi"}
+            <<Influx::Field{"timeout", log.data().timeout}
+            <<Influx::Field{"frequency_in", log.data().frequency.single_in}
+            <<Influx::Field{"frequency_l1_out", log.data().frequency.l1_out}
+            <<Influx::Field{"buffer_length", log.data().buffer_length}
+            <<Influx::Field{"total_detectors", log.data().total_detectors}
+            <<Influx::Field{"reliable_detectors", log.data().reliable_detectors}
+            <<Influx::Field{"max_multiplicity", log.data().maximum_n}
+            <<Influx::Field{"incoming", log.data().incoming}
+            )};
 
     for (auto& [level, n]: log.data().outgoing) {
 		if (level == 1) {
@@ -97,25 +92,21 @@ void DatabaseLogSink<ClusterLog>::process(ClusterLog log)
 template <>
 void DatabaseLogSink<DetectorLog>::process(DetectorLog log)
 {
-	DbEntry entry { "Log" };
-    // timestamp must not be ommited!
-	unsigned long long nanosecondsUTC = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	entry.timestamp()=std::to_string(nanosecondsUTC);
-	Log::debug()<<"DatabaseLogSink::process(DetectorLog log): cluster log timestamp="<<std::to_string(nanosecondsUTC);
-	// tags
-    entry.tags().push_back(std::make_pair("user", log.user_info().username));
-    entry.tags().push_back(std::make_pair("detector", log.user_info().station_id));
-    entry.tags().push_back(std::make_pair("site_id", log.user_info().site_id()));
+    auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
+    auto result { std::move(m_link.measurement("detector_log")
+            <<Influx::Tag{"user", log.user_info().username}
+            <<Influx::Tag{"detector", log.user_info().station_id}
+            <<Influx::Tag{"site_id", log.user_info().site_id()}
+            <<Influx::Field{"eventrate", log.data().mean_eventrate}
+            <<Influx::Field{"pulselength", log.data().mean_pulselength}
+            <<Influx::Field{"incoming", log.data().incoming}
+            <<nanosecondsUTC
+            )};
 
-	// fields
-	entry.fields().push_back(std::make_pair("eventrate", std::make_pair(static_cast<double>(log.data().mean_eventrate),5)));
-	entry.fields().push_back(std::make_pair("pulselength", std::make_pair(static_cast<double>(log.data().mean_pulselength),3)));
-    entry.fields().push_back(std::make_pair("incoming", static_cast<long>(log.data().incoming)));
-
-	if (!m_link.write_entry(entry)) {
-		Log::error()<<"Could not write event to database.";
-		return;
-	}
+    if (!result) {
+        Log::error()<<"Could not write event to database.";
+        return;
+    }
 }
 
 

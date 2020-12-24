@@ -114,6 +114,8 @@ auto MqttSource<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, Mess
         message_id = message[0];
     }
     item.m_hash = user_info.hash();
+	item.m_userinfo = user_info;
+	
     try {
         if (message[1] == "geoHeightMSL") {
             item.m_location.h = std::stod(message[2], nullptr);
@@ -251,7 +253,6 @@ void MqttSource<T>::process(const MqttLink::Message& msg)
             userinfo.station_id = site;
 
             std::size_t hash { userinfo.hash() };
-
 
             if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
                 ItemCollector& item { m_buffer[hash] };

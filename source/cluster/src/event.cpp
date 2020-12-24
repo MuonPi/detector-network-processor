@@ -8,15 +8,14 @@ namespace MuonPi {
 
 
 
-Event::Event(std::size_t hash, std::uint64_t id, Data data) noexcept
+Event::Event(std::size_t hash, Data data) noexcept
     : m_hash { hash }
-    , m_id { id }
     , m_data { std::move(data) }
 {
 }
 
-Event::Event(std::uint64_t id, Event event) noexcept
-    : Event{event.hash(), id, event.data()}
+Event::Event(Event event, bool /*foreign*/) noexcept
+    : Event{event.hash(), event.data()}
 {
     m_data.end = m_data.start;
 
@@ -32,7 +31,6 @@ Event::Event(const Event& other)
     : m_n { other.m_n }
     , m_events { other.m_events }
     , m_hash { other.m_hash }
-    , m_id { other.m_id }
     , m_valid { other.m_valid }
     , m_data { other.m_data }
     , m_detector { other.m_detector }
@@ -43,7 +41,6 @@ Event::Event(Event&& other)
     : m_n { std::move(other.m_n) }
     , m_events { std::move(other.m_events) }
     , m_hash { std::move(other.m_hash) }
-    , m_id { std::move(other.m_id) }
     , m_valid { std::move(other.m_valid) }
     , m_data { std::move(other.m_data) }
     , m_detector { std::move(other.m_detector) }
@@ -55,7 +52,6 @@ auto Event::operator=(const Event& other) -> Event&
     m_n = other.m_n;
     m_events = other.m_events;
     m_hash = other.m_hash;
-    m_id = other.m_id;
     m_valid = other.m_valid;
     m_data = other.m_data;
     m_detector = other.m_detector;
@@ -68,7 +64,6 @@ auto Event::operator=(Event&& other) -> Event&
     m_n = std::move(other.m_n);
     m_events = std::move(other.m_events);
     m_hash = std::move(other.m_hash);
-    m_id = std::move(other.m_id);
     m_valid = std::move(other.m_valid);
     m_data = std::move(other.m_data);
     m_detector = std::move(other.m_detector);
@@ -92,11 +87,6 @@ auto Event::duration() const noexcept -> std::int_fast64_t
 auto Event::end() const noexcept -> std::int_fast64_t
 {
     return m_data.end;
-}
-
-auto Event::id() const noexcept -> std::uint64_t
-{
-    return m_id;
 }
 
 auto Event::hash() const noexcept -> std::size_t

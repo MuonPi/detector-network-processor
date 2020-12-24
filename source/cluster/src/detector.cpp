@@ -7,6 +7,7 @@ namespace MuonPi {
 
 Detector::Detector(const DetectorInfo &initial_log, StateSupervisor& supervisor)
     : m_location { initial_log.location()}
+    , m_time { initial_log.m_time_info }
     , m_hash { initial_log.hash() }
     , m_userinfo { initial_log.user_info() }
     , m_state_supervisor { supervisor }
@@ -44,12 +45,8 @@ void Detector::process(const DetectorInfo &info)
     m_last_log = std::chrono::system_clock::now();
 
     m_location = info.location();
-
-    if ((m_location.prec > Location::maximum_prec) || (m_location.dop > Location::maximum_dop)) {
-        set_status(Status::Unreliable);
-    } else {
-        set_status(Status::Reliable);
-    }
+    m_time = info.m_time_info;
+    check_reliability();
 }
 
 void Detector::set_status(Status status)
@@ -70,6 +67,17 @@ auto Detector::factor() const -> double
     return m_factor;
 }
 
+void Detector::check_reliability()
+{
+    double prec { (m_location.h_acc * m_location.v_acc) };
+    double dop { (m_time.dop * m_time.accuracy) };
+    if ((prec > 100.0) || (dop > 50.0)) {
+        set_status(Status::Unreliable);
+    } else {
+        set_status(Status::Reliable);
+    }
+}
+
 auto Detector::step() -> bool
 {
     auto diff { std::chrono::system_clock::now() - std::chrono::system_clock::time_point { m_last_log } };
@@ -80,11 +88,7 @@ auto Detector::step() -> bool
             set_status(Status::Unreliable);
         }
     } else {
-        if ((m_location.prec > Location::maximum_prec) || (m_location.dop > Location::maximum_dop)) {
-            set_status(Status::Unreliable);
-        } else {
-            set_status(Status::Reliable);
-        }
+        check_reliability();
     }
 
     if (m_current_rate.step()) {
@@ -103,8 +107,8 @@ auto Detector::current_log_data() -> DetectorSummary
 {
     m_current_data.mean_eventrate = m_current_rate.mean();
     m_current_data.mean_pulselength = m_pulselength.mean();
-	m_current_data.mean_time_acc = m_time_acc.mean();
-	
+    m_current_data.mean_time_acc = m_time_acc.mean();
+
     if (m_current_data.ublox_counter_progress == 0) {
         m_current_data.deadtime=1.;
     } else {

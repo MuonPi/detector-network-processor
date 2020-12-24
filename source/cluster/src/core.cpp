@@ -128,7 +128,7 @@ void Core::process(Event event)
         matches.pop();
         if (constructor.event.n() == 1) {
             Event e { std::move(constructor.event) };
-            constructor.event = Event{e.id(), std::move(e)};
+            constructor.event = Event{std::move(e), true};
         }
         constructor.event.add_event(std::move(event));
         return;
@@ -147,7 +147,7 @@ void Core::process(Event event)
     matches.pop();
     if (constructor.event.n() == 1) {
         Event e { std::move(constructor.event) };
-        constructor.event = Event{e.id(), std::move(e)};
+        constructor.event = Event{std::move(e), true};
     }
     constructor.event.add_event(event);
     // +++ Event matches more than one constructor

@@ -14,11 +14,7 @@ struct Location {
     double h { 0.0 };
     double v_acc { 0.0 };
     double h_acc { 0.0 };
-    double prec { std::numeric_limits<double>::max() };
-    double dop { std::numeric_limits<double>::min() };
-
-    static constexpr double maximum_prec { 1.0 };
-    static constexpr double maximum_dop { 1.0 };
+    double dop { 0.0 };
 };
 
 struct Time

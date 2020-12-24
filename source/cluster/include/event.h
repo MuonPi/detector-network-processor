@@ -32,9 +32,9 @@ public:
         std::uint8_t gnss_time_grid {};
     };
 
-    Event(std::size_t hash, std::uint64_t id, Data data) noexcept;
+    Event(std::size_t hash, Data data) noexcept;
 
-    Event(std::uint64_t id, Event event) noexcept;
+    Event(Event event, bool foreign) noexcept;
 
     Event() noexcept;
 
@@ -66,12 +66,6 @@ public:
      * @return The end time of the event
      */
     [[nodiscard]] auto end() const noexcept -> std::int_fast64_t;
-
-    /**
-     * @brief id
-     * @return The id of this event
-     */
-    [[nodiscard]] auto id() const noexcept -> std::uint64_t;
 
     /**
      * @brief hash
@@ -107,7 +101,6 @@ private:
     std::size_t m_n { 1 };
     std::vector<Event> m_events {};
     std::uint64_t m_hash {};
-    std::uint64_t m_id {};
     bool m_valid { true };
 
     Data m_data {};

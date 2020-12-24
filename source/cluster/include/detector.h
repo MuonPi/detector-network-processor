@@ -101,11 +101,14 @@ protected:
 
 private:
 
+    void check_reliability();
+
     std::atomic<Status> m_status { Status::Unreliable };
 
     bool m_initial { true };
 
     Location m_location {};
+    Time m_time {};
     std::size_t m_hash { 0 };
     UserInfo m_userinfo { };
 

@@ -91,7 +91,8 @@ template <>
 MqttSource<DetectorInfo>::ItemCollector::ItemCollector()
     : default_status { 0x00FF }
     , status { default_status }
-{}
+{
+}
 
 template <>
 MqttSource<Event>::ItemCollector::ItemCollector()
@@ -112,6 +113,7 @@ auto MqttSource<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, Mess
         reset();
         message_id = message[0];
     }
+    item.m_hash = user_info.hash();
     try {
         if (message[1] == "geoHeightMSL") {
             item.m_location.h = std::stod(message[2], nullptr);
@@ -119,9 +121,6 @@ auto MqttSource<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, Mess
         } else if (message[1] == "geoHorAccuracy") {
             item.m_location.h_acc = std::stod(message[2], nullptr);
             status &= ~2;
-            if (((status & 2) | (status & 16)) > 16) {
-                item.m_location.prec = (item.m_location.h_acc * 1e-1) * (item.m_location.v_acc * 1e-1);
-            }
         } else if (message[1] == "geoLatitude") {
             item.m_location.lat = std::stod(message[2], nullptr);
             status &= ~4;
@@ -131,9 +130,6 @@ auto MqttSource<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, Mess
         } else if (message[1] == "geoVertAccuracy") {
             item.m_location.v_acc = std::stod(message[2], nullptr);
             status &= ~16;
-            if (((status & 2) | (status & 16)) > 16) {
-                item.m_location.prec = (item.m_location.h_acc * 1e-1) * (item.m_location.v_acc * 1e-1);
-            }
         } else if (message[1] == "positionDOP") {
             item.m_location.dop = std::stod(message[2], nullptr);
             status &= ~32;
@@ -158,11 +154,6 @@ template <>
 auto MqttSource<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> int
 {
     if ((topic.size() >= 4) && (content.size() >= 7)) {
-        std::string name {topic[3] };
-        for (std::size_t i = 4; i < topic.size(); i++) {
-            name += "/" + topic[i];
-        }
-        std::size_t hash { std::hash<std::string>{}(topic[2] + name) };
 
         Event::Data data;
         try {
@@ -192,11 +183,9 @@ auto MqttSource<Event>::ItemCollector::add(MessageParser& topic, MessageParser& 
             return -1;
         }
 
-        std::uint64_t id {(hash & 0xFFFFFFFF00000000) + (0x00000000FFFFFFFF & static_cast<std::uint64_t>(data.start))};
-
         try {
             data.user = topic[2];
-            data.station_id = name;
+            data.station_id = user_info.station_id;
             data.time_acc = static_cast<std::uint32_t>(std::stoul(content[2], nullptr));
             data.ublox_counter = static_cast<std::uint16_t>(std::stoul(content[3], nullptr));
             data.fix = static_cast<std::uint8_t>(std::stoul(content[4], nullptr));
@@ -206,7 +195,7 @@ auto MqttSource<Event>::ItemCollector::add(MessageParser& topic, MessageParser& 
             Log::warning()<<"Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
             return -1;
         }
-        item = Event{hash, id, data};
+        item = Event{user_info.hash(), data};
         status = 0;
         return 0;
     }
@@ -260,12 +249,14 @@ void MqttSource<T>::process(const MqttLink::Message& msg)
                 site += "/" + topic[i];
             }
             userinfo.station_id = site;
-            std::size_t hash { std::hash<std::string>{}(userinfo.site_id()) };
+
+            std::size_t hash { userinfo.hash() };
+
 
             if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
                 ItemCollector& item { m_buffer[hash] };
                 if (item.add(topic, content) == 0) {
-                    this->push_item( item.item );
+                    this->push_item( std::move(item.item) );
                     m_buffer.erase(hash);
                 }
             } else {
@@ -274,7 +265,7 @@ void MqttSource<T>::process(const MqttLink::Message& msg)
                 item.user_info = userinfo;
                 int value { item.add(topic, content) };
                 if (value == 0) {
-                    this->push_item( item.item );
+                    this->push_item( std::move(item.item) );
                 } else if (value > 0) {
                     m_buffer.insert( { hash, item } );
                 }

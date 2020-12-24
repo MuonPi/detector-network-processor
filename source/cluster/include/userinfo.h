@@ -16,6 +16,12 @@ namespace MuonPi {
          * @return The site id as string
          */
         [[nodiscard]] auto site_id() const -> std::string { return username+station_id; }
+
+        /**
+         * @brief hash Create a hashed version of the site_id
+         * @return A size_t containting the hash
+         */
+        [[nodiscard]] auto hash() const -> std::size_t { return std::hash<std::string>{}(site_id()); }
     };
 }
 #endif // USERINFO_H

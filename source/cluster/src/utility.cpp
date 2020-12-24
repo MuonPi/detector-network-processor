@@ -86,6 +86,11 @@ auto MessageParser::operator[](std::size_t i) const -> std::string
     return std::string{ m_fields[i].first, m_fields[i].second };
 }
 
+auto MessageParser::get() const -> std::string
+{
+    return m_content;
+}
+
 GUID::GUID(std::size_t hash, std::uint64_t time)
     : m_first { get_mac() ^ hash ^ (get_number() & 0x00000000FFFFFFFF) }
     , m_second { time ^ (get_number() & 0xFFFFFFFF00000000) }

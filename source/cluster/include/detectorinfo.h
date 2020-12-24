@@ -12,11 +12,19 @@ struct Location {
     double lat { 0.0 };
     double lon { 0.0 };
     double h { 0.0 };
+    double v_acc { 0.0 };
+    double h_acc { 0.0 };
     double prec { std::numeric_limits<double>::max() };
     double dop { std::numeric_limits<double>::min() };
 
     static constexpr double maximum_prec { 1.0 };
     static constexpr double maximum_dop { 1.0 };
+};
+
+struct Time
+{
+    double accuracy { 0.0 };
+    double dop { 0.0 };
 };
 
 /**
@@ -58,17 +66,21 @@ public:
     [[nodiscard]] auto time() const -> std::chrono::system_clock::time_point;
 
 //    [[nodiscard]] auto valid() const -> bool;
-	
+
     /**
      * @brief data Accesses the user info from the object
      * @return the UserInfo struct
      */
     [[nodiscard]] auto user_info() const -> UserInfo;
 
-private:
+
     std::size_t m_hash { 0 };
     Location m_location {};
-	UserInfo m_userinfo {};
+    Time m_time_info {};
+    UserInfo m_userinfo {};
+
+
+private:
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
 
     bool m_valid { true };

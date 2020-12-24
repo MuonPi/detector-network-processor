@@ -102,6 +102,11 @@ public:
      */
     [[nodiscard]] auto operator[](std::size_t i) const -> std::string;
 
+    /**
+     * @brief get Get the original string
+     * @return The original string
+     */
+    [[nodiscard]] auto get() const -> std::string;
 private:
     /**
      * @brief skip_delimiter Skips all delimiters until the next field

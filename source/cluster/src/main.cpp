@@ -2,8 +2,7 @@
 #include "core.h"
 #include "detectortracker.h"
 
-#include "mqtteventsource.h"
-#include "mqttlogsource.h"
+#include "mqttsource.h"
 #include "mqttlink.h"
 #include "statesupervisor.h"
 
@@ -48,18 +47,14 @@ auto main() -> int
     login.password = "goodpassword";
     login.station_id = "ds9";
 
-	MuonPi::MqttLink source_link {login, "116.202.96.181", 1883};
+    MuonPi::MqttLink source_link {login, "116.202.96.181", 1883};
 
     if (!source_link.wait_for(MuonPi::MqttLink::Status::Connected)) {
         return -1;
     }
 
-    MuonPi::MqttEventSource::Subscribers source_topics{
-        source_link.subscribe("muonpi/data/#"),
-        source_link.subscribe("muonpi/l1data/#")
-    };
-    auto event_source { std::make_shared<MuonPi::MqttEventSource>(std::move(source_topics)) };
-    auto log_source { std::make_shared<MuonPi::MqttLogSource<MuonPi::DetectorInfo>>(source_link.subscribe("muonpi/log/#")) };
+    auto event_source { std::make_shared<MuonPi::MqttSource<MuonPi::Event>>(source_link.subscribe("muonpi/data/#")) };
+    auto log_source { std::make_shared<MuonPi::MqttSource<MuonPi::DetectorInfo>>(source_link.subscribe("muonpi/log/#")) };
 
     auto ascii_clusterlog_sink { std::make_shared<MuonPi::AsciiLogSink<MuonPi::ClusterLog>>(std::cout) };
     auto ascii_detectorlog_sink { std::make_shared<MuonPi::AsciiLogSink<MuonPi::DetectorSummary>>(std::cout) };

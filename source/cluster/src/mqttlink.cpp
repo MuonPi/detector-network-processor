@@ -356,6 +356,10 @@ auto MqttLink::Publisher::publish(const std::string& subtopic, const std::string
     return m_link->publish(topic , content);
 }
 
+auto MqttLink::Publisher::get_publish_topic() const -> const std::string& {
+	return m_topic;
+}
+
 auto MqttLink::Subscriber::has_message() const -> bool
 {
     return m_has_message;

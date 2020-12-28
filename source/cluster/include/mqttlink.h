@@ -84,6 +84,12 @@ public:
          * @return true if the sending was successful
          */
         [[nodiscard]] auto publish(const std::string& subtopic, const std::string& content) -> bool;
+		
+		/**
+         * @brief get_publish_topic Gets the topic under which the publisher publishes messages
+         * @return a std::string containing the publish topic
+         */
+		[[nodiscard]] auto get_publish_topic() const -> const std::string&;
 
         Publisher() = default;
     private:
@@ -119,7 +125,10 @@ public:
          * @return an std::pair containting the message
          */
         [[nodiscard]] auto get_message() -> Message;
-
+		/**
+         * @brief get_subscribe_topic Gets the topic the subscriber subscribes to
+         * @return a std::string containing the subscribed topic
+         */
 		[[nodiscard]] auto get_subscribe_topic() const -> const std::string&;
     private:
         friend class MqttLink;

@@ -45,9 +45,9 @@ public:
 
 private:
     /**
-     * @brief compare Compare two timestaps to each other
+     * @brief compare Compare two timestamps to each other
      * @param difference difference between both timestamps
-     * @return returns a value indicating the coincidence time between the two timestamps. @see maximum_fals @see minimum_true for the limits of the values.
+     * @return returns a value indicating the coincidence time between the two timestamps. @see maximum_false @see minimum_true for the limits of the values.
      */
     [[nodiscard]] auto compare(std::int_fast64_t start, std::int_fast64_t end) const -> double;
 

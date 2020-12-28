@@ -1,11 +1,12 @@
-#ifndef MQTTLOGSINK_H
-#define MQTTLOGSINK_H
+#ifndef MQTTSINK_H
+#define MQTTSINK_H
 
 #include "abstractsink.h"
 #include "mqttlink.h"
 #include "log.h"
 #include "clusterlog.h"
 #include "detectorsummary.h"
+#include "event.h"
 
 #include <memory>
 #include <string>
@@ -17,18 +18,18 @@ namespace MuonPi {
 
 template <typename T>
 /**
- * @brief The MqttLogSink class
+ * @brief The MqttSink class
  */
-class MqttLogSink : public AbstractSink<T>
+class MqttSink : public AbstractSink<T>
 {
 public:
     /**
-     * @brief MqttLogSink
+     * @brief MqttSink
      * @param publisher The topic from which the messages should be published
      */
-    MqttLogSink(MqttLink::Publisher& publisher);
+    MqttSink(MqttLink::Publisher& publisher);
 
-    ~MqttLogSink() override;
+    ~MqttSink() override;
 
 protected:
     /**
@@ -73,7 +74,7 @@ private:
 
 
 template <typename T>
-MqttLogSink<T>::MqttLogSink(MqttLink::Publisher& publisher)
+MqttSink<T>::MqttSink(MqttLink::Publisher& publisher)
     : AbstractSink<T>{}
     , m_link { std::move(publisher) }
 {
@@ -81,10 +82,10 @@ MqttLogSink<T>::MqttLogSink(MqttLink::Publisher& publisher)
 }
 
 template <typename T>
-MqttLogSink<T>::~MqttLogSink() = default;
+MqttSink<T>::~MqttSink() = default;
 
 template <typename T>
-auto MqttLogSink<T>::step() -> int
+auto MqttSink<T>::step() -> int
 {
     if (AbstractSink<T>::has_items()) {
         process(AbstractSink<T>::next_item());
@@ -94,14 +95,14 @@ auto MqttLogSink<T>::step() -> int
 }
 
 template <typename T>
-void MqttLogSink<T>::fix_time()
+void MqttSink<T>::fix_time()
 {
     m_time = std::chrono::system_clock::now();
 }
 
 
 template <typename T>
-auto MqttLogSink<T>::construct(const std::string& parname) -> Constructor
+auto MqttSink<T>::construct(const std::string& parname) -> Constructor
 {
     std::ostringstream stream{};
 
@@ -113,7 +114,7 @@ auto MqttLogSink<T>::construct(const std::string& parname) -> Constructor
 }
 
 template <>
-void MqttLogSink<ClusterLog>::process(ClusterLog log)
+void MqttSink<ClusterLog>::process(ClusterLog log)
 {
     fix_time();
     if (!(
@@ -142,7 +143,7 @@ void MqttLogSink<ClusterLog>::process(ClusterLog log)
 }
 
 template <>
-void MqttLogSink<DetectorSummary>::process(DetectorSummary log)
+void MqttSink<DetectorSummary>::process(DetectorSummary log)
 {
     fix_time();
     std::string name { log.user_info().username + " " + log.user_info().station_id};
@@ -158,6 +159,18 @@ void MqttLogSink<DetectorSummary>::process(DetectorSummary log)
     }
 }
 
+template <>
+void MqttSink<Event>::process(Event /*evt*/)
+{
+    //MessageConstructor message {' '};
+
+    // todo: construct message string
+
+    if (m_link.publish("")) {
+        Log::warning()<<"Could not publish MQTT message.";
+    }
 }
 
-#endif // MQTTLOGSINK_H
+}
+
+#endif // MQTTSINK_H

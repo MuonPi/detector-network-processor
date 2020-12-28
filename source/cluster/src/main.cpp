@@ -9,12 +9,10 @@
 #define CLUSTER_RUN_SERVER
 
 #ifdef CLUSTER_RUN_SERVER
-#include "databaseeventsink.h"
-#include "databaselogsink.h"
+#include "databasesink.h"
 #include "databaselink.h"
 #else
-#include "mqtteventsink.h"
-#include "mqttlogsink.h"
+#include "mqttsink.h"
 #endif
 
 #include "asciieventsink.h"
@@ -43,11 +41,11 @@ auto main() -> int
 
 
     MuonPi::MqttLink::LoginData login;
-    login.username = "benjamin";
+	login.username = "benjamin";
     login.password = "goodpassword";
     login.station_id = "ds9";
 
-    MuonPi::MqttLink source_link {login, "116.202.96.181", 1883};
+	MuonPi::MqttLink source_link {login, "116.202.96.181", 1883};
 
     if (!source_link.wait_for(MuonPi::MqttLink::Status::Connected)) {
         return -1;
@@ -64,9 +62,9 @@ auto main() -> int
 #ifdef CLUSTER_RUN_SERVER
     MuonPi::DatabaseLink db_link {"", {"", ""}, ""};
 
-    auto event_sink { std::make_shared<MuonPi::DatabaseEventSink>(db_link) };
-    auto clusterlog_sink { std::make_shared<MuonPi::DatabaseLogSink<MuonPi::ClusterLog>>(db_link) };
-    auto detectorlog_sink { std::make_shared<MuonPi::DatabaseLogSink<MuonPi::DetectorSummary>>(db_link) };
+    auto event_sink { std::make_shared<MuonPi::DatabaseSink<MuonPi::Event>>(db_link) };
+    auto clusterlog_sink { std::make_shared<MuonPi::DatabaseSink<MuonPi::ClusterLog>>(db_link) };
+    auto detectorlog_sink { std::make_shared<MuonPi::DatabaseSink<MuonPi::DetectorSummary>>(db_link) };
 
 #else
     MuonPi::MqttLink sink_link {login, "116.202.96.181", 1883};
@@ -75,14 +73,9 @@ auto main() -> int
         return -1;
     }
 
-    MuonPi::MqttEventSink::Publishers sink_topics {
-        sink_link.publish("muonpi/events"),
-        sink_link.publish("muonpi/l1data")
-    };
-
-    auto event_sink { std::make_shared<MuonPi::MqttEventSink>(std::move(sink_topics)) };
-    auto clusterlog_sink { std::make_shared<MuonPi::MqttLogSink<MuonPi::ClusterLog>>(sink_link.publish("muonpi/cluster")) };
-    auto detectorlog_sink { std::make_shared<MuonPi::MqttLogSink<MuonPi::DetectorSummary>>(sink_link.publish("muonpi/cluster")) };
+    auto event_sink { std::make_shared<MuonPi::MqttSink<MuonPi::Event>>(sink_link.publish("muonpi/events")) };
+    auto clusterlog_sink { std::make_shared<MuonPi::MqttSink<MuonPi::ClusterLog>>(sink_link.publish("muonpi/cluster")) };
+    auto detectorlog_sink { std::make_shared<MuonPi::MqttSink<MuonPi::DetectorSummary>>(sink_link.publish("muonpi/cluster")) };
 
 #endif
 

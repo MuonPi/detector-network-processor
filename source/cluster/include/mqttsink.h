@@ -160,17 +160,69 @@ void MqttSink<DetectorSummary>::process(DetectorSummary log)
 }
 
 template <>
-void MqttSink<Event>::process(Event /*evt*/)
+void MqttSink<Event>::process(Event event)
 {
-    //MessageConstructor message {' '};
-
-    // todo: construct message string
-
-    if (m_link.publish("")) {
-        Log::warning()<<"Could not publish MQTT message.";
+    if (event.n() == 1) {
+        // by default, don't send out single events via MQTT
+        return;
     }
+
+    const std::int64_t cluster_coinc_time = event.end() - event.start();
+    GUID guid{event.hash(), static_cast<std::uint64_t>(event.start())};
+    for (auto& evt: event.events()) {
+		MessageConstructor message {' '};
+		message.add_field(guid.to_string()); // UUID for the L1Event
+		message.add_field(evt.data().user); // user name
+		message.add_field(evt.data().station_id); // station (detector) name
+		message.add_field(std::to_string(evt.data().time_acc)); // station's time accuracy
+		message.add_field(std::to_string(event.n())); // event multiplicity (coinc level)
+		message.add_field(std::to_string(cluster_coinc_time)); // total time span of the event (last - first)
+		message.add_field(std::to_string(evt.start() - event.start())); // relative time of the station within the event (referred to first detector hit)
+		message.add_field(std::to_string(evt.data().ublox_counter)); // the station's hardware event counter (16bit)
+		message.add_field(std::to_string(evt.duration())); // the pulse length of the station for the hit contributing to this event
+		message.add_field(std::to_string(evt.data().gnss_time_grid)); // the time grid to which the station was synced at the moment of the event
+		message.add_field(std::to_string(evt.data().fix)); // if the station had a valid GNSS fix at the time of the event
+		message.add_field(std::to_string(evt.start())); // the timestamp of the station's hit
+		if (!m_link.publish(message.get_string())) {
+				Log::warning()<<"Could not publish MQTT message.";
+				return;
+		}
+	}
 }
 
 }
 
 #endif // MQTTSINK_H
+/*
+    if (event.n() == 1) {
+        // by default, don't write the single events to the db
+        return;
+    }
+
+    const std::int64_t cluster_coinc_time = event.end() - event.start();
+    GUID guid{event.hash(), static_cast<std::uint64_t>(event.start())};
+    for (auto& evt: event.events()) {
+        bool result = m_link.measurement("L1Event")
+                <<Influx::Tag{"user", evt.data().user}
+                <<Influx::Tag{"detector", evt.data().station_id}
+                <<Influx::Tag{"site_id", evt.data().user + evt.data().station_id}
+                <<Influx::Field{"accuracy", evt.data().time_acc}
+                <<Influx::Field{"uuid", guid.to_string()}
+                <<Influx::Field{"coinc_level", event.n()}
+                <<Influx::Field{"counter", evt.data().ublox_counter}
+                <<Influx::Field{"length", evt.duration()}
+                <<Influx::Field{"coinc_time", evt.start() - event.start()}
+                <<Influx::Field{"cluster_coinc_time", cluster_coinc_time}
+                <<Influx::Field{"time_ref", evt.data().gnss_time_grid}
+                <<Influx::Field{"valid_fix", evt.data().fix}
+                <<evt.start();
+
+
+        if (!result) {
+            Log::error()<<"Could not write event to database.";
+            return;
+        }
+    }
+    
+*/
+

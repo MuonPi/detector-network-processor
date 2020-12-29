@@ -86,11 +86,16 @@ public:
     [[nodiscard]] auto current_log_data() -> DetectorSummary;
 
     /**
-     * @brief data Accesses the user info from the object
+     * @brief user_info Accesses the user info from the object
      * @return the UserInfo struct
      */
     [[nodiscard]] auto user_info() const -> UserInfo;
 
+    /**
+     * @brief location Accesses the location info of the detector
+     * @return the Location struct
+     */
+    [[nodiscard]] auto location() const -> Location { return m_location; }
 
 protected:
     /**

@@ -142,5 +142,9 @@ void Event::set_detector(std::shared_ptr<Detector> detector)
     m_detector = detector;
 }
 
+auto Event::detector() const -> const std::shared_ptr<Detector>
+{
+    return m_detector;
+}
 
 }

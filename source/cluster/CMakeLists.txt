@@ -66,6 +66,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/log.cpp"
     "${PROJECT_SRC_DIR}/utility.cpp"
     "${PROJECT_SRC_DIR}/statesupervisor.cpp"
+    "${PROJECT_SRC_DIR}/geohash.cpp"
     #"${PROJECT_SRC_DIR}/configuration.cpp"
     )
 
@@ -96,6 +97,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/statesupervisor.h"
     #"${PROJECT_HEADER_DIR}/configuration.h"
     "${PROJECT_HEADER_DIR}/userinfo.h"
+    "${PROJECT_HEADER_DIR}/geohash.h"
     )
 
 configure_file(

@@ -41,11 +41,10 @@ auto main() -> int
 
 
     MuonPi::MqttLink::LoginData login;
-	login.username = "benjamin";
-    login.password = "goodpassword";
-    login.station_id = "ds9";
-
-	MuonPi::MqttLink mqtt_link {login, "116.202.96.181", 1883};
+	login.username = "";
+    login.password = "";
+    login.station_id = "";
+    MuonPi::MqttLink mqtt_link {login, "116.202.96.181", 1883};
 
     if (!mqtt_link.wait_for(MuonPi::MqttLink::Status::Connected)) {
         return -1;

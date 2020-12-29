@@ -15,15 +15,15 @@
 namespace MuonPi {
 
 /**
- * @brief The MqttLogSource class
+ * @brief The MqttSource class
  */
 template <class T>
 class MqttSource : public AbstractSource<T>
 {
 public:
     /**
-     * @brief MqttLogSource
-     * @param subscriber The Mqtt Topic this Log source should be subscribed to
+     * @brief MqttSource
+     * @param subscriber The Mqtt Topic this source should be subscribed to
      */
     MqttSource(MqttLink::Subscriber& subscriber);
 

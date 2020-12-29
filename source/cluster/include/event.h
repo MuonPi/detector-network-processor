@@ -48,6 +48,8 @@ public:
 
 
     void set_detector(std::shared_ptr<Detector> detector);
+	
+	auto detector() const -> const std::shared_ptr<Detector>;
 
     /**
      * @brief start

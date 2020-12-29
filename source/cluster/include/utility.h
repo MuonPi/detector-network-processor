@@ -9,6 +9,9 @@
 #include <cmath>
 #include <array>
 #include <atomic>
+#include <sstream>
+#include <iomanip>
+
 
 template<class T, class U>
 auto has_plus_test(T&& t, U&& u) -> decltype(static_cast<void>(t + u), std::true_type{});
@@ -208,6 +211,21 @@ private:
     std::size_t m_index;
     bool m_full { false };
 };
+
+/// Vertextet einen Ganzzahlwert val im Hexadezimalformat.
+/// Auf die Minimal-Breite width wird mit führenden Nullen aufgefüllt;
+/// falls nicht angegeben, wird diese Breite aus dem Typ des Arguments
+/// abgeleitet. Funktion geeignet von char bis long long.
+/// Zeiger, Fließkommazahlen u.ä. werden nicht unterstützt, ihre
+/// Übergabe führt zu einem (beabsichtigten!) Compilerfehler.
+/// Grundlagen aus: http://stackoverflow.com/a/5100745/2932052
+template <typename T>
+inline std::string int_to_hex(T val, size_t width=sizeof(T)*2)
+{
+    std::stringstream ss;
+    ss << std::setfill('0') << std::setw(width) << std::hex << (val|0);
+    return ss.str();
+}
 
 
 // +++++++++++++++++++++++++++++++

@@ -3,6 +3,7 @@ Description=muondetector-cluster - calculate coincidences for the MuonPi network
 After=network.target
 
 [Service]
+SyslogIdentifier=muondetector-cluster
 Type=simple
 User=muonuser
 ExecStart=/usr/bin/muondetector-cluster

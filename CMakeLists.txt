@@ -5,12 +5,10 @@ string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(PROJECT_TEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/test")
 set(PROJECT_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config")
-set(LIBRARY_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../library/include/")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../bin")
-include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/version.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake")
 
 if(${MUONDETECTOR_BUILD_TIDY})
   set(CMAKE_CXX_CLANG_TIDY
@@ -23,9 +21,6 @@ endif(${MUONDETECTOR_BUILD_TIDY})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (MUONDETECTOR_ENABLE_TESTING)
-find_library(CPP_UNIT cppunit REQUIRED)
-endif ()
 
 add_compile_options(
     -Wall
@@ -67,7 +62,6 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility.cpp"
     "${PROJECT_SRC_DIR}/statesupervisor.cpp"
     "${PROJECT_SRC_DIR}/geohash.cpp"
-    #"${PROJECT_SRC_DIR}/configuration.cpp"
     )
 
 set(CLUSTER_HEADER_FILES
@@ -95,7 +89,6 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/log.h"
     "${PROJECT_HEADER_DIR}/utility.h"
     "${PROJECT_HEADER_DIR}/statesupervisor.h"
-    #"${PROJECT_HEADER_DIR}/configuration.h"
     "${PROJECT_HEADER_DIR}/userinfo.h"
     "${PROJECT_HEADER_DIR}/geohash.h"
     )
@@ -105,42 +98,31 @@ configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1"
     )
 
+configure_file(
+    "${PROJECT_CONFIG_DIR}/version.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    )
+
 add_library(source-files OBJECT ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES})
 target_include_directories(source-files PUBLIC
     ${PROJECT_HEADER_DIR}
-    "${CMAKE_CURRENT_SOURCE_DIR}/external/"
-    $<BUILD_INTERFACE:${LIBRARY_INCLUDE_DIR}>)
-
-target_include_directories(source-files PUBLIC
-    $<BUILD_INTERFACE:/usr/local/include/mqtt>
-    $<INSTALL_INTERFACE:include/mqtt>
+    ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 add_executable(muondetector-cluster "${PROJECT_SRC_DIR}/main.cpp")
 
 target_include_directories(muondetector-cluster PUBLIC
     ${PROJECT_HEADER_DIR}
-    "${CMAKE_CURRENT_SOURCE_DIR}/external/"
-    $<BUILD_INTERFACE:${LIBRARY_INCLUDE_DIR}>)
-
-target_include_directories(muondetector-cluster PUBLIC
-    $<BUILD_INTERFACE:/usr/local/include/mqtt>
-    $<INSTALL_INTERFACE:include/mqtt>
+    ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 target_link_libraries(muondetector-cluster
     crypto++
-#    config++
     mosquitto
     source-files
     pthread
     curl
     )
-
-target_include_directories(muondetector-cluster PUBLIC
-    $<BUILD_INTERFACE:/usr/local/include/mqtt>
-    $<INSTALL_INTERFACE:include/mqtt>)
-
 
 
 include(GNUInstallDirs)

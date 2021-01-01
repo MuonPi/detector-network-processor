@@ -59,4 +59,9 @@ auto DetectorSummary::valid() const -> bool
 {
     return m_valid;
 }
+
+void DetectorSummary::set_change_flag()
+{
+    m_data.change = 1;
+}
 }

@@ -122,6 +122,14 @@ auto Detector::current_log_data() -> DetectorSummary
     return log;
 }
 
+auto Detector::change_log_data() -> DetectorSummary
+{
+    auto summary { current_log_data() };
+    summary.set_change_flag();
+    return summary;
+}
+
+
 auto Detector::user_info() const -> UserInfo
 {
     return m_userinfo;

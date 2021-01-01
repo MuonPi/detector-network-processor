@@ -84,7 +84,7 @@ auto main() -> int
 
     MuonPi::Sink::Collection<MuonPi::Event, 2> incoming_sinks {{&core, &event_sinks}};
 
-    MuonPi::Source::Mqtt<MuonPi::Event> event_source { incoming_sinks, mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> event_source { core, mqtt_link.subscribe("muonpi/data/#") };
     MuonPi::Source::Mqtt<MuonPi::DetectorInfo> log_source { detector_tracker, mqtt_link.subscribe("muonpi/log/#") };
 
     supervisor.add_thread(&detector_tracker);

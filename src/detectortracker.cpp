@@ -94,7 +94,7 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
     if (status == Detector::Status::Deleted) {
         m_delete_detectors.push(hash);
     } else if (status > Detector::Status::Deleted) {
-        m_summary_sink.get( m_detectors[hash]->current_log_data() );
+        m_summary_sink.get( m_detectors[hash]->change_log_data() );
     }
     m_supervisor.detector_status(hash, status);
 }

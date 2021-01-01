@@ -83,6 +83,8 @@ public:
 
     [[nodiscard]] auto current_log_data() -> DetectorSummary;
 
+    [[nodiscard]] auto change_log_data() -> DetectorSummary;
+
     /**
      * @brief user_info Accesses the user info from the object
      * @return the UserInfo struct

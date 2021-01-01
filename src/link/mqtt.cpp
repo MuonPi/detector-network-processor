@@ -170,14 +170,8 @@ auto Mqtt::post_run() -> int
 
 auto Mqtt::publish(const std::string& topic, const std::string& content) -> bool
 {
-    if (m_status != Status::Connected) {
-        if (m_status == Status::Connecting) {
-            if (!wait_for(Status::Connected)) {
-                return false;
-            }
-        } else {
-            return false;
-        }
+    if (!check_connection()) {
+        return false;
     }
     auto result { mosquitto_publish(m_mqtt, nullptr, topic.c_str(), static_cast<int>(content.size()), reinterpret_cast<const void*>(content.c_str()), 1, false) };
     if (result == MOSQ_ERR_SUCCESS) {
@@ -189,14 +183,8 @@ auto Mqtt::publish(const std::string& topic, const std::string& content) -> bool
 
 void Mqtt::unsubscribe(const std::string& topic)
 {
-    if (m_status != Status::Connected) {
-        if (m_status == Status::Connecting) {
-            if (!wait_for(Status::Connected)) {
-                return;
-            }
-        } else {
-            return;
-        }
+    if (!check_connection()) {
+        return;
     }
     Log::info()<<"Unsubscribing from " + topic;
     mosquitto_unsubscribe(m_mqtt, nullptr, topic.c_str());
@@ -204,16 +192,8 @@ void Mqtt::unsubscribe(const std::string& topic)
 
 auto Mqtt::publish(const std::string& topic) -> Publisher&
 {
-    if (m_status != Status::Connected) {
-        if (m_status == Status::Connecting) {
-            if (!wait_for(Status::Connected)) {
-                Log::warning()<<"Mqtt not connected.";
-                throw -1;
-            }
-        } else {
-            Log::warning()<<"Mqtt not connected.";
-            throw -1;
-        }
+    if (!check_connection()) {
+        throw -1;
     }
     if (m_publishers.find(topic) != m_publishers.end()) {
         return {*m_publishers[topic]};
@@ -223,24 +203,24 @@ auto Mqtt::publish(const std::string& topic) -> Publisher&
     return {*m_publishers[topic]};
 }
 
-auto Mqtt::subscribe(const std::string& topic) -> Subscriber&
+auto Mqtt::check_connection() -> bool
 {
     if (m_status != Status::Connected) {
         if (m_status == Status::Connecting) {
             if (!wait_for(Status::Connected)) {
                 Log::warning()<<"Mqtt not connected.";
-                throw -1;
+                return false;
             }
         } else {
             Log::warning()<<"Mqtt not connected.";
-            throw -1;
+            return false;
         }
     }
-    std::string check_topic { topic};
-    if (m_subscribers.find(topic) != m_subscribers.end()) {
-        Log::info()<<"Topic already subscribed.";
-        return {*m_subscribers[topic]};
-    }
+    return true;
+}
+
+auto Mqtt::p_subscribe(const std::string& topic) -> bool
+{
     auto result { mosquitto_subscribe(m_mqtt, nullptr, topic.c_str(), 1) };
     if (result != MOSQ_ERR_SUCCESS) {
         switch (result) {
@@ -257,6 +237,24 @@ auto Mqtt::subscribe(const std::string& topic) -> Subscriber&
             Log::error()<<"Could not subscribe to topic '" + topic + "': malformed utf8";
             break;
         }
+        return false;
+    }
+    return true;
+}
+
+auto Mqtt::subscribe(const std::string& topic) -> Subscriber&
+{
+    if (!check_connection()) {
+        throw -1;
+    }
+
+    std::string check_topic { topic};
+    if (m_subscribers.find(topic) != m_subscribers.end()) {
+        Log::info()<<"Topic already subscribed.";
+        return {*m_subscribers[topic]};
+    }
+
+    if (!p_subscribe(topic)) {
         throw -1;
     }
     m_subscribers[topic] = std::make_unique<Subscriber>(this, topic);
@@ -266,6 +264,8 @@ auto Mqtt::subscribe(const std::string& topic) -> Subscriber&
 
 auto Mqtt::connect(std::size_t n) -> bool
 {
+    std::this_thread::sleep_for( std::chrono::seconds{1 * m_tries} );
+
     m_tries++;
     set_status(Status::Connecting);
     static constexpr std::size_t max_tries { 5 };
@@ -281,9 +281,9 @@ auto Mqtt::connect(std::size_t n) -> bool
     }
     auto result { mosquitto_connect(m_mqtt, m_host.c_str(), m_port, 60) };
     if (result == MOSQ_ERR_SUCCESS) {
+        m_tries = 0;
         return true;
     }
-    std::this_thread::sleep_for( std::chrono::seconds{1} );
     Log::warning()<<"Could not connect to MQTT: " + std::to_string(result);
     return connect(n + 1);
 }
@@ -305,24 +305,62 @@ auto Mqtt::disconnect() -> bool
 
 auto Mqtt::reconnect(std::size_t n) -> bool
 {
+    std::this_thread::sleep_for( std::chrono::seconds{1 * m_tries} );
+
     m_tries++;
     set_status(Status::Disconnected);
-    static constexpr std::size_t max_tries { 5 };
 
-    if ((n > max_tries) || (m_tries > max_tries*2)) {
-        set_status(Status::Error);
+    if ((n > s_max_tries) || (m_tries > s_max_tries*2)) {
+
         Log::error()<<"Giving up trying to reconnect to MQTT.";
-        return false;
+        return reinitialise();
     }
 
     Log::info()<<"Trying to reconnect to MQTT.";
     auto result { mosquitto_reconnect(m_mqtt) };
     if (result == MOSQ_ERR_SUCCESS) {
+        m_tries = 0;
         return true;
     }
-    std::this_thread::sleep_for( std::chrono::seconds{1} );
     Log::error()<<"Could not reconnect to MQTT: " + std::to_string(result);
     return reconnect(n + 1);
+}
+
+auto Mqtt::reinitialise(std::size_t n) -> bool
+{
+    std::this_thread::sleep_for( std::chrono::seconds{5 * (m_tries)} );
+
+    if ((n > s_max_tries) || (m_tries > s_max_tries*2)) {
+        set_status(Status::Error);
+        Log::error()<<"Giving up trying to reinitialise connection.";
+        return false;
+    }
+
+    Log::info()<<"Trying to reinitialise MQTT connection.";
+
+    m_tries++;
+
+
+    for (auto& [topic, subscriber]: m_subscribers) {
+        unsubscribe(topic);
+    }
+    disconnect();
+
+    if (!connect()) {
+        return reinitialise(n + 1);
+    }
+
+    if (!check_connection()) {
+        return reinitialise(n + 1);
+    }
+
+    for (auto& [topic, subscriber]: m_subscribers) {
+        if (!p_subscribe(topic)) {
+            return reinitialise(n + 1);
+        }
+    }
+    m_tries = 0;
+    return true;
 }
 
 void Mqtt::set_status(Status status) {

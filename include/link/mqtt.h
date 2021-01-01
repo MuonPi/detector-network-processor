@@ -219,6 +219,15 @@ private:
      */
     [[nodiscard]] auto reconnect(std::size_t n = 0) -> bool;
 
+    /**
+     * @brief reconnect attempt a reconnect after the connection was lost.
+     * @return true if the reconnect was successful.
+     */
+    [[nodiscard]] auto reinitialise(std::size_t n = 0) -> bool;
+
+    [[nodiscard]] auto check_connection() -> bool;
+
+    [[nodiscard]] auto p_subscribe(const std::string& topic) -> bool;
 
     /**
      * @brief init Initialise the mosquitto object. This is necessary since the mosquitto_lib_init() needs to be called before mosquitto_new().
@@ -241,6 +250,7 @@ private:
     std::map<std::string, std::unique_ptr<Subscriber>> m_subscribers {};
 
     std::size_t m_tries { 0 };
+    static constexpr std::size_t s_max_tries { 5 };
 
     /**
      * @brief callback_connected Gets called by mosquitto client

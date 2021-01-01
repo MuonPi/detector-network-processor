@@ -25,7 +25,6 @@ auto DetectorTracker::accept(Event& event) const -> bool
         (*detector).second->process(event);
 
         event.set_detector((*detector).second);
-
         return ((*detector).second->is(Detector::Status::Reliable));
     }
     return false;
@@ -35,8 +34,7 @@ auto DetectorTracker::process(DetectorInfo log) -> int
 {
     auto detector { m_detectors.find(log.hash()) };
     if (detector == m_detectors.end()) {
-        m_supervisor.detector_status(log.hash(), Detector::Status::Created);
-        m_detectors[log.hash()] = std::make_unique<Detector>(log, m_supervisor);
+        m_detectors[log.hash()] = std::make_unique<Detector>(log, *this);
         return 0;
     }
     (*detector).second->process(log);
@@ -56,11 +54,8 @@ auto DetectorTracker::process() -> int
     std::size_t reliable { 0 };
     for (auto& [hash, detector]: m_detectors) {
 
-        if (!detector->step()) {
-            m_supervisor.detector_status(hash, Detector::Status::Deleted);
-            m_delete_detectors.push(hash);
-            continue;
-        }
+        detector->step();
+
         if (detector->is(Detector::Status::Reliable)) {
             reliable++;
             if (detector->factor() > largest) {
@@ -92,5 +87,15 @@ auto DetectorTracker::process() -> int
     // --- push detector log messages at regular interval
 
     return 0;
+}
+
+void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
+{
+    if (status == Detector::Status::Deleted) {
+        m_delete_detectors.push(hash);
+    } else if (status > Detector::Status::Deleted) {
+        m_summary_sink.get( m_detectors[hash]->current_log_data() );
+    }
+    m_supervisor.detector_status(hash, status);
 }
 }

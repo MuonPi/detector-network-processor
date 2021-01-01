@@ -17,6 +17,7 @@ namespace MuonPi {
 // +++ forward declarations
 class Event;
 class StateSupervisor;
+class DetectorTracker;
 // --- forward declarations
 
 
@@ -47,7 +48,7 @@ public:
      * @brief Detector
      * @param initial_log The initial log message from which this detector object originates
      */
-    Detector(const DetectorInfo& initial_log, StateSupervisor& supervisor);
+    Detector(const DetectorInfo& initial_log, DetectorTracker& tracker);
 
 
     /**
@@ -74,11 +75,8 @@ public:
      * @return the numeric factor
      */
     [[nodiscard]] auto factor() const -> double;
-    /**
-     * @brief step Reimplemented from ThreadRunner
-     * @return true
-     */
-    [[nodiscard]] auto step() -> bool;
+
+    void step();
 
 //	[[nodiscard]] auto mean_rate() const -> MeanRateType;
 //	[[nodiscard]] auto current_rate() const -> CurrentRateType;
@@ -122,7 +120,7 @@ private:
     static constexpr std::chrono::system_clock::duration s_log_interval { std::chrono::seconds { 90 } };
     static constexpr std::chrono::system_clock::duration s_quit_interval { s_log_interval * 3 };
 
-    StateSupervisor& m_state_supervisor;
+    DetectorTracker& m_detector_tracker;
 
     CurrentRateType m_current_rate {};
     MeanRateType m_mean_rate {};

@@ -72,7 +72,6 @@ void Database<ClusterLog>::get(ClusterLog log)
     auto result { fields<<nanosecondsUTC };
 
     if (!result) {
-        Log::error()<<"Could not write event to database.";
         return;
     }
 }
@@ -97,7 +96,6 @@ void Database<DetectorSummary>::get(DetectorSummary log)
             )};
 
     if (!result) {
-        Log::error()<<"Could not write event to database.";
         return;
     }
 }
@@ -131,7 +129,6 @@ void Database<Event>::get(Event event)
 
 
         if (!result) {
-            Log::error()<<"Could not write event to database.";
             return;
         }
     }

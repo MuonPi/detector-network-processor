@@ -2,6 +2,7 @@
 #define DETECTORTRACKER_H
 
 #include "sink/base.h"
+#include "detector.h"
 
 #include <map>
 #include <memory>
@@ -13,7 +14,6 @@ namespace MuonPi {
 class Event;
 class DetectorInfo;
 class DetectorSummary;
-class Detector;
 class StateSupervisor;
 
 
@@ -40,6 +40,12 @@ public:
      */
     [[nodiscard]] auto factor() const -> double;
 
+    /**
+     * @brief detector_status Update the status of one detector
+     * @param hash The hashed detector identifier
+     * @param status The new status of the detector
+     */
+    void detector_status(std::size_t hash, Detector::Status status);
 
 protected:
 

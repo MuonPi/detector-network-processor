@@ -3,15 +3,18 @@
 #include "utility/log.h"
 #include "supervision/state.h"
 
+#include "detectortracker.h"
+
 namespace MuonPi {
 
-Detector::Detector(const DetectorInfo &initial_log, StateSupervisor& supervisor)
+Detector::Detector(const DetectorInfo &initial_log, DetectorTracker& tracker)
     : m_location { initial_log.location()}
     , m_time { initial_log.m_time_info }
     , m_hash { initial_log.hash() }
     , m_userinfo { initial_log.user_info() }
-    , m_state_supervisor { supervisor }
+    , m_detector_tracker { tracker }
 {
+    set_status(Status::Created);
 }
 
 void Detector::process(const Event& event)
@@ -52,7 +55,7 @@ void Detector::process(const DetectorInfo &info)
 void Detector::set_status(Status status)
 {
     if (m_status != status) {
-        m_state_supervisor.detector_status(m_hash, status);
+        m_detector_tracker.detector_status(m_hash, status);
     }
     m_status = status;
 }
@@ -78,12 +81,13 @@ void Detector::check_reliability()
     }
 }
 
-auto Detector::step() -> bool
+void Detector::step()
 {
     auto diff { std::chrono::system_clock::now() - std::chrono::system_clock::time_point { m_last_log } };
     if (diff > s_log_interval) {
         if (diff > s_quit_interval) {
-            return false;
+            set_status(Status::Deleted);
+            return;
         } else {
             set_status(Status::Unreliable);
         }
@@ -99,8 +103,6 @@ auto Detector::step() -> bool
             m_factor = 1.0;
         }
     }
-
-    return true;
 }
 
 auto Detector::current_log_data() -> DetectorSummary

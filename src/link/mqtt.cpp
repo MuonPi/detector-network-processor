@@ -337,11 +337,6 @@ auto Mqtt::reinitialise() -> bool
 
     Log::info()<<"Trying to reinitialise MQTT connection.";
 
-    for (auto& [topic, subscriber]: m_subscribers) {
-        unsubscribe(topic);
-    }
-    disconnect();
-
     if (m_mqtt != nullptr) {
         mosquitto_destroy(m_mqtt);
         m_mqtt = nullptr;
@@ -357,13 +352,8 @@ auto Mqtt::reinitialise() -> bool
     if (!connect()) {
         return reinitialise();
     }
-/*
-    if (!check_connection()) {
-        m_tries++;
-        return reinitialise();
-    }
 
-  */  return true;
+    return true;
 }
 
 void Mqtt::set_status(Status status) {

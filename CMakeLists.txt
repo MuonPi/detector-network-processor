@@ -3,7 +3,8 @@ project(muondetector-cluster LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
-set(CLUSTER_RUN_SERVER ON)
+option(CLUSTER_RUN_SERVER "Build the cluster code so it behaves so it uses the database sinks" ON)
+option(CLUSTER_RUN_SERVICE "Build the cluster code so it works nicely with init scripts" ON)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")

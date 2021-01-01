@@ -178,7 +178,7 @@ private:
 
     std::size_t m_index { 0 };
 
-    std::atomic<std::size_t> m_current_n { 0 };
+    std::size_t m_current_n { 0 };
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 };
 

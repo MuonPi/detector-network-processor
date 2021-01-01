@@ -35,17 +35,20 @@ void signal_handler(int signal)
 
 auto main() -> int
 {
+#ifndef CLUSTER_RUN_SERVICE
     MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::StreamSink>(std::cerr));
-//    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::SyslogSink>());
+#else
+    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::SyslogSink>());
+#endif
 
 
     MuonPi::Link::Mqtt::LoginData login;
 
-    login.username = "";
-    login.password = "";
-    login.station_id = "";
+    login.username = MuonPi::Config::mqtt.login.username;
+    login.password = MuonPi::Config::mqtt.login.password;
+    login.station_id = MuonPi::Config::mqtt.login.station_id;
 
-    MuonPi::Link::Mqtt mqtt_link {login, "116.202.96.181", 1883};
+    MuonPi::Link::Mqtt mqtt_link {login, MuonPi::Config::mqtt.host, MuonPi::Config::mqtt.port};
 
     if (!mqtt_link.wait_for(MuonPi::Link::Mqtt::Status::Connected)) {
         return -1;
@@ -57,7 +60,7 @@ auto main() -> int
     MuonPi::Sink::Ascii<MuonPi::Event> ascii_event_sink { std::cout };
 
 #ifdef CLUSTER_RUN_SERVER
-    MuonPi::Link::Database db_link {"", {"", ""}, ""};
+    MuonPi::Link::Database db_link {MuonPi::Config::influx.host, {MuonPi::Config::influx.login.username, MuonPi::Config::influx.login.password}, MuonPi::Config::influx.database};
 
     MuonPi::Sink::Database<MuonPi::Event> event_sink { db_link };
     MuonPi::Sink::Database<MuonPi::ClusterLog> clusterlog_sink { db_link };
@@ -71,7 +74,7 @@ auto main() -> int
 
 #endif
 
-//    MuonPi::Sink::Mqtt<MuonPi::Event> mqtt_broadcast_sink { mqtt_link.publish("muonpi/events") };
+    MuonPi::Sink::Mqtt<MuonPi::Event> mqtt_broadcast_sink { mqtt_link.publish("muonpi/events") };
 
 
     MuonPi::Sink::Collection<MuonPi::ClusterLog, 2> cluster_sinks {{&ascii_clusterlog_sink, &clusterlog_sink}};

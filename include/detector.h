@@ -78,9 +78,6 @@ public:
 
     void step();
 
-//	[[nodiscard]] auto mean_rate() const -> MeanRateType;
-//	[[nodiscard]] auto current_rate() const -> CurrentRateType;
-
     [[nodiscard]] auto current_log_data() -> DetectorSummary;
 
     [[nodiscard]] auto change_log_data() -> DetectorSummary;
@@ -90,6 +87,8 @@ public:
      * @return the UserInfo struct
      */
     [[nodiscard]] auto user_info() const -> UserInfo;
+
+    [[nodiscard]] auto time_info() const -> Time;
 
     /**
      * @brief location Accesses the location info of the detector
@@ -108,7 +107,7 @@ private:
 
     void check_reliability();
 
-    std::atomic<Status> m_status { Status::Unreliable };
+    Status m_status { Status::Unreliable };
 
     bool m_initial { true };
 

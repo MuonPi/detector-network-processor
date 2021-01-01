@@ -149,7 +149,7 @@ void Mqtt<Event>::get(Event event)
     const std::int64_t cluster_coinc_time = event.end() - event.start();
     GUID guid{event.hash(), static_cast<std::uint64_t>(event.start())};
     for (auto& evt: event.events()) {
-        Location loc = evt.detector()->location();
+        Location loc = evt.location();
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
         std::string geohash = GeoHash::hashFromCoordinates(loc.lon, loc.lat, 5);
         MessageConstructor message {' '};

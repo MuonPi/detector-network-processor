@@ -20,14 +20,16 @@ DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Stat
 {
 }
 
-auto DetectorTracker::accept(Event& event) const -> bool
+auto DetectorTracker::accept(Event& event) -> bool
 {
     auto detector { m_detectors.find(event.hash()) };
     if (detector != m_detectors.end()) {
-        (*detector).second->process(event);
+        auto& det { (*detector).second };
+       det->process(event);
 
-        event.set_detector((*detector).second);
-        return ((*detector).second->is(Detector::Status::Reliable));
+        event.set_detector_info(det->location(), det->time_info(), det->user_info());
+
+        return det->is(Detector::Status::Reliable);
     }
     return false;
 }

@@ -27,50 +27,6 @@ Event::Event() noexcept
 {
 }
 
-Event::Event(const Event& other)
-    : m_n { other.m_n }
-    , m_events { other.m_events }
-    , m_hash { other.m_hash }
-    , m_valid { other.m_valid }
-    , m_data { other.m_data }
-    , m_detector { other.m_detector }
-{
-}
-
-Event::Event(Event&& other)
-    : m_n { std::move(other.m_n) }
-    , m_events { std::move(other.m_events) }
-    , m_hash { std::move(other.m_hash) }
-    , m_valid { std::move(other.m_valid) }
-    , m_data { std::move(other.m_data) }
-    , m_detector { std::move(other.m_detector) }
-{
-}
-
-auto Event::operator=(const Event& other) -> Event&
-{
-    m_n = other.m_n;
-    m_events = other.m_events;
-    m_hash = other.m_hash;
-    m_valid = other.m_valid;
-    m_data = other.m_data;
-    m_detector = other.m_detector;
-
-    return *this;
-}
-
-auto Event::operator=(Event&& other) -> Event&
-{
-    m_n = std::move(other.m_n);
-    m_events = std::move(other.m_events);
-    m_hash = std::move(other.m_hash);
-    m_valid = std::move(other.m_valid);
-    m_data = std::move(other.m_data);
-    m_detector = std::move(other.m_detector);
-
-    return *this;
-}
-
 Event::~Event() noexcept = default;
 
 
@@ -137,14 +93,26 @@ void Event::set_data(const Data& data)
     m_data = data;
 }
 
-void Event::set_detector(std::shared_ptr<Detector> detector)
+void Event::set_detector_info(Location location, Time time, UserInfo user)
 {
-    m_detector = detector;
+    m_location = location;
+    m_time_info = time;
+    m_user_info = user;
 }
 
-auto Event::detector() const -> const std::shared_ptr<Detector>
+auto Event::location() const -> Location
 {
-    return m_detector;
+    return m_location;
+}
+
+auto Event::time_info() const -> Time
+{
+    return m_time_info;
+}
+
+auto Event::user_info() const -> UserInfo
+{
+    return m_user_info;
 }
 
 }

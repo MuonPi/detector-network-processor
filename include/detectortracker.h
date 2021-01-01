@@ -32,7 +32,7 @@ public:
      * @param event The event to check
      * @return true if the event belongs to a known detector and the detector is reliable
      */
-    [[nodiscard]] auto accept(Event &event) const -> bool;
+    [[nodiscard]] auto accept(Event &event) -> bool;
 
     /**
      * @brief factor The current maximum factor
@@ -61,7 +61,7 @@ private:
 
     Sink::Base<DetectorSummary>& m_summary_sink;
 
-    std::map<std::size_t, std::shared_ptr<Detector>> m_detectors {};
+    std::map<std::size_t, std::unique_ptr<Detector>> m_detectors {};
 
     std::queue<std::size_t> m_delete_detectors {};
 

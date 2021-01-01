@@ -1,6 +1,9 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+#include "messages/detectorinfo.h"
+#include "messages/userinfo.h"
+
 #include <chrono>
 #include <vector>
 #include <string>
@@ -38,18 +41,14 @@ public:
 
     Event() noexcept;
 
-    Event(const Event& other);
-    Event(Event&& other);
-
-    auto operator=(const Event& other) -> Event&;
-    auto operator=(Event&& other) -> Event&;
-
     virtual ~Event() noexcept;
 
 
-    void set_detector(std::shared_ptr<Detector> detector);
+    void set_detector_info(Location location, Time time, UserInfo user);
 
-    auto detector() const -> const std::shared_ptr<Detector>;
+    auto location() const -> Location;
+    auto time_info() const -> Time;
+    auto user_info() const -> UserInfo;
 
     /**
      * @brief start
@@ -107,7 +106,9 @@ private:
 
     Data m_data {};
 
-    std::shared_ptr<Detector> m_detector { nullptr };
+    Location m_location {};
+    Time m_time_info {};
+    UserInfo m_user_info {};
 };
 }
 

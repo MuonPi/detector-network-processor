@@ -327,7 +327,7 @@ auto Ringbuffer<T,N>::mean() const -> T
 {
     T mean { };
     if (!m_full) {
-        mean = std::accumulate(m_buffer.begin(), m_buffer.begin()+m_index, 0.0) / m_index;
+        mean = std::accumulate(m_buffer.begin(), m_buffer.begin()+m_index, 0.0) / std::max<double>(m_index, 1.0);
     } else {
         mean = std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0) / N;
     }

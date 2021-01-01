@@ -66,11 +66,12 @@ auto Core::post_run() -> int
 
 auto Core::process(Event event) -> int
 {
-    m_time_base_supervisor->process_event(event);
 
     if (!m_detector_tracker.accept(event)) {
         return 0;
     }
+
+    m_time_base_supervisor->process_event(event);
 
     m_supervisor.increase_event_count(true);
 

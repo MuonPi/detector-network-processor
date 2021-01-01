@@ -35,10 +35,6 @@ add_compile_options(
     -Wno-unused-private-field
     )
 
-if (CMAKE_BUILD_TYPE STREQUAL Release)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_STRIP} ${PROJECT_NAME})
-endif ()
 
 
 find_library(MOSQUITTO mosquitto REQUIRED)
@@ -124,6 +120,10 @@ target_include_directories(source-files PUBLIC
 
 add_executable(muondetector-cluster "${PROJECT_SRC_DIR}/main.cpp")
 
+if (CMAKE_BUILD_TYPE STREQUAL Release)
+    add_custom_command(TARGET muondetector-cluster POST_BUILD
+            COMMAND ${CMAKE_STRIP} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/muondetector-cluster")
+endif ()
 target_include_directories(muondetector-cluster PUBLIC
     ${PROJECT_HEADER_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -169,7 +169,6 @@ With these messages it calculates coincidences and depending on the context
 publishes them to another mqtt topic or writes them to a database.
 It is licensed under the GNU Lesser General Public License version 3 (LGPL v3).")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "MuonPi <developer@muonpi.org>")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>=2.28), libstdc++6 (>=7), lftp (>=4.7), libcrypto++6, libconfig++9v5, libcurl4")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../packages/")
 
 include(CPack)

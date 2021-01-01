@@ -163,6 +163,9 @@ auto Threaded<T>::step() -> int
         }
         n++;
     } while (!m_items.empty() && (n < 10));
+    if (!m_items.empty()) {
+        m_has_items.notify_all();
+    }
     return process();
 }
 

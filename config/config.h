@@ -3,6 +3,8 @@
 
 #include <chrono>
 
+#cmakedefine CLUSTER_RUN_SERVER
+
 namespace MuonPi::CMake::Version {
 constexpr int major { @PROJECT_VERSION_MAJOR@ };
 constexpr int minor { @PROJECT_VERSION_MINOR@ };

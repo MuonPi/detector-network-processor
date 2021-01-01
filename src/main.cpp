@@ -1,13 +1,13 @@
 #include "utility/log.h"
 #include "core.h"
 #include "detectortracker.h"
+#include "defaults.h"
 
 #include "source/mqtt.h"
 #include "link/mqtt.h"
 #include "sink/mqtt.h"
 #include "supervision/state.h"
 
-#define CLUSTER_RUN_SERVER
 
 #ifdef CLUSTER_RUN_SERVER
 #include "sink/database.h"

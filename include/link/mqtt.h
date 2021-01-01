@@ -205,7 +205,7 @@ private:
      * @brief connects to the Server synchronuously. This method blocks until it is connected.
      * @return true if the connection was successful
      */
-    [[nodiscard]] auto connect(std::size_t n = 0) -> bool;
+    [[nodiscard]] auto connect() -> bool;
 
     /**
      * @brief disconnect Disconnect from the server
@@ -217,17 +217,17 @@ private:
      * @brief reconnect attempt a reconnect after the connection was lost.
      * @return true if the reconnect was successful.
      */
-    [[nodiscard]] auto reconnect(std::size_t n = 0) -> bool;
+    [[nodiscard]] auto reconnect() -> bool;
 
     /**
      * @brief reconnect attempt a reconnect after the connection was lost.
      * @return true if the reconnect was successful.
      */
-    [[nodiscard]] auto reinitialise(std::size_t n = 0) -> bool;
+    [[nodiscard]] auto reinitialise() -> bool;
 
     [[nodiscard]] auto check_connection() -> bool;
 
-    [[nodiscard]] auto p_subscribe(const std::string& topic) -> bool;
+    auto p_subscribe(const std::string& topic) -> bool;
 
     /**
      * @brief init Initialise the mosquitto object. This is necessary since the mosquitto_lib_init() needs to be called before mosquitto_new().
@@ -250,7 +250,7 @@ private:
     std::map<std::string, std::unique_ptr<Subscriber>> m_subscribers {};
 
     std::size_t m_tries { 0 };
-    static constexpr std::size_t s_max_tries { 5 };
+    static constexpr std::size_t s_max_tries { 10 };
 
     /**
      * @brief callback_connected Gets called by mosquitto client

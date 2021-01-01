@@ -1,6 +1,7 @@
 #include "supervision/state.h"
 
 #include "utility/log.h"
+#include "defaults.h"
 
 #include <sstream>
 
@@ -62,6 +63,7 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
 
     m_current_data.total_detectors = m_detectors.size();
     m_current_data.reliable_detectors = reliable;
+
 }
 
 auto StateSupervisor::step() -> int
@@ -75,7 +77,7 @@ auto StateSupervisor::step() -> int
         }
     }
     steady_clock::time_point now { steady_clock::now() };
-    if ((now - m_last) >= seconds{30}) {
+    if ((now - m_last) >= Config::Interval::clusterlog_interval) {
         m_last = now;
 
         m_log_sink.get( ClusterLog{m_current_data} );

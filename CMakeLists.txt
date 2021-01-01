@@ -107,8 +107,8 @@ configure_file(
     )
 
 configure_file(
-    "${PROJECT_CONFIG_DIR}/version.h"
-    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+    "${PROJECT_CONFIG_DIR}/config.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/defaults.h"
     )
 
 add_library(source-files OBJECT ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES})

@@ -7,6 +7,8 @@
 #include "detector.h"
 #include "utility/log.h"
 
+#include "defaults.h"
+
 #include "supervision/state.h"
 
 namespace MuonPi {
@@ -75,9 +77,8 @@ auto DetectorTracker::process() -> int
     // +++ push detector log messages at regular interval
     steady_clock::time_point now { steady_clock::now() };
 
-    static constexpr std::chrono::seconds detector_log_interval{120};
 
-    if ((now - m_last) >= detector_log_interval) {
+    if ((now - m_last) >= Config::Interval::detectorsummary_interval) {
         m_last = now;
 
         for (auto& [hash, detector]: m_detectors) {

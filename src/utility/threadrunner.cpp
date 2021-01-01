@@ -16,6 +16,8 @@ ThreadRunner::~ThreadRunner()
 void ThreadRunner::stop()
 {
     m_run = false;
+    m_quit = true;
+    m_condition.notify_all();
 }
 
 void ThreadRunner::join()

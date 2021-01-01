@@ -136,7 +136,7 @@ void Threaded<T>::get(T item)
 {
     std::scoped_lock<std::mutex> lock { m_mutex };
     m_items.push(item);
-    m_has_items.notify_all();
+    m_condition.notify_all();
 }
 
 template <typename T>
@@ -144,8 +144,11 @@ auto Threaded<T>::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> wait_lock { mx };
-    if ((m_items.empty()) && (m_has_items.wait_for(wait_lock, m_timeout ) == std::cv_status::timeout)) {
+    if ((m_items.empty()) && (m_condition.wait_for(wait_lock, m_timeout ) == std::cv_status::timeout)) {
         return process();
+    }
+    if (m_quit) {
+        return 0;
     }
 
     std::size_t n { 0 };
@@ -164,7 +167,7 @@ auto Threaded<T>::step() -> int
         n++;
     } while (!m_items.empty() && (n < 10));
     if (!m_items.empty()) {
-        m_has_items.notify_all();
+        m_condition.notify_all();
     }
     return process();
 }

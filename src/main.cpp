@@ -110,12 +110,6 @@ auto main() -> int
                 ) {
             MuonPi::Log::notice()<<"Received signal: " + std::to_string(signal) + ". Exiting.";
             supervisor.stop();
-        }
-        if (
-                   signal == SIGSEGV
-                ) {
-            MuonPi::Log::critical()<<"Received signal: " + std::to_string(signal) + ". Exiting.";
-            supervisor.stop();
             core.stop();
         }
     };
@@ -123,7 +117,6 @@ auto main() -> int
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
     std::signal(SIGHUP, signal_handler);
-    std::signal(SIGSEGV, signal_handler);
 
     core.start_synchronuos();
 

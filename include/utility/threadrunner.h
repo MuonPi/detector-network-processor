@@ -100,7 +100,8 @@ protected:
      */
     [[nodiscard]] virtual auto post_run() -> int;
 
-
+    std::condition_variable m_condition;
+    bool m_quit { false };
 private:
     std::atomic<bool> m_run { true };
 

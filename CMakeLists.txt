@@ -35,8 +35,10 @@ add_compile_options(
     -Wno-unused-private-field
     )
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
+if (CMAKE_BUILD_TYPE STREQUAL Release)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_STRIP} ${PROJECT_NAME})
+endif ()
 
 
 find_library(MOSQUITTO mosquitto REQUIRED)

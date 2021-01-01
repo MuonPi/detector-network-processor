@@ -92,6 +92,7 @@ auto main() -> int
     supervisor.add_thread(&event_sinks);
     supervisor.add_thread(&detector_sinks);
     supervisor.add_thread(&cluster_sinks);
+    supervisor.add_thread(&incoming_sinks);
 
 
     shutdown_handler = [&](int signal) {

@@ -144,7 +144,7 @@ auto Threaded<T>::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> wait_lock { mx };
-    if (m_has_items.wait_for(wait_lock, m_timeout ) == std::cv_status::timeout) {
+    if ((m_items.empty()) && (m_has_items.wait_for(wait_lock, m_timeout ) == std::cv_status::timeout)) {
         return process();
     }
 

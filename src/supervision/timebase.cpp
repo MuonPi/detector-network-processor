@@ -33,6 +33,8 @@ auto TimeBaseSupervisor::current() -> std::chrono::system_clock::duration
     m_sample_start = std::chrono::system_clock::now();
     if (m_current < s_minimum) {
         m_current = s_minimum;
+    } else if (m_current > s_maximum) {
+        m_current = s_maximum;
     }
     return m_current;
 }

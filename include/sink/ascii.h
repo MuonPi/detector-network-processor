@@ -70,7 +70,7 @@ void Ascii<Event>::get(Event event)
         out<<'\n';
 
         m_ostream<<out.str()<<std::flush;
-    } else {
+/*    } else {
 
         std::ostringstream out {};
         out << "Event"
@@ -86,7 +86,7 @@ void Ascii<Event>::get(Event event)
             <<' '<<static_cast<std::uint16_t>(event.data().gnss_time_grid)
             <<'\n';
 
-        m_ostream<<out.str()<<std::flush;
+        m_ostream<<out.str()<<std::flush;*/
     }
 }
 

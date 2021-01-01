@@ -110,7 +110,7 @@ auto Mqtt::step() -> int
         }
     }
 
-    std::this_thread::sleep_for(std::chrono::microseconds{10});
+    std::this_thread::sleep_for(std::chrono::microseconds{500});
     return 0;
 }
 

@@ -163,11 +163,11 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Daemon which calculates coincidences for incoming events")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "It subscribes to a mqtt topic to collect the incoming event messages and keep
-track of individual event sources.
-With these messages it calculates coincidences and depending on the context
-publishes them to another mqtt topic or writes them to a database.
-It is licensed under the GNU Lesser General Public License version 3 (LGPL v3).")
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION " It subscribes to a mqtt topic to collect the incoming event messages and keep
+ trace of individual event sources.
+ With these messages it calculates coincidences and depending on the context
+ publishes them to another mqtt topic or writes them to a database.
+ It is licensed under the GNU Lesser General Public License version 3 (LGPL v3).")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "MuonPi <developer@muonpi.org>")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../packages/")
 

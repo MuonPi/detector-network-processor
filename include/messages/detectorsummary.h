@@ -21,7 +21,7 @@ public:
         double mean_pulselength { 0.0 };
         std::int64_t ublox_counter_progress { 0 };
         std::uint64_t incoming { 0UL };
-		double mean_time_acc { 0.0 };
+        double mean_time_acc { 0.0 };
     };
 
     /**
@@ -58,7 +58,7 @@ public:
      * @brief data Accesses the data from the object
      * @return data struct
      */
-    [[nodiscard]] auto data() -> Data;
+    [[nodiscard]] auto data() const -> Data;
 
     /**
      * @brief data Accesses the user info from the object

@@ -1,20 +1,20 @@
-﻿#include "databaselink.h"
+﻿#include "link/database.h"
 
-#include "log.h"
+#include "utility/log.h"
 
 #include <type_traits>
 #include <variant>
 
 #include <curl/curl.h>
 
-namespace MuonPi {
-DatabaseLink::Entry::Entry(const std::string& measurement, DatabaseLink& link)
+namespace MuonPi::Link {
+Database::Entry::Entry(const std::string& measurement, Database& link)
     : m_link { link }
 {
     m_stream<<measurement;
 }
 
-auto DatabaseLink::Entry::operator<<(const Influx::Tag& tag) -> Entry&
+auto Database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
 {
     m_stream<<','<<tag.name<<'='<<tag.field;
     return *this;
@@ -23,7 +23,7 @@ auto DatabaseLink::Entry::operator<<(const Influx::Tag& tag) -> Entry&
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-auto DatabaseLink::Entry::operator<<(const Influx::Field& field) -> Entry&
+auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
 {
     std::visit(overloaded {
                    [this, field](const std::string& value){m_stream<<(m_has_field?',':' ')<<field.name<<"=\""<<value<<'"'; m_has_field = true;},
@@ -32,37 +32,38 @@ auto DatabaseLink::Entry::operator<<(const Influx::Field& field) -> Entry&
                    [this, field](std::uint8_t value){m_stream<<(m_has_field?',':' ')<<field.name<<'='<<static_cast<std::uint16_t>(value)<<'i'; m_has_field = true;},
                    [this, field](std::uint16_t value){m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true;},
                    [this, field](std::uint32_t value){m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true;},
+//                   [this, field](std::uint64_t value){m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true;},
                    [this, field](bool value){m_stream<<field.name<<(m_has_field?',':' ')<<'='<<(value?'t':'f'); m_has_field = true;},
                    [this, field](double value){m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value; m_has_field = true;}
                }, field.value);
     return *this;
 }
 
-auto DatabaseLink::Entry::operator<<(std::int_fast64_t timestamp) -> bool
+auto Database::Entry::operator<<(std::int_fast64_t timestamp) -> bool
 {
     m_stream<<' '<<timestamp;
     return m_link.send_string(m_stream.str());
 }
 
-DatabaseLink::DatabaseLink(const std::string& server, const LoginData& login, const std::string& database, const std::string& a_cluster_id)
+Database::Database(const std::string& server, const LoginData& login, const std::string& database, const std::string& a_cluster_id)
     : cluster_id { a_cluster_id }
     , m_server { server }
     , m_login_data { login }
     , m_database { database }
-    
+
 {
 
 }
 
-DatabaseLink::~DatabaseLink() = default;
+Database::~Database() = default;
 
-auto DatabaseLink::measurement(const std::string& measurement) -> Entry
+auto Database::measurement(const std::string& measurement) -> Entry
 {
     return Entry{measurement, *this};
 }
 
 
-auto DatabaseLink::send_string(const std::string& query) -> bool
+auto Database::send_string(const std::string& query) -> bool
 {
     CURL *curl { curl_easy_init() };
 

@@ -1,7 +1,7 @@
 #include "detector.h"
-#include "event.h"
-#include "log.h"
-#include "statesupervisor.h"
+#include "messages/event.h"
+#include "utility/log.h"
+#include "supervision/state.h"
 
 namespace MuonPi {
 

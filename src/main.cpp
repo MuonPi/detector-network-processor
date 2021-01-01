@@ -1,25 +1,24 @@
-#include "log.h"
+#include "utility/log.h"
 #include "core.h"
 #include "detectortracker.h"
 
-#include "mqttsource.h"
-#include "mqttlink.h"
-#include "mqttsink.h"
-#include "statesupervisor.h"
+#include "source/mqtt.h"
+#include "link/mqtt.h"
+#include "sink/mqtt.h"
+#include "supervision/state.h"
 
 #define CLUSTER_RUN_SERVER
 
 #ifdef CLUSTER_RUN_SERVER
-#include "databasesink.h"
-#include "databaselink.h"
+#include "sink/database.h"
+#include "link/database.h"
 #else
 #endif
 
-#include "asciieventsink.h"
-#include "asciilogsink.h"
+#include "sink/ascii.h"
 
-#include "detectorsummary.h"
-#include "clusterlog.h"
+#include "messages/detectorsummary.h"
+#include "messages/clusterlog.h"
 
 #include <csignal>
 #include <functional>
@@ -36,40 +35,33 @@ void signal_handler(int signal)
 
 auto main() -> int
 {
-//    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::StreamSink>(std::cerr));
-    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::SyslogSink>());
+    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::StreamSink>(std::cerr));
+//    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::SyslogSink>());
 
 
-    MuonPi::MqttLink::LoginData login;
-	login.username = "";
+    MuonPi::Link::Mqtt::LoginData login;
+
+    login.username = "";
     login.password = "";
     login.station_id = "";
-    MuonPi::MqttLink mqtt_link {login, "116.202.96.181", 1883};
 
-    if (!mqtt_link.wait_for(MuonPi::MqttLink::Status::Connected)) {
+    MuonPi::Link::Mqtt mqtt_link {login, "116.202.96.181", 1883};
+
+    if (!mqtt_link.wait_for(MuonPi::Link::Mqtt::Status::Connected)) {
         return -1;
     }
 
-    auto event_source { std::make_shared<MuonPi::MqttSource<MuonPi::Event>>(mqtt_link.subscribe("muonpi/data/#")) };
-    auto log_source { std::make_shared<MuonPi::MqttSource<MuonPi::DetectorInfo>>(mqtt_link.subscribe("muonpi/log/#")) };
 
-    auto ascii_clusterlog_sink { std::make_shared<MuonPi::AsciiLogSink<MuonPi::ClusterLog>>(std::cout) };
-    auto ascii_detectorlog_sink { std::make_shared<MuonPi::AsciiLogSink<MuonPi::DetectorSummary>>(std::cout) };
-    auto ascii_event_sink { std::make_shared<MuonPi::AsciiEventSink>(std::cout) };
+    MuonPi::Sink::Ascii<MuonPi::ClusterLog> ascii_clusterlog_sink { std::cout };
+    MuonPi::Sink::Ascii<MuonPi::DetectorSummary> ascii_detectorlog_sink { std::cout };
+    MuonPi::Sink::Ascii<MuonPi::Event> ascii_event_sink { std::cout };
 
-/*
-	MuonPi::MqttLink sink_link {login, "116.202.96.181", 1883};
-
-    if (!sink_link.wait_for(MuonPi::MqttLink::Status::Connected)) {
-        return -1;
-    }
-*/
 #ifdef CLUSTER_RUN_SERVER
-    MuonPi::DatabaseLink db_link {"", {"", ""}, ""};
+    MuonPi::Link::Database db_link {"", {"", ""}, ""};
 
-    auto event_sink { std::make_shared<MuonPi::DatabaseSink<MuonPi::Event>>(db_link) };
-    auto clusterlog_sink { std::make_shared<MuonPi::DatabaseSink<MuonPi::ClusterLog>>(db_link) };
-    auto detectorlog_sink { std::make_shared<MuonPi::DatabaseSink<MuonPi::DetectorSummary>>(db_link) };
+    MuonPi::Sink::Database<MuonPi::Event> event_sink { db_link };
+    MuonPi::Sink::Database<MuonPi::ClusterLog> clusterlog_sink { db_link };
+    MuonPi::Sink::Database<MuonPi::DetectorSummary> detectorlog_sink { db_link };
 
 #else
 
@@ -79,23 +71,27 @@ auto main() -> int
 
 #endif
 
-    auto mqtt_broadcast_sink { std::make_shared<MuonPi::MqttSink<MuonPi::Event>>(mqtt_link.publish("muonpi/events")) };
+//    MuonPi::Sink::Mqtt<MuonPi::Event> mqtt_broadcast_sink { mqtt_link.publish("muonpi/events") };
 
-	MuonPi::StateSupervisor supervisor{{ascii_clusterlog_sink, clusterlog_sink}};
-    MuonPi::DetectorTracker detector_tracker{{log_source}, {ascii_detectorlog_sink, detectorlog_sink}, supervisor};
-    MuonPi::Core core{{ascii_event_sink, event_sink, mqtt_broadcast_sink}, {event_source}, detector_tracker, supervisor};
 
-#ifndef CLUSTER_RUN_SERVER
-//    supervisor.add_thread(&mqtt_link);
-#endif
+    MuonPi::Sink::Collection<MuonPi::ClusterLog, 2> cluster_sinks {{&ascii_clusterlog_sink, &clusterlog_sink}};
+    MuonPi::Sink::Collection<MuonPi::DetectorSummary, 2> detector_sinks {{&ascii_detectorlog_sink, &detectorlog_sink}};
+    MuonPi::Sink::Collection<MuonPi::Event, 2> event_sinks {{&ascii_event_sink, &event_sink/*, &mqtt_broadcast_sink*/}};
+
+    MuonPi::StateSupervisor supervisor{cluster_sinks};
+    MuonPi::DetectorTracker detector_tracker{detector_sinks, supervisor};
+    MuonPi::Core core{event_sinks, detector_tracker, supervisor};
+
+    MuonPi::Sink::Collection<MuonPi::Event, 2> incoming_sinks {{&core, &event_sinks}};
+
+    MuonPi::Source::Mqtt<MuonPi::Event> event_source { incoming_sinks, mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::DetectorInfo> log_source { detector_tracker, mqtt_link.subscribe("muonpi/log/#") };
+
     supervisor.add_thread(&detector_tracker);
     supervisor.add_thread(&mqtt_link);
-    supervisor.add_thread(detectorlog_sink.get());
-    supervisor.add_thread(log_source.get());
-    supervisor.add_thread(event_source.get());
-    supervisor.add_thread(ascii_event_sink.get());
-    supervisor.add_thread(ascii_clusterlog_sink.get());
-    supervisor.add_thread(ascii_detectorlog_sink.get());
+    supervisor.add_thread(&event_sinks);
+    supervisor.add_thread(&detector_sinks);
+    supervisor.add_thread(&cluster_sinks);
 
 
     shutdown_handler = [&](int signal) {

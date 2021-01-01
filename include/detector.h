@@ -1,11 +1,11 @@
 #ifndef DETECTOR_H
 #define DETECTOR_H
 
-#include "threadrunner.h"
-#include "detectorinfo.h"
-#include "detectorsummary.h"
-#include "utility.h"
-#include "userinfo.h"
+#include "utility/threadrunner.h"
+#include "messages/detectorinfo.h"
+#include "messages/detectorsummary.h"
+#include "utility/utility.h"
+#include "messages/userinfo.h"
 
 #include <memory>
 #include <chrono>

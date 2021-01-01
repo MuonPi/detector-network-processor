@@ -1,6 +1,6 @@
-#include "threadrunner.h"
+#include "utility/threadrunner.h"
 
-#include "log.h"
+#include "utility/log.h"
 
 namespace MuonPi {
 

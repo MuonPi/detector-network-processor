@@ -1,5 +1,5 @@
-#include "utility.h"
-#include "log.h"
+#include "utility/utility.h"
+#include "utility/log.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>

@@ -1,11 +1,10 @@
 #ifndef STATESUPERVISOR_H
 #define STATESUPERVISOR_H
 
-#include "threadrunner.h"
 #include "detector.h"
-#include "utility.h"
-#include "clusterlog.h"
-#include "abstractsink.h"
+#include "utility/utility.h"
+#include "messages/clusterlog.h"
+#include "sink/base.h"
 
 #include <cinttypes>
 #include <vector>
@@ -24,9 +23,9 @@ class StateSupervisor
 public:
     /**
      * @brief StateSupervisor
-     * @param log_sinks The specific log sinks to send metadata to
+     * @param log_sink The specific log sinks to send metadata to
      */
-    StateSupervisor(std::vector<std::shared_ptr<AbstractSink<ClusterLog>>> log_sinks);
+    StateSupervisor(Sink::Base<ClusterLog>& log_sink);
 
     /**
      * @brief time_status Update the current timeout used
@@ -81,7 +80,7 @@ private:
 
     std::vector<ThreadRunner*> m_threads;
 
-    std::vector<std::shared_ptr<AbstractSink<ClusterLog>>> m_log_sinks;
+    Sink::Base<ClusterLog>& m_log_sink;
 
     ClusterLog::Data m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };

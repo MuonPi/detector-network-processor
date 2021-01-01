@@ -1,47 +1,35 @@
 #ifndef MQTTLOGSOURCE_H
 #define MQTTLOGSOURCE_H
 
-#include "abstractsource.h"
-#include "mqttlink.h"
-#include "detectorinfo.h"
-#include "userinfo.h"
-#include "utility.h"
-#include "log.h"
-#include "event.h"
+#include "source/base.h"
+#include "link/mqtt.h"
+#include "messages/detectorinfo.h"
+#include "messages/userinfo.h"
+#include "messages/event.h"
+
+#include "utility/utility.h"
+#include "utility/log.h"
 
 #include <map>
 #include <memory>
 
-namespace MuonPi {
+namespace MuonPi::Source {
 
 /**
- * @brief The MqttSource class
+ * @brief The Mqtt class
  */
-template <class T>
-class MqttSource : public AbstractSource<T>
+template <typename T>
+class Mqtt : public Base<T>
 {
 public:
     /**
-     * @brief MqttSource
+     * @brief Mqtt
      * @param subscriber The Mqtt Topic this source should be subscribed to
      */
-    MqttSource(MqttLink::Subscriber& subscriber);
+    Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& subscriber);
 
-    ~MqttSource() override;
+    ~Mqtt() override;
 
-
-protected:
-    /**
-     * @brief pre_run Reimplemented from ThreadRunner
-     * @return 0 if it should continue to run
-     */
-    auto pre_run() -> int override;
-
-    /**
-     * @brief step implementation from ThreadRunner
-     * @return zero if the step succeeded.
-     */
-    [[nodiscard]] auto step() -> int override;
 
 private:
     /**
@@ -76,9 +64,9 @@ private:
      * @brief process Processes one LogItem
      * @param msg The message to process
      */
-    void process(const MqttLink::Message& msg);
+    void process(const Link::Mqtt::Message& msg);
 
-    MqttLink::Subscriber& m_link;
+    Link::Mqtt::Subscriber& m_link;
 
     std::map<std::size_t, ItemCollector> m_buffer {};
 };
@@ -88,34 +76,34 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-MqttSource<DetectorInfo>::ItemCollector::ItemCollector()
+Mqtt<DetectorInfo>::ItemCollector::ItemCollector()
     : default_status { 0x00FF }
     , status { default_status }
 {
 }
 
 template <>
-MqttSource<Event>::ItemCollector::ItemCollector()
+Mqtt<Event>::ItemCollector::ItemCollector()
     : default_status { 0x0001 }
     , status { default_status }
 {}
 
 template <typename T>
-void MqttSource<T>::ItemCollector::reset() {
+void Mqtt<T>::ItemCollector::reset() {
     user_info = UserInfo { };
     status = default_status;
 }
 
 template <>
-auto MqttSource<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> int
+auto Mqtt<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> int
 {
     if (message_id != message[0]) {
         reset();
         message_id = message[0];
     }
     item.m_hash = user_info.hash();
-	item.m_userinfo = user_info;
-	
+    item.m_userinfo = user_info;
+
     try {
         if (message[1] == "geoHeightMSL") {
             item.m_location.h = std::stod(message[2], nullptr);
@@ -153,7 +141,7 @@ auto MqttSource<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, Mess
 }
 
 template <>
-auto MqttSource<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> int
+auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> int
 {
     if ((topic.size() >= 4) && (content.size() >= 7)) {
 
@@ -205,35 +193,21 @@ auto MqttSource<Event>::ItemCollector::add(MessageParser& topic, MessageParser& 
 }
 
 
-template <class T>
-MqttSource<T>::MqttSource(MqttLink::Subscriber& subscriber)
-    : m_link { subscriber }
+template <typename T>
+Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& subscriber)
+    : Base<T> { sink }
+    , m_link { subscriber }
 {
-    AbstractSource<T>::start();
-}
-
-template <class T>
-MqttSource<T>::~MqttSource() = default;
-
-template <class T>
-auto MqttSource<T>::pre_run() -> int
-{
-    return 0;
-}
-
-template <class T>
-auto MqttSource<T>::step() -> int
-{
-    if (m_link.has_message()) {
-        MqttLink::Message msg = m_link.get_message();
-        this->process(msg);
-    }
-    std::this_thread::sleep_for(std::chrono::microseconds{50});
-    return 0;
+    subscriber.set_callback([this](const Link::Mqtt::Message& message){
+        process(message);
+    });
 }
 
 template <typename T>
-void MqttSource<T>::process(const MqttLink::Message& msg)
+Mqtt<T>::~Mqtt() = default;
+
+template <typename T>
+void Mqtt<T>::process(const Link::Mqtt::Message& msg)
 {
         MessageParser topic { msg.topic, '/'};
         MessageParser content { msg.content, ' '};
@@ -257,7 +231,7 @@ void MqttSource<T>::process(const MqttLink::Message& msg)
             if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
                 ItemCollector& item { m_buffer[hash] };
                 if (item.add(topic, content) == 0) {
-                    this->push_item( std::move(item.item) );
+                    this->put( std::move(item.item) );
                     m_buffer.erase(hash);
                 }
             } else {
@@ -266,7 +240,7 @@ void MqttSource<T>::process(const MqttLink::Message& msg)
                 item.user_info = userinfo;
                 int value { item.add(topic, content) };
                 if (value == 0) {
-                    this->push_item( std::move(item.item) );
+                    this->put( std::move(item.item) );
                 } else if (value > 0) {
                     m_buffer.insert( { hash, item } );
                 }
@@ -275,9 +249,9 @@ void MqttSource<T>::process(const MqttLink::Message& msg)
 }
 
 template <>
-void MqttSource<MqttLink::Message>::process(const MqttLink::Message& msg)
+void Mqtt<Link::Mqtt::Message>::process(const Link::Mqtt::Message& msg)
 {
-    push_item( MqttLink::Message { msg } );
+    put( Link::Mqtt::Message { msg } );
 }
 }
 

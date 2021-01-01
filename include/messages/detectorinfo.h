@@ -1,8 +1,7 @@
 #ifndef DETECTORINFO_H
 #define DETECTORINFO_H
 
-#include "userinfo.h"
-#include "mqttlink.h"
+#include "messages/userinfo.h"
 
 #include <chrono>
 

@@ -1,6 +1,8 @@
-#include "timebasesupervisor.h"
-#include "event.h"
-#include "log.h"
+#include "supervision/timebase.h"
+
+#include "messages/event.h"
+
+#include "utility/log.h"
 
 namespace MuonPi {
 

@@ -1,25 +1,23 @@
 ﻿#include "core.h"
-#include "log.h"
+#include "utility/log.h"
 
-#include "abstractsink.h"
-#include "abstractsource.h"
-#include "criterion.h"
-#include "eventconstructor.h"
-#include "event.h"
-#include "detectorinfo.h"
-#include "timebasesupervisor.h"
+#include "sink/base.h"
+#include "source/base.h"
+#include "utility/criterion.h"
+#include "utility/eventconstructor.h"
+#include "messages/event.h"
+#include "messages/detectorinfo.h"
+#include "messages/clusterlog.h"
+#include "supervision/timebase.h"
 #include "detectortracker.h"
-#include "log.h"
-#include "clusterlog.h"
 
 #include <cinttypes>
 
 namespace MuonPi {
 
-Core::Core(std::vector<std::shared_ptr<AbstractSink<Event>>> event_sinks, std::vector<std::shared_ptr<AbstractSource<Event>>> event_sources, DetectorTracker& detector_tracker, StateSupervisor& supervisor)
-    : ThreadRunner{"Core"}
-    , m_event_sinks { std::move(event_sinks) }
-    , m_event_sources { std::move(event_sources) }
+Core::Core(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor)
+    : Sink::Threaded<Event> { "Core", std::chrono::milliseconds {100} }
+    , m_event_sink { event_sink }
     , m_detector_tracker { (detector_tracker) }
     , m_supervisor { supervisor }
 {
@@ -30,7 +28,7 @@ auto Core::supervisor() -> StateSupervisor&
     return m_supervisor;
 }
 
-auto Core::step() -> int
+auto Core::process() -> int
 {
     if (m_supervisor.step() != 0) {
         Log::error()<<"The Supervisor stopped.";
@@ -39,7 +37,7 @@ auto Core::step() -> int
 
     {
         using namespace std::chrono;
-        m_timeout = milliseconds{static_cast<long>(static_cast<double>(duration_cast<milliseconds>(m_time_base_supervisor->current()).count()) * m_detector_tracker.factor() * m_scale)};
+        m_timeout = milliseconds{static_cast<long>(static_cast<double>(duration_cast<milliseconds>(m_time_base_supervisor->current()).count()) * m_detector_tracker.factor())};
         m_supervisor.time_status(duration_cast<milliseconds>(m_timeout));
     }
     // +++ Send finished constructors off to the event sink
@@ -48,40 +46,12 @@ auto Core::step() -> int
         constructor.set_timeout(m_timeout);
         if (constructor.timed_out()) {
             m_supervisor.increase_event_count(false, constructor.event.n());
-            push_event(constructor.event);
+            m_event_sink.get(constructor.event);
             m_constructors.erase(m_constructors.begin() + i);
         }
     }
 
-
-    // --- Send finished constructors off to the event sink
-
-    std::size_t before { 0 };
-    // +++ handle incoming events, maximum 10 at a time to prevent blocking
-
-    std::size_t processed { 0 };
-    for (auto& source: m_event_sources) {
-        std::size_t i { 0 };
-        before += source->size();
-        while (source->has_items() && (i < 100)) {
-            process(source->next_item());
-            i++;
-        }
-        processed += i;
-    }
-    // --- handle incoming events, maximum 10 at a time to prevent blocking
-
-    // +++ decrease the timeout to level the load if there is a large backlog
-    if ((before != 0) && (before > processed)) {
-        m_scale = (static_cast<double>(processed) / static_cast<double>(before));
-        Log::warning()<<"Scaling timeout: " + std::to_string(m_scale);
-    } else {
-        m_scale = 1.0;
-    }
-    // --- decrease the timeout to level the load if there is a large backlog
-
     m_supervisor.set_queue_size(m_constructors.size());
-    std::this_thread::sleep_for( std::chrono::microseconds{500} );
     return 0;
 }
 
@@ -89,27 +59,17 @@ auto Core::post_run() -> int
 {
     int result { 0 };
 
-    for (auto& source: m_event_sources) {
-        source->stop();
-        result += source->wait();
-    }
-    for (auto& sink: m_event_sinks) {
-        sink->stop();
-        result += sink->wait();
-    }
-
     m_detector_tracker.stop();
 
     return m_detector_tracker.wait() + result;
 }
 
-void Core::process(Event event)
+auto Core::process(Event event) -> int
 {
-
     m_time_base_supervisor->process_event(event);
 
     if (!m_detector_tracker.accept(event)) {
-        return;
+        return 0;
     }
 
     m_supervisor.increase_event_count(true);
@@ -131,7 +91,7 @@ void Core::process(Event event)
             constructor.event = Event{std::move(e), true};
         }
         constructor.event.add_event(std::move(event));
-        return;
+        return 0;
     }
     // --- Event matches exactly one existing constructor
 
@@ -141,7 +101,7 @@ void Core::process(Event event)
         constructor.event = std::move(event);
         constructor.timeout = m_timeout;
         m_constructors.push_back(std::move(constructor));
-        return;
+        return 0;
     }
     EventConstructor& constructor { m_constructors[matches.front()] };
     matches.pop();
@@ -159,14 +119,8 @@ void Core::process(Event event)
     }
     // --- Event matches more than one constructor
     // --- Event matches either no, or more than one constructor
-}
-
-void Core::push_event(Event event)
-{
-
-    for (auto& sink: m_event_sinks) {
-        sink->push_item(event);
-    }
+    m_supervisor.set_queue_size(m_constructors.size());
+    return 0;
 }
 
 }

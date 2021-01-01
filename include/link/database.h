@@ -7,7 +7,7 @@
 #include <mutex>
 #include <sstream>
 
-namespace MuonPi {
+namespace MuonPi::Link {
 
 
 namespace Influx {
@@ -23,9 +23,9 @@ struct Field {
 }
 
 /**
- * @brief The DatabaseLink class
+ * @brief The Database class
  */
-class DatabaseLink
+class Database
 {
 public:
     class Entry {
@@ -39,11 +39,11 @@ public:
     private:
         std::ostringstream m_stream {};
         bool m_has_field { false };
-        DatabaseLink& m_link;
+        Database& m_link;
 
-        friend class DatabaseLink;
+        friend class Database;
 
-        Entry(const std::string& measurement, DatabaseLink& link);
+        Entry(const std::string& measurement, Database& link);
     };
 
     struct LoginData
@@ -52,10 +52,10 @@ public:
         std::string password {};
     };
 
-	std::string cluster_id { "muonpi.org" };
-	
-    DatabaseLink(const std::string& server, const LoginData& login, const std::string& database, const std::string& a_cluster_id = "muonpi.org");
-    ~DatabaseLink();
+    std::string cluster_id { "muonpi.org" };
+
+    Database(const std::string& server, const LoginData& login, const std::string& database, const std::string& a_cluster_id = "muonpi.org");
+    ~Database();
 
     [[nodiscard]] auto measurement(const std::string& measurement) -> Entry;
 

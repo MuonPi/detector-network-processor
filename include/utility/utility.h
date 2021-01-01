@@ -220,7 +220,7 @@ private:
 /// Übergabe führt zu einem (beabsichtigten!) Compilerfehler.
 /// Grundlagen aus: http://stackoverflow.com/a/5100745/2932052
 template <typename T>
-inline std::string int_to_hex(T val, size_t width=sizeof(T)*2)
+inline std::string int_to_hex(T val, std::size_t width=sizeof(T)*2)
 {
     std::stringstream ss;
     ss << std::setfill('0') << std::setw(width) << std::hex << (val|0);

@@ -1,9 +1,9 @@
-#include "detectorsummary.h"
+#include "messages/detectorsummary.h"
 
 #include <utility>
 
 namespace MuonPi {
-	
+
 DetectorSummary::DetectorSummary(std::size_t hash, UserInfo user_info, Data data)
     : m_hash { hash }
     , m_data { data }
@@ -34,14 +34,14 @@ DetectorSummary::DetectorSummary(DetectorSummary&& other)
 {
 }
 
-auto DetectorSummary::data() -> Data
+auto DetectorSummary::data() const -> Data
 {
     return m_data;
 }
 
 auto DetectorSummary::user_info() const -> UserInfo
 {
-	return m_userinfo;
+    return m_userinfo;
 }
 
 auto DetectorSummary::hash() const noexcept -> std::size_t

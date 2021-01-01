@@ -46,14 +46,14 @@ public:
      * @brief data Accesses the data from the object
      * @return
      */
-    [[nodiscard]] auto data() -> Data;
+    [[nodiscard]] auto data() const -> Data;
 
     /**
      * @brief time The time this log object was created
      * @return The creation time
      */
     [[nodiscard]] auto time() const -> std::chrono::system_clock::time_point;
-	
+
     /**
      * @brief data Accesses the user info from the object
      * @return the UserInfo struct
@@ -62,7 +62,7 @@ public:
 
 private:
     Data m_data;
-	UserInfo m_userinfo { };
+    UserInfo m_userinfo { };
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
     bool m_valid { true };
 };

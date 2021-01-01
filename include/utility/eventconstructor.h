@@ -1,7 +1,7 @@
 #ifndef EVENTCONSTRUCTOR_H
 #define EVENTCONSTRUCTOR_H
 
-#include "event.h"
+#include "messages/event.h"
 
 #include <memory>
 #include <chrono>

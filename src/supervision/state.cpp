@@ -1,14 +1,14 @@
-#include "statesupervisor.h"
+#include "supervision/state.h"
 
-#include "log.h"
+#include "utility/log.h"
 
 #include <sstream>
 
 namespace MuonPi {
 
 
-StateSupervisor::StateSupervisor(std::vector<std::shared_ptr<AbstractSink<ClusterLog>>> log_sinks)
-    : m_log_sinks { std::move(log_sinks) }
+StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
+    : m_log_sink { log_sink }
 {}
 
 void StateSupervisor::time_status(std::chrono::milliseconds timeout)
@@ -62,7 +62,6 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
     m_current_data.reliable_detectors = reliable;
 }
 
-
 auto StateSupervisor::step() -> int
 {
     using namespace std::chrono;
@@ -77,9 +76,8 @@ auto StateSupervisor::step() -> int
     if ((now - m_last) >= seconds{30}) {
         m_last = now;
 
-        for (auto& sink: m_log_sinks) {
-            sink->push_item(ClusterLog{m_current_data});
-        }
+        m_log_sink.get( ClusterLog{m_current_data} );
+
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();
     }

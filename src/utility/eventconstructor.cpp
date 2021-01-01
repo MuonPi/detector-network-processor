@@ -1,6 +1,6 @@
-#include "eventconstructor.h"
-#include "criterion.h"
-#include "log.h"
+#include "utility/eventconstructor.h"
+#include "utility/criterion.h"
+#include "utility/log.h"
 
 namespace MuonPi {
 

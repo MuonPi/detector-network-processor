@@ -1,5 +1,5 @@
-#include "coincidence.h"
-#include "event.h"
+#include "utility/coincidence.h"
+#include "messages/event.h"
 
 #include <cmath>
 

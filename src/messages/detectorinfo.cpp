@@ -1,4 +1,4 @@
-#include "detectorinfo.h"
+#include "messages/detectorinfo.h"
 
 #include <utility>
 
@@ -27,7 +27,7 @@ DetectorInfo::DetectorInfo(const DetectorInfo& other)
 DetectorInfo::DetectorInfo(DetectorInfo&& other)
     : m_hash { std::move(other.m_hash) }
     , m_location { std::move(other.m_location) }
-	, m_userinfo { std::move(other.m_userinfo) }
+    , m_userinfo { std::move(other.m_userinfo) }
     , m_time { std::move(other.m_time) }
     , m_valid { std::move(other.m_valid) }
 {
@@ -46,7 +46,7 @@ auto DetectorInfo::location() const -> Location
 
 auto DetectorInfo::user_info() const -> UserInfo
 {
-	return m_userinfo;
+    return m_userinfo;
 }
 
 auto DetectorInfo::time() const -> std::chrono::system_clock::time_point

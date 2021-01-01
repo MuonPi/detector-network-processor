@@ -1,4 +1,4 @@
-#include "clusterlog.h"
+#include "messages/clusterlog.h"
 
 #include <utility>
 
@@ -13,7 +13,7 @@ ClusterLog::ClusterLog()
 {}
 
 
-auto ClusterLog::data() -> Data
+auto ClusterLog::data() const -> Data
 {
     return m_data;
 }
@@ -22,10 +22,10 @@ auto ClusterLog::time() const -> std::chrono::system_clock::time_point
 {
     return m_time;
 }
-	
+
 auto ClusterLog::user_info() const -> UserInfo
 {
-	return m_userinfo;
+    return m_userinfo;
 }
-	
+
 }

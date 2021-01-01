@@ -1,27 +1,22 @@
 #include "detectortracker.h"
 
-#include "event.h"
-#include "detectorinfo.h"
-#include "detectorsummary.h"
-#include "abstractsource.h"
+#include "messages/event.h"
+#include "messages/detectorinfo.h"
+#include "messages/detectorsummary.h"
+#include "source/base.h"
 #include "detector.h"
-#include "log.h"
+#include "utility/log.h"
 
-#include "statesupervisor.h"
+#include "supervision/state.h"
 
 namespace MuonPi {
 
-
-DetectorTracker::DetectorTracker(std::vector<std::shared_ptr<AbstractSource<DetectorInfo>>> log_sources, std::vector<std::shared_ptr<AbstractSink<DetectorSummary>>> log_sinks, StateSupervisor &supervisor)
-    : ThreadRunner{"DetectorTracker"}
+DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, StateSupervisor& supervisor)
+    : Sink::Threaded<DetectorInfo> { "DetectorTracker", std::chrono::milliseconds{100} }
     , m_supervisor { supervisor }
-    , m_log_sources { std::move(log_sources) }
-    , m_log_sinks { std::move(log_sinks) }
+    , m_summary_sink { summary_sink }
 {
-    start();
 }
-
-
 
 auto DetectorTracker::accept(Event& event) const -> bool
 {
@@ -36,15 +31,16 @@ auto DetectorTracker::accept(Event& event) const -> bool
     return false;
 }
 
-void DetectorTracker::process(const DetectorInfo& log)
+auto DetectorTracker::process(DetectorInfo log) -> int
 {
     auto detector { m_detectors.find(log.hash()) };
     if (detector == m_detectors.end()) {
         m_supervisor.detector_status(log.hash(), Detector::Status::Created);
-       m_detectors[log.hash()] = std::make_unique<Detector>(log, m_supervisor);
-        return;
+        m_detectors[log.hash()] = std::make_unique<Detector>(log, m_supervisor);
+        return 0;
     }
     (*detector).second->process(log);
+    return 0;
 }
 
 auto DetectorTracker::factor() const -> double
@@ -52,15 +48,7 @@ auto DetectorTracker::factor() const -> double
     return m_factor;
 }
 
-auto DetectorTracker::get(std::size_t hash) const -> std::shared_ptr<Detector>
-{
-    if (m_detectors.find(hash) == m_detectors.end()) {
-        return nullptr;
-    }
-    return m_detectors.at(hash);
-}
-
-auto DetectorTracker::step() -> int
+auto DetectorTracker::process() -> int
 {
     using namespace std::chrono;
 
@@ -81,20 +69,12 @@ auto DetectorTracker::step() -> int
         }
     }
 
-
     m_factor = largest;
+
     while (!m_delete_detectors.empty()) {
         m_detectors.erase(m_delete_detectors.front());
         m_delete_detectors.pop();
     }
-
-    // +++ handle incoming log messages, maximum 10 at a time to prevent blocking
-    for (auto& source: m_log_sources) {
-        if (source->has_items()) {
-            process(source->next_item());
-        }
-    }
-    // --- handle incoming log messages, maximum 10 at a time to prevent blocking
 
 
     // +++ push detector log messages at regular interval
@@ -106,17 +86,11 @@ auto DetectorTracker::step() -> int
         m_last = now;
 
         for (auto& [hash, detector]: m_detectors) {
-            DetectorSummary log(detector->current_log_data());
-            for (auto& sink: m_log_sinks) {
-                sink->push_item(log);
-            }
+            m_summary_sink.get( detector->current_log_data() );
         }
     }
     // --- push detector log messages at regular interval
 
-    // TODO: implement immediate logging if a detector becomes active or inactive
-
-    std::this_thread::sleep_for( std::chrono::milliseconds{1} );
     return 0;
 }
 }

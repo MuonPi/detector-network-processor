@@ -1,5 +1,5 @@
-#include "event.h"
-#include "log.h"
+#include "messages/event.h"
+#include "utility/log.h"
 
 
 
@@ -118,7 +118,7 @@ void Event::add_event(Event event) noexcept
     m_n++;
 }
 
-auto Event::events() -> const std::vector<Event>&
+auto Event::events() const -> const std::vector<Event>&
 {
     return m_events;
 }

@@ -1,7 +1,7 @@
 #ifndef MQTTLINK_H
 #define MQTTLINK_H
 
-#include "threadrunner.h"
+#include "utility/threadrunner.h"
 
 #include <string>
 #include <memory>
@@ -13,13 +13,13 @@
 
 #include <mosquitto.h>
 
-namespace MuonPi {
+namespace MuonPi::Link {
 
 
 /**
- * @brief The MqttLink class. Connects to a Mqtt server and offers publish and subscribe methods.
+ * @brief The Mqtt class. Connects to a Mqtt server and offers publish and subscribe methods.
  */
-class MqttLink : public ThreadRunner
+class Mqtt : public ThreadRunner
 {
 public:
 
@@ -31,19 +31,19 @@ public:
         Error
     };
     class BaseMessage {
-	public:
-		auto valid() const -> bool { return m_valid; }
-		void setValid(bool valid) { m_valid = valid; }
-	protected:
-		bool m_valid { false };
-	};
-	struct Message : public BaseMessage
+    public:
+        auto valid() const -> bool { return m_valid; }
+        void setValid(bool valid) { m_valid = valid; }
+    protected:
+        bool m_valid { false };
+    };
+    struct Message : public BaseMessage
     {
         Message() = default;
-		Message(const std::string& a_topic, const std::string& a_content) 
-		: topic { a_topic }, content {a_content }
-		{}
-		std::string topic {};
+        Message(const std::string& a_topic, const std::string& a_content)
+        : topic { a_topic }, content {a_content }
+        {}
+        std::string topic {};
         std::string content{};
     };
     struct LoginData
@@ -61,11 +61,11 @@ public:
     };
 
     /**
-     * @brief The Publisher class. Only gets instantiated from within the MqttLink class.
+     * @brief The Publisher class. Only gets instantiated from within the Mqtt class.
      */
     class Publisher {
     public:
-        Publisher(MqttLink* link, const std::string& topic)
+        Publisher(Mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {}
@@ -84,27 +84,27 @@ public:
          * @return true if the sending was successful
          */
         [[nodiscard]] auto publish(const std::string& subtopic, const std::string& content) -> bool;
-		
-		/**
+
+        /**
          * @brief get_publish_topic Gets the topic under which the publisher publishes messages
          * @return a std::string containing the publish topic
          */
-		[[nodiscard]] auto get_publish_topic() const -> const std::string&;
+        [[nodiscard]] auto get_publish_topic() const -> const std::string&;
 
         Publisher() = default;
     private:
-        friend class MqttLink;
+        friend class Mqtt;
 
-        MqttLink* m_link { nullptr };
+        Mqtt* m_link { nullptr };
         std::string m_topic {};
     };
 
     /**
-     * @brief The Subscriber class. Only gets instantiated from within the MqttLink class.
+     * @brief The Subscriber class. Only gets instantiated from within the Mqtt class.
      */
     class Subscriber {
     public:
-        Subscriber(MqttLink* link, const std::string& topic)
+        Subscriber(Mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {}
@@ -115,48 +115,39 @@ public:
         }
 
         Subscriber() = default;
+
+        void set_callback(std::function<void(const Message&)> callback);
+
         /**
-         * @brief has_message Check whether there are messages available.
-         * @return true if there is at least one message in the queue.
-         */
-        [[nodiscard]] auto has_message() const -> bool;
-        /**
-         * @brief get_message Gets the next message from the queue.
-         * @return an std::pair containting the message
-         */
-        [[nodiscard]] auto get_message() -> Message;
-		/**
          * @brief get_subscribe_topic Gets the topic the subscriber subscribes to
          * @return a std::string containing the subscribed topic
          */
-		[[nodiscard]] auto get_subscribe_topic() const -> const std::string&;
+        [[nodiscard]] auto get_subscribe_topic() const -> const std::string&;
     private:
-        friend class MqttLink;
+        friend class Mqtt;
 
         /**
-         * @brief push_message Only called from within the MqttLink class
+         * @brief push_message Only called from within the Mqtt class
          * @param message The message to push into the queue
          */
         void push_message(const Message& message);
 
-        std::queue<Message> m_messages {};
-        bool m_has_message { false };
-        std::mutex m_mutex;
-        MqttLink* m_link { nullptr };
+        Mqtt* m_link { nullptr };
         std::string m_topic {};
+        std::function<void(const Message&)> m_callback;
     };
 
 
 
     /**
-     * @brief MqttLink
+     * @brief Mqtt
      * @param login The login information for the mqtt user
      * @param server The server address to connect to
      * @param port The port to connect to
      */
-    MqttLink(const LoginData& login, const std::string& server = "muonpi.org", int port = 1883);
+    Mqtt(const LoginData& login, const std::string& server = "muonpi.org", int port = 1883);
 
-    ~MqttLink() override;
+    ~Mqtt() override;
 
 
     /**
@@ -197,7 +188,7 @@ protected:
 private:
 
     /**
-     * @brief set_status Set the status for this MqttLink
+     * @brief set_status Set the status for this Mqtt
      * @param status The new status
      */
     void set_status(Status status);
@@ -272,11 +263,6 @@ private:
     friend void wrapper_callback_disconnected(mosquitto* mqtt, void* object, int result);
     friend void wrapper_callback_message(mosquitto* mqtt, void* object, const mosquitto_message* message);
 };
-/*
-void wrapper_callback_connected(mosquitto* mqtt, void* object, int result);
-void wrapper_callback_disconnected(mosquitto* mqtt, void* object, int result);
-void wrapper_callback_message(mosquitto* mqtt, void* object, const mosquitto_message* message);
-*/
 
 
 }

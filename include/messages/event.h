@@ -48,8 +48,8 @@ public:
 
 
     void set_detector(std::shared_ptr<Detector> detector);
-	
-	auto detector() const -> const std::shared_ptr<Detector>;
+
+    auto detector() const -> const std::shared_ptr<Detector>;
 
     /**
      * @brief start
@@ -85,7 +85,7 @@ public:
       * @brief Get the list of events.
       * @return The list of events contained in this combined event
       */
-    [[nodiscard]] auto events() -> const std::vector<Event>&;
+    [[nodiscard]] auto events() const -> const std::vector<Event>&;
 
     /**
      * @brief add_event Adds an event to the CombinedEvent.

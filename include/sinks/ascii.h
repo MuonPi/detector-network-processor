@@ -2,41 +2,47 @@
 #define ASCIIEVENTSINK_H
 
 #include "abstractsink.h"
+#include "event.h"
 
 #include <memory>
+#include <iostream>
 
-namespace MuonPi {
+namespace MuonPi::Sinks {
 
-class Event;
-
+template <typename T>
 /**
  * @brief The AsciiEventSink class
  */
-class AsciiEventSink : public AbstractSink<Event>
+class Ascii : public Sink<Event>
 {
 public:
     /**
      * @brief AsciiEventSink
      * @param a_ostream The stream to which the output should be written
      */
-    AsciiEventSink(std::ostream& a_ostream);
+    Ascii(std::ostream& a_ostream);
 
-    ~AsciiEventSink() override;
-protected:
-    /**
-     * @brief step implementation from ThreadRunner
-     * @return zero if the step succeeded.
-     */
-    [[nodiscard]] auto step() -> int override;
+    ~Ascii() override;
+
+    void get(T message);
 
 private:
-
-    void process(Event evt);
-
     [[nodiscard]] auto to_string(const Event& evt) const -> std::string;
 
     std::ostream& m_ostream;
 };
+
+template <typename T>
+Ascii::Ascii(std::ostream& ostream)
+    : Sink<T> {}
+    , m_ostream { ostream }
+{
+}
+
+template <typename T>
+Ascii::~Ascii() = default;
+
+
 
 }
 

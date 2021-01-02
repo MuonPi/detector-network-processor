@@ -1,5 +1,5 @@
 #include "utility/log.h"
-#include "core.h"
+#include "coincidencefilter.h"
 #include "detectortracker.h"
 #include "defaults.h"
 #include "triggerhandler.h"
@@ -94,10 +94,10 @@ auto main() -> int
     MuonPi::StateSupervisor supervisor{cluster_sinks};
     MuonPi::TriggerHandler trigger_handler{trigger_sink};
     MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_handler, supervisor};
-    MuonPi::Core core{event_sinks, detector_tracker, supervisor};
+    MuonPi::CoincidenceFilter coincidence_filter{event_sinks, detector_tracker, supervisor};
 
 
-    MuonPi::Source::Mqtt<MuonPi::Event> event_source { core, mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> event_source { coincidence_filter, mqtt_link.subscribe("muonpi/data/#") };
     MuonPi::Source::Mqtt<MuonPi::DetectorInfo> log_source { detector_tracker, mqtt_link.subscribe("muonpi/log/#") };
 
     supervisor.add_thread(&detector_tracker);
@@ -115,7 +115,7 @@ auto main() -> int
                 ) {
             MuonPi::Log::notice()<<"Received signal: " + std::to_string(signal) + ". Exiting.";
             supervisor.stop();
-            core.stop();
+            coincidence_filter.stop();
         }
     };
 
@@ -123,7 +123,7 @@ auto main() -> int
     std::signal(SIGTERM, signal_handler);
     std::signal(SIGHUP, signal_handler);
 
-    core.start_synchronuos();
+    coincidence_filter.start_synchronuos();
 
-    return core.wait();
+    return coincidence_filter.wait();
 }

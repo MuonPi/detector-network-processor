@@ -1,4 +1,4 @@
-﻿#include "core.h"
+﻿#include "coincidencefilter.h"
 #include "utility/log.h"
 
 #include "sink/base.h"
@@ -15,20 +15,20 @@
 
 namespace MuonPi {
 
-Core::Core(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor)
-    : Sink::Threaded<Event> { "Core", std::chrono::milliseconds {100} }
+CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor)
+    : Sink::Threaded<Event> { "CoincidenceFilter", std::chrono::milliseconds {100} }
     , Source::Base<Event> { event_sink }
     , m_detector_tracker { (detector_tracker) }
     , m_supervisor { supervisor }
 {
 }
 
-auto Core::supervisor() -> StateSupervisor&
+auto CoincidenceFilter::supervisor() -> StateSupervisor&
 {
     return m_supervisor;
 }
 
-auto Core::process() -> int
+auto CoincidenceFilter::process() -> int
 {
     if (m_supervisor.step() != 0) {
         Log::error()<<"The Supervisor stopped.";
@@ -55,7 +55,7 @@ auto Core::process() -> int
     return 0;
 }
 
-auto Core::post_run() -> int
+auto CoincidenceFilter::post_run() -> int
 {
     int result { 0 };
 
@@ -64,7 +64,7 @@ auto Core::post_run() -> int
     return m_detector_tracker.wait() + result;
 }
 
-auto Core::process(Event event) -> int
+auto CoincidenceFilter::process(Event event) -> int
 {
 
     if (!m_detector_tracker.accept(event)) {

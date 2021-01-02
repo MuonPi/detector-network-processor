@@ -48,7 +48,7 @@ find_library(RESTBED restbed REQUIRED)
 
 
 set(CLUSTER_SOURCE_FILES
-    "${PROJECT_SRC_DIR}/core.cpp"
+    "${PROJECT_SRC_DIR}/coincidencefilter.cpp"
     "${PROJECT_SRC_DIR}/detectortracker.cpp"
     "${PROJECT_SRC_DIR}/detector.cpp"
     "${PROJECT_SRC_DIR}/triggerhandler.cpp"
@@ -73,7 +73,7 @@ set(CLUSTER_SOURCE_FILES
     )
 
 set(CLUSTER_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/core.h"
+    "${PROJECT_HEADER_DIR}/coincidencefilter.h"
     "${PROJECT_HEADER_DIR}/detectortracker.h"
     "${PROJECT_HEADER_DIR}/detector.h"
     "${PROJECT_HEADER_DIR}/triggerhandler.h"

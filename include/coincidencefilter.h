@@ -1,5 +1,5 @@
-#ifndef CORE_H
-#define CORE_H
+#ifndef COINCIDENCEFILTER_H
+#define COINCIDENCEFILTER_H
 
 #include "utility/threadrunner.h"
 #include "detector.h"
@@ -21,25 +21,25 @@ namespace MuonPi {
 class DetectorTracker;
 
 /**
- * @brief The Core class
+ * @brief The CoincidenceFilter class
  */
-class Core : public Sink::Threaded<Event>, public Source::Base<Event>
+class CoincidenceFilter : public Sink::Threaded<Event>, public Source::Base<Event>
 {
 public:
     /**
-     * @brief Core
+     * @brief CoincidenceFilter
      * @param event_sink A collection of event sinks to use
      * @param detector_tracker A reference to the detector tracker which keeps track of connected detectors
      * @param supervisor A reference to a StateSupervisor, which keeps track of program metadata
      */
-    Core(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor);
+    CoincidenceFilter(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor);
 
     /**
      * @brief supervisor Acceess the supervision object
      */
     [[nodiscard]] auto supervisor() -> StateSupervisor&;
 
-    ~Core() override = default;
+    ~CoincidenceFilter() override = default;
 
 protected:
 
@@ -75,4 +75,4 @@ private:
 
 }
 
-#endif // CORE_H
+#endif // COINCIDENCEFILTER_H

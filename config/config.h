@@ -42,6 +42,7 @@ constexpr struct Ldap {
 } ldap;
 constexpr struct Rest {
     std::uint16_t port { 1983 };
+    const char* save_file { "/var/muondetector/cluster_trigger" };
 } rest;
 }
 

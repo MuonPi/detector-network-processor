@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <ldap.h>
 #include <sasl/sasl.h>
+#include <fstream>
 
 
 
@@ -98,6 +99,8 @@ TriggerHandler::TriggerHandler(Sink::Base<DetectorTrigger>& sink)
         handle_authentication(session, callback);
     });
 
+    load();
+
     m_future = std::async(std::launch::async, [this]{m_service.start(m_settings);});
 }
 
@@ -106,6 +109,7 @@ TriggerHandler::~TriggerHandler()
 {
     m_service.stop();
     m_future.wait();
+    save();
 }
 
 void TriggerHandler::get(DetectorTrigger trigger)
@@ -359,6 +363,73 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
 
     m_detector_trigger.erase(hash);
     return session->close(restbed::OK);
+}
+
+void TriggerHandler::save()
+{
+    std::ofstream out {Config::rest.save_file};
+    if (!out.is_open()) {
+        Log::warning()<<"Could not save trigger.";
+        return;
+    }
+    for (auto& [hash, trigger]: m_detector_trigger) {
+        out<<trigger.username<<' '<<trigger.station<<' ';
+        switch (trigger.type) {
+        case DetectorTrigger::Offline:
+            out<<" offline";
+            break;
+        case DetectorTrigger::Online:
+            out<<" online";
+            break;
+        case DetectorTrigger::Unreliable:
+            out<<" unreliable";
+            break;
+        case DetectorTrigger::Reliable:
+            out<<" reliable";
+            break;
+        }
+        out<<'\n';
+    }
+    out.close();
+}
+
+void TriggerHandler::load()
+{
+    std::ifstream in {Config::rest.save_file};
+    if (!in.is_open()) {
+        Log::warning()<<"Could not load trigger.";
+        return;
+    }
+    for (std::string line; std::getline(in, line); ) {
+
+        MessageParser parser { line, ' '};
+
+        if (parser.size() != 3) {
+            continue;
+        }
+
+        std::size_t hash = std::hash<std::string>{}(parser[0] + parser[1] + parser[2]);
+
+        if (m_detector_trigger.find(hash) != m_detector_trigger.end()) {
+            continue;
+        }
+
+        DetectorTrigger trigger;
+        trigger.target = std::hash<std::string>{}(parser[0] + parser[1]);
+        trigger.username = parser[0];
+        trigger.station = parser[1];
+        if (parser[2] == "offline") {
+            trigger.type = DetectorTrigger::Offline;
+        } else if (parser[2] == "online") {
+            trigger.type = DetectorTrigger::Online;
+        } else if (parser[2] == "unreliable") {
+            trigger.type = DetectorTrigger::Unreliable;
+        } else if (parser[2] == "reliable") {
+            trigger.type = DetectorTrigger::Reliable;
+        }
+
+        m_detector_trigger[hash] = trigger;
+    }
 }
 
 }

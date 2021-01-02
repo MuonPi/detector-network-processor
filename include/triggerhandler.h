@@ -27,6 +27,9 @@ public:
     void get(DetectorTrigger trigger) override;
 
 private:
+    void save();
+    void load();
+
     void handle_authentication(const restbed::session_ptr session, const restbed::callback& callback);
 
     [[nodiscard]] auto authenticate(const std::string& user, const std::string& pw) -> bool;

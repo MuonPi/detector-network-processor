@@ -149,27 +149,23 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
         try {
             MessageParser start {content[0], '.'};
             if (start.size() != 2) {
-                Log::warning()<<"Message '" + topic.get() + " " + content.get() + "' is invalid.";
                 return -1;
             }
             std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
             data.start = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
 
         } catch (...) {
-            Log::warning()<<"Message '" + topic.get() + " " + content.get() + "' is invalid.";
             return -1;
         }
 
         try {
             MessageParser start {content[1], '.'};
             if (start.size() != 2) {
-                Log::warning()<<"Message '" + topic.get() + " " + content.get() + "' is invalid.";
                 return -1;
             }
             std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
             data.end = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
         } catch (...) {
-            Log::warning()<<"Message '" + topic.get() + " " + content.get() + "' is invalid.";
             return -1;
         }
 

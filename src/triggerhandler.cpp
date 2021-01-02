@@ -242,6 +242,8 @@ void TriggerHandler::handle_post(const restbed::session_ptr session)
         trigger.type = DetectorTrigger::Unreliable;
     } else if (parser[2] == "reliable") {
         trigger.type = DetectorTrigger::Reliable;
+    } else {
+        return session->close( restbed::METHOD_NOT_ALLOWED );
     }
 
     m_detector_trigger[hash] = trigger;

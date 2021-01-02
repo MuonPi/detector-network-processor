@@ -44,6 +44,8 @@ public:
         Unreliable,
         Reliable
     };
+
+    void enable();
     /**
      * @brief Detector
      * @param initial_log The initial log message from which this detector object originates

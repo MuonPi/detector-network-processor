@@ -9,6 +9,7 @@
 #include "supervision/state.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
+#include "source/base.h"
 
 #include <queue>
 #include <map>
@@ -17,16 +18,12 @@
 
 namespace MuonPi {
 
-template <typename T>
-class AbstractSink;
-template <typename T>
-class AbstractSource;
 class DetectorTracker;
 
 /**
  * @brief The Core class
  */
-class Core : public Sink::Threaded<Event>
+class Core : public Sink::Threaded<Event>, public Source::Base<Event>
 {
 public:
     /**
@@ -61,8 +58,6 @@ protected:
     [[nodiscard]] auto process() -> int override;
 
 private:
-
-    Sink::Base<Event>& m_event_sink;
 
     DetectorTracker& m_detector_tracker;
     std::unique_ptr<TimeBaseSupervisor> m_time_base_supervisor { std::make_unique<TimeBaseSupervisor>( std::chrono::seconds{2} ) };

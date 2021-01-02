@@ -2,6 +2,7 @@
 #include "core.h"
 #include "detectortracker.h"
 #include "defaults.h"
+#include "triggerhandler.h"
 
 #include "source/mqtt.h"
 #include "link/mqtt.h"
@@ -54,12 +55,15 @@ auto main() -> int
         return -1;
     }
 
+    MuonPi::Sink::Mqtt<MuonPi::DetectorTrigger> trigger_sink {mqtt_link.publish("muonpi/trigger")};
+
 #ifdef CLUSTER_RUN_SERVER
     MuonPi::Link::Database db_link {MuonPi::Config::influx.host, {MuonPi::Config::influx.login.username, MuonPi::Config::influx.login.password}, MuonPi::Config::influx.database};
 
     MuonPi::Sink::Database<MuonPi::Event> event_sink { db_link };
     MuonPi::Sink::Database<MuonPi::ClusterLog> clusterlog_sink { db_link };
     MuonPi::Sink::Database<MuonPi::DetectorSummary> detectorlog_sink { db_link };
+
 
 #else
 
@@ -88,7 +92,8 @@ auto main() -> int
 
 
     MuonPi::StateSupervisor supervisor{cluster_sinks};
-    MuonPi::DetectorTracker detector_tracker{detector_sinks, supervisor};
+    MuonPi::TriggerHandler trigger_handler{trigger_sink};
+    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_handler, supervisor};
     MuonPi::Core core{event_sinks, detector_tracker, supervisor};
 
 

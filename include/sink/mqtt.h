@@ -12,6 +12,7 @@
 #include "messages/detectorsummary.h"
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
+#include "messages/trigger.h"
 
 #include "detector.h"
 
@@ -173,6 +174,34 @@ void Mqtt<Event>::get(Event event)
                 return;
         }
     }
+}
+
+template <>
+void Mqtt<DetectorTrigger>::get(DetectorTrigger trigger)
+{
+    std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
+    std::ostringstream stream {};
+    stream
+            <<std::put_time(std::gmtime(&time), "%F_%H-%M-%S %Z");
+    switch (trigger.type) {
+    case DetectorTrigger::Offline:
+        stream<<" offline";
+        break;
+    case DetectorTrigger::Online:
+        stream<<" online";
+        break;
+    case DetectorTrigger::Unreliable:
+        stream<<" unreliable";
+        break;
+    case DetectorTrigger::Reliable:
+        stream<<" reliable";
+        break;
+    }
+
+    if (!m_link.publish(trigger.username + "/" + trigger.station, stream.str())) {
+        Log::warning()<<"Could not publish MQTT message.";
+    }
+    Log::debug()<<"Published trigger";
 }
 
 }

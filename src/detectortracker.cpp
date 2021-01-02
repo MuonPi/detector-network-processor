@@ -13,10 +13,11 @@
 
 namespace MuonPi {
 
-DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, StateSupervisor& supervisor)
+DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<DetectorTrigger>& trigger_sink, StateSupervisor& supervisor)
     : Sink::Threaded<DetectorInfo> { "DetectorTracker", std::chrono::milliseconds{100} }
+    , Source::Base<DetectorSummary> { summary_sink }
+    , Source::Base<DetectorTrigger> { trigger_sink }
     , m_supervisor { supervisor }
-    , m_summary_sink { summary_sink }
 {
 }
 
@@ -39,6 +40,7 @@ auto DetectorTracker::process(DetectorInfo log) -> int
     auto detector { m_detectors.find(log.hash()) };
     if (detector == m_detectors.end()) {
         m_detectors[log.hash()] = std::make_unique<Detector>(log, *this);
+        m_detectors[log.hash()]->enable();
         return 0;
     }
     (*detector).second->process(log);
@@ -84,7 +86,7 @@ auto DetectorTracker::process() -> int
         m_last = now;
 
         for (auto& [hash, detector]: m_detectors) {
-            m_summary_sink.get( detector->current_log_data() );
+            Source::Base<DetectorSummary>::put( detector->current_log_data() );
         }
     }
     // --- push detector log messages at regular interval
@@ -94,10 +96,25 @@ auto DetectorTracker::process() -> int
 
 void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
 {
-    if (status == Detector::Status::Deleted) {
+    auto user_info { m_detectors[hash]->user_info()};
+    switch (status) {
+    case Detector::Status::Deleted:
         m_delete_detectors.push(hash);
-    } else if (status > Detector::Status::Deleted) {
-        m_summary_sink.get( m_detectors[hash]->change_log_data() );
+        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Offline, hash, user_info.username, user_info.station_id});
+        break;
+    case Detector::Status::Created:
+        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Online, hash, user_info.username, user_info.station_id});
+        break;
+    case Detector::Status::Reliable:
+        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Reliable, hash, user_info.username, user_info.station_id});
+        break;
+    case Detector::Status::Unreliable:
+        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Reliable, hash, user_info.username, user_info.station_id});
+        break;
+    }
+
+    if (status > Detector::Status::Deleted) {
+        Source::Base<DetectorSummary>::put( m_detectors[hash]->change_log_data() );
     }
     m_supervisor.detector_status(hash, status);
 }

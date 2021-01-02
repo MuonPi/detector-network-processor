@@ -2,7 +2,10 @@
 #define DETECTORTRACKER_H
 
 #include "sink/base.h"
+#include "source/base.h"
 #include "detector.h"
+
+#include "messages/trigger.h"
 
 #include <map>
 #include <memory>
@@ -17,15 +20,16 @@ class DetectorSummary;
 class StateSupervisor;
 
 
-class DetectorTracker : public Sink::Threaded<DetectorInfo>
+class DetectorTracker : public Sink::Threaded<DetectorInfo>, public Source::Base<DetectorSummary>, public Source::Base<DetectorTrigger>
 {
 public:
     /**
      * @brief DetectorTracker
-     * @param summary_sink A collection of Sinks to write the detector summaries to.
+     * @param summary_sink A Sink to write the detector summaries to.
+     * @param trigger_sink A Sink to write the detector triggers to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, StateSupervisor& supervisor);
+    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<DetectorTrigger>& trigger_sink, StateSupervisor& supervisor);
 
     /**
      * @brief accept Check if an event is accepted
@@ -58,8 +62,6 @@ protected:
 
 private:
     StateSupervisor& m_supervisor;
-
-    Sink::Base<DetectorSummary>& m_summary_sink;
 
     std::map<std::size_t, std::unique_ptr<Detector>> m_detectors {};
 

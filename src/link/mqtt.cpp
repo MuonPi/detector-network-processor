@@ -367,23 +367,7 @@ auto Mqtt::Publisher::publish(const std::string& content) -> bool
 
 auto Mqtt::Publisher::publish(const std::string& subtopic, const std::string& content) -> bool
 {
-    std::string topic { m_topic };
-
-    const bool sub_slash { subtopic[0] != '/' };
-    const bool topic_slash { (*m_topic.end()) != '/' };
-
-    if ( sub_slash ^ topic_slash ) {
-        topic += subtopic;
-    } else if( sub_slash | topic_slash ) {
-        if (subtopic.length() < 2) {
-            return false;
-        }
-        topic += subtopic.substr(1, subtopic.size() - 1);
-    } else {
-        topic += '/' + subtopic;
-    }
-
-    return m_link->publish(topic , content);
+    return m_link->publish(m_topic +'/' + subtopic, content);
 }
 
 auto Mqtt::Publisher::get_publish_topic() const -> const std::string& {

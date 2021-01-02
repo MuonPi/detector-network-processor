@@ -7,6 +7,11 @@
 
 namespace MuonPi {
 
+void Detector::enable()
+{
+    set_status(Status::Created);
+}
+
 Detector::Detector(const DetectorInfo &initial_log, DetectorTracker& tracker)
     : m_location { initial_log.location()}
     , m_time { initial_log.m_time_info }
@@ -14,7 +19,6 @@ Detector::Detector(const DetectorInfo &initial_log, DetectorTracker& tracker)
     , m_userinfo { initial_log.user_info() }
     , m_detector_tracker { tracker }
 {
-    set_status(Status::Created);
 }
 
 void Detector::process(const Event& event)

@@ -17,7 +17,7 @@ namespace MuonPi {
 
 Core::Core(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor)
     : Sink::Threaded<Event> { "Core", std::chrono::milliseconds {100} }
-    , m_event_sink { event_sink }
+    , Source::Base<Event> { event_sink }
     , m_detector_tracker { (detector_tracker) }
     , m_supervisor { supervisor }
 {
@@ -46,7 +46,7 @@ auto Core::process() -> int
         constructor.set_timeout(m_timeout);
         if (constructor.timed_out()) {
             m_supervisor.increase_event_count(false, constructor.event.n());
-            m_event_sink.get(constructor.event);
+            put(constructor.event);
             m_constructors.erase(m_constructors.begin() + i);
         }
     }

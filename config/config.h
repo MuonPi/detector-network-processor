@@ -36,6 +36,13 @@ constexpr struct Influx {
     } login{};
     const char* database { "" };
 } influx;
+
+constexpr struct Ldap {
+    const char* server {"ldaps://muonpi.org"};
+} ldap;
+constexpr struct Rest {
+    std::uint16_t port { 1983 };
+} rest;
 }
 
 #endif // MUONDETECTOR_VERSION_H

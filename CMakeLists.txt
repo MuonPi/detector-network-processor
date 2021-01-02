@@ -40,6 +40,9 @@ add_compile_options(
 find_library(MOSQUITTO mosquitto REQUIRED)
 find_library(CRYPTOPP crypto++ REQUIRED)
 find_library(CURL curl REQUIRED)
+find_library(SASL2 sasl2 REQUIRED)
+find_library(LDAP ldap REQUIRED)
+find_library(RESTBED restbed REQUIRED)
 
 
 
@@ -48,6 +51,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/core.cpp"
     "${PROJECT_SRC_DIR}/detectortracker.cpp"
     "${PROJECT_SRC_DIR}/detector.cpp"
+    "${PROJECT_SRC_DIR}/triggerhandler.cpp"
 
     "${PROJECT_SRC_DIR}/link/mqtt.cpp"
     "${PROJECT_SRC_DIR}/link/database.cpp"
@@ -72,6 +76,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/core.h"
     "${PROJECT_HEADER_DIR}/detectortracker.h"
     "${PROJECT_HEADER_DIR}/detector.h"
+    "${PROJECT_HEADER_DIR}/triggerhandler.h"
 
     "${PROJECT_HEADER_DIR}/link/database.h"
     "${PROJECT_HEADER_DIR}/link/mqtt.h"
@@ -89,6 +94,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/messages/detectorsummary.h"
     "${PROJECT_HEADER_DIR}/messages/clusterlog.h"
     "${PROJECT_HEADER_DIR}/messages/userinfo.h"
+    "${PROJECT_HEADER_DIR}/messages/trigger.h"
 
     "${PROJECT_HEADER_DIR}/utility/threadrunner.h"
     "${PROJECT_HEADER_DIR}/utility/coincidence.h"
@@ -135,6 +141,9 @@ target_link_libraries(muondetector-cluster
     source-files
     pthread
     curl
+    restbed
+    sasl2
+    ldap
     )
 
 

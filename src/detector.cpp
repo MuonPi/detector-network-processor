@@ -78,7 +78,7 @@ void Detector::check_reliability()
 {
     double prec { (m_location.h_acc * m_location.v_acc) };
     double dop { (m_time.dop * m_time.accuracy) };
-    if ((prec > 100.0) || (dop > 50.0)) {
+    if ((prec > 100.0) || (dop > 70.0)) {
         set_status(Status::Unreliable);
     } else {
         set_status(Status::Reliable);

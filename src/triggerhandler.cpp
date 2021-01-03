@@ -84,13 +84,15 @@ TriggerHandler::TriggerHandler(Sink::Base<DetectorTrigger>& sink)
     m_resource->set_method_handler("DELETE", [this](const restbed::session_ptr session){
        handle_delete(session);
     });
-/*
+
+    m_ssl_settings->set_port( Config::rest.port );
     m_ssl_settings->set_http_disabled(true);
-    m_ssl_settings->set_private_key(restbed::Uri{"keyfile"});
-    m_ssl_settings->set_certificate(restbed::Uri{"certificate"});
-    m_ssl_settings->set_temporary_diffie_hellman(restbed::Uri{"temp"});
+    m_ssl_settings->set_tlsv12_enabled(true);
+    m_ssl_settings->set_private_key(restbed::Uri{"file://"});
+    m_ssl_settings->set_certificate(restbed::Uri{"file://"});
+    m_ssl_settings->set_certificate_chain(restbed::Uri{"file://"});
     m_settings->set_ssl_settings(m_ssl_settings);
-*/
+
     m_settings->set_port( Config::rest.port );
     m_settings->set_default_header( "Connection", "close" );
 

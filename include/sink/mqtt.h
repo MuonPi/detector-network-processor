@@ -201,7 +201,6 @@ void Mqtt<DetectorTrigger>::get(DetectorTrigger trigger)
     if (!m_link.publish(trigger.username + "/" + trigger.station, stream.str())) {
         Log::warning()<<"Could not publish MQTT message.";
     }
-    Log::debug()<<"Published trigger";
 }
 
 }

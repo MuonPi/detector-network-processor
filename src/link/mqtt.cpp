@@ -202,7 +202,7 @@ auto Mqtt::publish(const std::string& topic) -> Publisher&
         return {*m_publishers[topic]};
     }
     m_publishers[topic] = std::make_unique<Publisher>(this, topic);
-    Log::debug()<<"Starting to publish on topic " + topic;
+    Log::info()<<"Starting to publish on topic " + topic;
     return {*m_publishers[topic]};
 }
 

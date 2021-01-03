@@ -98,8 +98,7 @@ GUID::GUID(std::size_t hash, std::uint64_t time)
 
 auto GUID::to_string() const -> std::string
 {
-    std::string out_str {};
-    std::ostringstream out { out_str };
+    std::ostringstream out {};
     out<<std::right<<std::hex<<std::setfill('0')<<std::setw(16)<<m_first<<std::setw(16)<<m_second;
     return out.str();
 }

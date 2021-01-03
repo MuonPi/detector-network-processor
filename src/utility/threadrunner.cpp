@@ -83,7 +83,7 @@ auto ThreadRunner::run() -> int
     while (m_run) {
         int result { step() };
         if (result != 0) {
-            Log::debug()<<"Thread " + m_name + " Stopped.";
+            Log::warning()<<"Thread " + m_name + " Stopped.";
             return result;
         }
     }
@@ -133,7 +133,7 @@ auto ThreadRunner::state_string() -> std::string
 void ThreadRunner::start()
 {
     if (m_state > State::Initial) {
-        Log::debug()<<"Thread " + m_name + " already running, refusing to start.";
+        Log::info()<<"Thread " + m_name + " already running, refusing to start.";
         return;
     }
     m_run_future = std::async(std::launch::async, &ThreadRunner::run, this);

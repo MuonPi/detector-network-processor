@@ -151,9 +151,9 @@ TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink)
     m_ssl_settings->set_port( Config::rest.port );
     m_ssl_settings->set_http_disabled(true);
     m_ssl_settings->set_tlsv12_enabled(true);
-    m_ssl_settings->set_private_key(restbed::Uri{"file://"});
-    m_ssl_settings->set_certificate(restbed::Uri{"file://"});
-    m_ssl_settings->set_certificate_chain(restbed::Uri{"file://"});
+    m_ssl_settings->set_private_key(restbed::Uri{Config::rest.privkey});
+    m_ssl_settings->set_certificate(restbed::Uri{Config::rest.cert});
+    m_ssl_settings->set_certificate_chain(restbed::Uri{Config::rest.fullchain});
     m_settings->set_ssl_settings(m_ssl_settings);
 
     m_settings->set_port( Config::rest.port );

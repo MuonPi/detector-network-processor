@@ -47,6 +47,9 @@ constexpr struct Ldap {
 constexpr struct Rest {
     std::uint16_t port { 1983 };
     const char* save_file { "/var/muondetector/cluster_trigger" };
+    const char* cert { "file://" };
+    const char* privkey { "file://" };
+    const char* fullchain { "file://" };
 } rest;
 }
 

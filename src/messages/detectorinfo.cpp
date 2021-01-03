@@ -4,6 +4,11 @@
 
 namespace MuonPi {
 
+auto DetectorType::id() const -> std::uint8_t
+{
+	return 0;
+}
+	
 DetectorInfo::DetectorInfo(std::size_t hash, /* std::string msg_time,*/ UserInfo user_info, Location location)
     : m_hash { hash }
     , m_location { location }

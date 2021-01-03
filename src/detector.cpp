@@ -139,7 +139,7 @@ auto Detector::user_info() const -> UserInfo
     return m_userinfo;
 }
 
-auto Detector::time_info() const -> Time
+auto Detector::time_info() const -> DetectorInfo::Time
 {
     return m_time;
 }

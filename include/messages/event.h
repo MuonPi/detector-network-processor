@@ -44,10 +44,10 @@ public:
     virtual ~Event() noexcept;
 
 
-    void set_detector_info(Location location, Time time, UserInfo user);
+    void set_detector_info(DetectorInfo::Location location, DetectorInfo::Time time, UserInfo user);
 
-    auto location() const -> Location;
-    auto time_info() const -> Time;
+    auto location() const -> DetectorInfo::Location;
+    auto time_info() const -> DetectorInfo::Time;
     auto user_info() const -> UserInfo;
 
     /**
@@ -106,8 +106,8 @@ private:
 
     Data m_data {};
 
-    Location m_location {};
-    Time m_time_info {};
+    DetectorInfo::Location m_location {};
+    DetectorInfo::Time m_time_info {};
     UserInfo m_user_info {};
 };
 }

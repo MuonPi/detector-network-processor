@@ -30,14 +30,7 @@ public:
         Connecting,
         Error
     };
-    class BaseMessage {
-    public:
-        auto valid() const -> bool { return m_valid; }
-        void setValid(bool valid) { m_valid = valid; }
-    protected:
-        bool m_valid { false };
-    };
-    struct Message : public BaseMessage
+    struct Message
     {
         Message() = default;
         Message(const std::string& a_topic, const std::string& a_content)

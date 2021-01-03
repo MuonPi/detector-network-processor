@@ -90,13 +90,13 @@ public:
      */
     [[nodiscard]] auto user_info() const -> UserInfo;
 
-    [[nodiscard]] auto time_info() const -> Time;
+    [[nodiscard]] auto time_info() const -> DetectorInfo::Time;
 
     /**
      * @brief location Accesses the location info of the detector
      * @return the Location struct
      */
-    [[nodiscard]] auto location() const -> Location { return m_location; }
+    [[nodiscard]] auto location() const -> DetectorInfo::Location { return m_location; }
 
 protected:
     /**
@@ -113,8 +113,8 @@ private:
 
     bool m_initial { true };
 
-    Location m_location {};
-    Time m_time {};
+    DetectorInfo::Location m_location {};
+    DetectorInfo::Time m_time {};
     std::size_t m_hash { 0 };
     UserInfo m_userinfo { };
 

@@ -4,38 +4,70 @@
 #include "messages/userinfo.h"
 
 #include <chrono>
+#include <string>
 
 namespace MuonPi {
 
-struct Location {
-    double lat { 0.0 };
-    double lon { 0.0 };
-    double h { 0.0 };
-    double v_acc { 0.0 };
-    double h_acc { 0.0 };
-    double dop { 0.0 };
+
+struct DetectorType {
+	enum class GateConnection {
+		NONE, XOR, AND, SINGLE
+	} detector_gate;
+	enum class DetectorCount {
+		NONE, SINGLE, DOUBLE
+	} detector_count;
+	enum class PhysicalType {
+		UNDEFINED, SCINTILLATOR, SEMICONDUCTOR, OTHER
+	} physical_type;
+	double cross_section { 0.0 };
+	[[nodiscard]] auto id() const -> std::uint8_t;
 };
 
-struct Time
-{
-    double accuracy { 0.0 };
-    double dop { 0.0 };
+enum class DetectorState {
+	UNDEFINED, INACTIVE, ACTIVE
 };
 
 /**
  * @brief The DetectorInfo class
  */
-class DetectorInfo /*: public MqttLink::BaseMessage*/
+class DetectorInfo
 {
 public:
 
-    /**
+	struct Location {
+		double lat { 0.0 };
+		double lon { 0.0 };
+		double h { 0.0 };
+		double v_acc { 0.0 };
+		double h_acc { 0.0 };
+		double dop { 0.0 };
+	};
+	struct Time
+	{
+		double accuracy { 0.0 };
+		double dop { 0.0 };
+	};
+	
+	DetectorState state { DetectorState::UNDEFINED };
+	
+	struct VersionInfo 
+	{
+		std::string hw_version { "" };
+		std::string sw_version { "" };
+		std::string ublox_hw_version { "" };
+		std::string ublox_sw_version { "" };
+		std::string ublox_proto_version { "" };
+	};
+
+	DetectorType type { DetectorType::GateConnection::NONE, DetectorType::DetectorCount::NONE, DetectorType::PhysicalType::UNDEFINED, 0.0 };
+	
+	/**
      * @brief DetectorInfo
      * @param hash The hash of the detector identifier
      * @param user_info The user info object
      * @param location The detector location information
      */
-    DetectorInfo(std::size_t hash, /* std::string msg_time,*/ UserInfo user_info, Location location);
+    DetectorInfo(std::size_t hash, UserInfo user_info, Location location);
 
     DetectorInfo() noexcept;
 

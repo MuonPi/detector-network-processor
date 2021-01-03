@@ -65,7 +65,7 @@ auto main(int argc, char* argv[]) -> int
         return -1;
     }
 
-    MuonPi::Sink::Mqtt<MuonPi::DetectorTrigger> trigger_sink {mqtt_link.publish("muonpi/trigger")};
+    MuonPi::Sink::Mqtt<MuonPi::Trigger::Detector> trigger_sink {mqtt_link.publish("muonpi/trigger")};
 
 #ifdef CLUSTER_RUN_SERVER
     MuonPi::Link::Database db_link {MuonPi::Config::influx.host, {MuonPi::Config::influx.login.username, MuonPi::Config::influx.login.password}, MuonPi::Config::influx.database};
@@ -77,10 +77,9 @@ auto main(int argc, char* argv[]) -> int
 
 #else
 
-    auto event_sink { std::make_shared<MuonPi::MqttSink<MuonPi::Event>>(mqtt_link.publish("muonpi/l1data")) };
-    auto clusterlog_sink { std::make_shared<MuonPi::MqttSink<MuonPi::ClusterLog>>(mqtt_link.publish("muonpi/cluster")) };
-    auto detectorlog_sink { std::make_shared<MuonPi::MqttSink<MuonPi::DetectorSummary>>(mqtt_link.publish("muonpi/cluster")) };
-
+    MuonPi::Sink::Mqtt<MuonPi::Event> event_sink {mqtt_link.publish("muonpi/l1data")};
+    MuonPi::Sink::Mqtt<MuonPi::ClusterLog> clusterlog_sink {mqtt_link.publish("muonpi/cluster")};
+    MuonPi::Sink::Mqtt<MuonPi::DetectorSummary> detectorlog_sink {mqtt_link.publish("muonpi/cluster")};
 #endif
 
     MuonPi::Sink::Mqtt<MuonPi::Event> mqtt_broadcast_sink { mqtt_link.publish("muonpi/events") };
@@ -102,9 +101,9 @@ auto main(int argc, char* argv[]) -> int
 
 
     MuonPi::StateSupervisor supervisor{cluster_sinks};
-    MuonPi::TriggerHandler trigger_handler{trigger_sink};
-    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_handler, supervisor};
+    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_sink, supervisor};
     MuonPi::CoincidenceFilter coincidence_filter{event_sinks, detector_tracker, supervisor};
+    MuonPi::TriggerHandler trigger_handler{detector_tracker};
 
 
     MuonPi::Source::Mqtt<MuonPi::Event> event_source { coincidence_filter, mqtt_link.subscribe("muonpi/data/#") };

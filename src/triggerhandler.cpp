@@ -24,6 +24,69 @@
 
 namespace MuonPi {
 
+
+namespace Trigger {
+
+auto Detector::Setting::to_string(char delimiter) const -> std::string
+{
+    std::ostringstream stream;
+    if (delimiter == 0) {
+        stream<<username<<station;
+    } else {
+        stream<<username<<delimiter<<station<<delimiter;
+    }
+    switch (type) {
+    case Trigger::Detector::Setting::Offline:
+        stream<<"offline";
+        break;
+    case Trigger::Detector::Setting::Online:
+        stream<<"online";
+        break;
+    case Trigger::Detector::Setting::Unreliable:
+        stream<<"unreliable";
+        break;
+    case Trigger::Detector::Setting::Reliable:
+        stream<<"reliable";
+        break;
+    case Trigger::Detector::Setting::Invalid:
+        stream<<"invalid";
+        break;
+    }
+    return stream.str();
+}
+
+auto Detector::Setting::id() const -> std::size_t
+{
+    return std::hash<std::string>{}(to_string());
+}
+
+auto Detector::Setting::from_string(const std::string& string) -> Setting
+{
+    MessageParser parser {string, ' '};
+
+    if (parser.size() != 3) {
+        return Setting{};
+    }
+
+    Setting trigger;
+    trigger.username = parser[0];
+    trigger.station = parser[1];
+    if (parser[2] == "offline") {
+        trigger.type = Trigger::Detector::Setting::Offline;
+    } else if (parser[2] == "online") {
+        trigger.type = Trigger::Detector::Setting::Online;
+    } else if (parser[2] == "unreliable") {
+        trigger.type = Trigger::Detector::Setting::Unreliable;
+    } else if (parser[2] == "reliable") {
+        trigger.type = Trigger::Detector::Setting::Reliable;
+    } else {
+        return Setting{};
+    }
+    return trigger;
+}
+
+}
+
 namespace Ldap {
 
 auto my_sasl_interact(LDAP *ld, unsigned flags, void *defaults, void *in) -> int;
@@ -71,8 +134,8 @@ auto my_sasl_interact(LDAP *ld, unsigned /*flags*/, void *defaults, void *in) ->
 }
 }
 
-TriggerHandler::TriggerHandler(Sink::Base<DetectorTrigger>& sink)
-    : Source::Base<DetectorTrigger>{sink}
+TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink)
+    : Source::Base<Trigger::Detector::Action>{sink}
 {
     m_resource->set_path("/trigger");
     m_resource->set_method_handler("POST", [this](const restbed::session_ptr session){
@@ -112,19 +175,6 @@ TriggerHandler::~TriggerHandler()
     m_service.stop();
     m_future.wait();
     save();
-}
-
-void TriggerHandler::get(DetectorTrigger trigger)
-{
-
-    for (auto& [id, tr]: m_detector_trigger) {
-        if (trigger.target != tr.target) {
-            continue;
-        }
-        if (trigger.type == tr.type) {
-            put(trigger);
-        }
-    }
 }
 
 auto TriggerHandler::authenticate(const std::string& user, const std::string& pw) -> bool
@@ -220,38 +270,25 @@ void TriggerHandler::handle_post(const restbed::session_ptr session)
         }
     } );
 
-    MessageParser parser { body, ' '};
 
-    if (parser.size() != 3) {
+    auto trigger { Trigger::Detector::Setting::from_string(body) };
+
+    if (trigger.type == Trigger::Detector::Setting::Invalid) {
         return session->close(restbed::BAD_REQUEST);
     }
 
-    std::size_t hash = std::hash<std::string>{}(parser[0] + parser[1] + parser[2]);
+    std::size_t hash = trigger.id();
 
     if (m_detector_trigger.find(hash) != m_detector_trigger.end()) {
         return session->close(restbed::ALREADY_REPORTED);
     }
 
-    DetectorTrigger trigger;
-    trigger.target = std::hash<std::string>{}(parser[0] + parser[1]);
-    trigger.username = parser[0];
-    trigger.station = parser[1];
-    if (parser[2] == "offline") {
-        trigger.type = DetectorTrigger::Offline;
-    } else if (parser[2] == "online") {
-        trigger.type = DetectorTrigger::Online;
-    } else if (parser[2] == "unreliable") {
-        trigger.type = DetectorTrigger::Unreliable;
-    } else if (parser[2] == "reliable") {
-        trigger.type = DetectorTrigger::Reliable;
-    } else {
-        return session->close( restbed::METHOD_NOT_ALLOWED );
-    }
-
     m_detector_trigger[hash] = trigger;
+    put(Trigger::Detector::Action{Trigger::Detector::Action::Activate, trigger});
 
-    Log::debug()<<"Setting up new trigger: '" + body + "'";
+    Log::debug()<<"Setting up new trigger: '" + trigger.to_string() + "'";
     save();
+
     return session->close( restbed::CREATED);
 }
 
@@ -279,44 +316,14 @@ void TriggerHandler::handle_get(const restbed::session_ptr session)
         for (auto& [hash, trigger]: m_detector_trigger) {
             if (trigger.username == parser[0]) {
                 n++;
-                stream<<trigger.username<<' '<<trigger.station<<' ';
-                switch (trigger.type) {
-                case DetectorTrigger::Offline:
-                    stream<<" offline";
-                    break;
-                case DetectorTrigger::Online:
-                    stream<<" online";
-                    break;
-                case DetectorTrigger::Unreliable:
-                    stream<<" unreliable";
-                    break;
-                case DetectorTrigger::Reliable:
-                    stream<<" reliable";
-                    break;
-                }
-                stream<<'\n';
+                stream<<trigger.to_string(' ')<<'\n';
             }
         }
     } else if (parser.size() == 2) {
         for (auto& [hash, trigger]: m_detector_trigger) {
             if ((trigger.username == parser[0]) && (trigger.station == parser[1])) {
                 n++;
-                stream<<trigger.username<<' '<<trigger.station<<' ';
-                switch (trigger.type) {
-                case DetectorTrigger::Offline:
-                    stream<<" offline";
-                    break;
-                case DetectorTrigger::Online:
-                    stream<<" online";
-                    break;
-                case DetectorTrigger::Unreliable:
-                    stream<<" unreliable";
-                    break;
-                case DetectorTrigger::Reliable:
-                    stream<<" reliable";
-                    break;
-                }
-                stream<<'\n';
+                stream<<trigger.to_string(' ')<<'\n';
             }
         }
     }
@@ -343,7 +350,6 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
 {
     auto request = session->get_request();
 
-
     std::size_t content_length = std::strtoul(request->get_header( "Content-Length", "" ).c_str(), nullptr, 10);
 
     std::string body;
@@ -354,20 +360,22 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
         }
     } );
 
+    auto trigger { Trigger::Detector::Setting::from_string(body) };
 
-    MessageParser parser { body, ' '};
-
-    if (parser.size() != 3) {
+    if (trigger.type == Trigger::Detector::Setting::Invalid) {
         return session->close(restbed::BAD_REQUEST);
     }
 
-    std::size_t hash = std::hash<std::string>{}(parser[0] + parser[1] + parser[2]);
+    std::size_t hash = trigger.id();
 
     if (m_detector_trigger.find(hash) == m_detector_trigger.end()) {
         return session->close(restbed::NOT_FOUND);
     }
 
     m_detector_trigger.erase(hash);
+
+    put(Trigger::Detector::Action{Trigger::Detector::Action::Deactivate, trigger});
+
     Log::debug()<<"Removing trigger: '" + body + "'";
     save();
     return session->close(restbed::OK);
@@ -382,22 +390,7 @@ void TriggerHandler::save()
     }
     Log::info()<<"Saving trigger.";
     for (auto& [hash, trigger]: m_detector_trigger) {
-        out<<trigger.username<<' '<<trigger.station<<' ';
-        switch (trigger.type) {
-        case DetectorTrigger::Offline:
-            out<<" offline";
-            break;
-        case DetectorTrigger::Online:
-            out<<" online";
-            break;
-        case DetectorTrigger::Unreliable:
-            out<<" unreliable";
-            break;
-        case DetectorTrigger::Reliable:
-            out<<" reliable";
-            break;
-        }
-        out<<'\n';
+        out<<trigger.to_string(' ')<<'\n';
     }
     out.close();
 }
@@ -412,33 +405,21 @@ void TriggerHandler::load()
     Log::info()<<"Loading trigger.";
     for (std::string line; std::getline(in, line); ) {
 
-        MessageParser parser { line, ' '};
+        auto trigger { Trigger::Detector::Setting::from_string(line) };
 
-        if (parser.size() != 3) {
+        if (trigger.type == Trigger::Detector::Setting::Invalid) {
             continue;
         }
 
-        std::size_t hash = std::hash<std::string>{}(parser[0] + parser[1] + parser[2]);
+        const std::size_t hash = trigger.id();
 
         if (m_detector_trigger.find(hash) != m_detector_trigger.end()) {
             continue;
         }
 
-        DetectorTrigger trigger;
-        trigger.target = std::hash<std::string>{}(parser[0] + parser[1]);
-        trigger.username = parser[0];
-        trigger.station = parser[1];
-        if (parser[2] == "offline") {
-            trigger.type = DetectorTrigger::Offline;
-        } else if (parser[2] == "online") {
-            trigger.type = DetectorTrigger::Online;
-        } else if (parser[2] == "unreliable") {
-            trigger.type = DetectorTrigger::Unreliable;
-        } else if (parser[2] == "reliable") {
-            trigger.type = DetectorTrigger::Reliable;
-        }
-
         m_detector_trigger[hash] = trigger;
+
+        put(Trigger::Detector::Action{Trigger::Detector::Action::Activate, trigger});
     }
 }
 

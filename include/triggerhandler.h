@@ -17,18 +17,16 @@ typedef std::function<void(const restbed::session_ptr)> callback;
 namespace MuonPi {
 
 
-class TriggerHandler : public Sink::Base<DetectorTrigger>, public Source::Base<DetectorTrigger>
+class TriggerHandler : public Source::Base<Trigger::Detector::Action>
 {
 public:
-    TriggerHandler(Sink::Base<DetectorTrigger>& sink);
+    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink);
 
     ~TriggerHandler() override;
-
-    void get(DetectorTrigger trigger) override;
-
 private:
     void save();
     void load();
+
 
     void handle_authentication(const restbed::session_ptr session, const restbed::callback& callback);
 
@@ -45,7 +43,7 @@ private:
 
     restbed::Service m_service {};
 
-    std::map<std::size_t, DetectorTrigger> m_detector_trigger {};
+    std::map<std::size_t, Trigger::Detector::Setting> m_detector_trigger {};
 
     std::future<void> m_future;
 };

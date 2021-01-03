@@ -13,10 +13,10 @@
 
 namespace MuonPi {
 
-DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<DetectorTrigger>& trigger_sink, StateSupervisor& supervisor)
+DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, StateSupervisor& supervisor)
     : Sink::Threaded<DetectorInfo> { "DetectorTracker", std::chrono::milliseconds{100} }
     , Source::Base<DetectorSummary> { summary_sink }
-    , Source::Base<DetectorTrigger> { trigger_sink }
+    , Source::Base<Trigger::Detector> { trigger_sink }
     , m_supervisor { supervisor }
 {
 }
@@ -94,28 +94,73 @@ auto DetectorTracker::process() -> int
     return 0;
 }
 
+void DetectorTracker::get(Trigger::Detector::Action action)
+{
+    std::size_t hash {std::hash<std::string>{}(action.setting.username + action.setting.station)};
+    if (action.type == Trigger::Detector::Action::Activate) {
+        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
+            m_detector_triggers[hash] = {};
+        }
+        m_detector_triggers[hash][action.setting.type] = action.setting;
+    } else {
+        m_detector_triggers[hash].erase(action.setting.type);
+        if (m_detector_triggers[hash].empty()) {
+            m_detector_triggers.erase(hash);
+        }
+    }
+}
+
 void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
 {
     auto user_info { m_detectors[hash]->user_info()};
-    switch (status) {
-    case Detector::Status::Deleted:
-        m_delete_detectors.push(hash);
-        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Offline, hash, user_info.username, user_info.station_id});
-        break;
-    case Detector::Status::Created:
-        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Online, hash, user_info.username, user_info.station_id});
-        break;
-    case Detector::Status::Reliable:
-        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Reliable, hash, user_info.username, user_info.station_id});
-        break;
-    case Detector::Status::Unreliable:
-        Source::Base<DetectorTrigger>::put(DetectorTrigger{DetectorTrigger::Reliable, hash, user_info.username, user_info.station_id});
-        break;
-    }
-
     if (status > Detector::Status::Deleted) {
         Source::Base<DetectorSummary>::put( m_detectors[hash]->change_log_data() );
     }
     m_supervisor.detector_status(hash, status);
+
+    switch (status) {
+    case Detector::Status::Deleted:
+        m_delete_detectors.push(hash);
+        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
+            return;
+        }
+        if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Offline) == m_detector_triggers[hash].end()) {
+            return;
+        }
+        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Offline]});
+        return;
+        break;
+    case Detector::Status::Created:
+        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
+            return;
+        }
+        if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Online) == m_detector_triggers[hash].end()) {
+            return;
+        }
+        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Online]});
+        return;
+        break;
+    case Detector::Status::Reliable:
+        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
+            return;
+        }
+        if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Reliable) == m_detector_triggers[hash].end()) {
+            return;
+        }
+        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Reliable]});
+        return;
+        break;
+    case Detector::Status::Unreliable:
+        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
+            return;
+        }
+        if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Unreliable) == m_detector_triggers[hash].end()) {
+            return;
+        }
+        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Unreliable]});
+        return;
+        break;
+    }
+
 }
 }

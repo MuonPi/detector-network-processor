@@ -4,20 +4,36 @@
 #include <cinttypes>
 #include <string>
 
-namespace MuonPi {
+namespace MuonPi::Trigger {
 
-struct DetectorTrigger {
-    enum Type {
-        Online,
-        Offline,
-        Reliable,
-        Unreliable
-    } type;
+struct Detector {
+    struct Setting {
+        enum Type {
+            Invalid,
+            Online,
+            Offline,
+            Reliable,
+            Unreliable
+        } type { Invalid };
 
-    std::size_t target;
+        std::string username;
+        std::string station;
 
-    std::string username;
-    std::string station;
+        [[nodiscard]] auto to_string(char delimiter = 0) const -> std::string;
+
+        [[nodiscard]] auto id() const -> std::size_t;
+
+        [[nodiscard]] static auto from_string(const std::string& string) -> Setting;
+    } setting;
+
+    struct Action {
+        enum Type {
+            Activate,
+            Deactivate
+        } type;
+        Setting setting;
+    };
+
 };
 
 }

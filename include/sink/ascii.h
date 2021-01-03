@@ -6,6 +6,7 @@
 #include "messages/clusterlog.h"
 #include "messages/detectorsummary.h"
 #include "utility/utility.h"
+#include "messages/trigger.h"
 
 #include <memory>
 #include <iostream>
@@ -133,6 +134,13 @@ void Ascii<DetectorSummary>::get(DetectorSummary log)
             ;
 
     m_ostream<<out.str()<<std::flush;
+}
+
+template <>
+void Ascii<Trigger::Detector>::get(Trigger::Detector trigger)
+{
+    m_ostream<<"trigger: " + trigger.setting.to_string(' ') + '\n'<<std::flush;
+
 }
 
 

@@ -52,7 +52,7 @@ public:
      * @brief get Reimplemented from Base<T>. gets called when a new item is available
      * @param item The item that is available
      */
-    void get(T item) override;
+    void get(T item) override final;
 
 protected:
     /**

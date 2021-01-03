@@ -177,28 +177,30 @@ void Mqtt<Event>::get(Event event)
 }
 
 template <>
-void Mqtt<DetectorTrigger>::get(DetectorTrigger trigger)
+void Mqtt<Trigger::Detector>::get(Trigger::Detector trigger)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
     stream
             <<std::put_time(std::gmtime(&time), "%F_%H-%M-%S %Z");
-    switch (trigger.type) {
-    case DetectorTrigger::Offline:
+    switch (trigger.setting.type) {
+    case Trigger::Detector::Setting::Offline:
         stream<<" offline";
         break;
-    case DetectorTrigger::Online:
+    case Trigger::Detector::Setting::Online:
         stream<<" online";
         break;
-    case DetectorTrigger::Unreliable:
+    case Trigger::Detector::Setting::Unreliable:
         stream<<" unreliable";
         break;
-    case DetectorTrigger::Reliable:
+    case Trigger::Detector::Setting::Reliable:
         stream<<" reliable";
         break;
+    case Trigger::Detector::Setting::Invalid:
+        return;
     }
 
-    if (!m_link.publish(trigger.username + "/" + trigger.station, stream.str())) {
+    if (!m_link.publish(trigger.setting.username + "/" + trigger.setting.station, stream.str())) {
         Log::warning()<<"Could not publish MQTT message.";
     }
 }

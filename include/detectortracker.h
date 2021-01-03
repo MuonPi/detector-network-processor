@@ -1,4 +1,4 @@
-#ifndef DETECTORTRACKER_H
+﻿#ifndef DETECTORTRACKER_H
 #define DETECTORTRACKER_H
 
 #include "sink/base.h"
@@ -20,7 +20,7 @@ class DetectorSummary;
 class StateSupervisor;
 
 
-class DetectorTracker : public Sink::Threaded<DetectorInfo>, public Source::Base<DetectorSummary>, public Source::Base<DetectorTrigger>
+class DetectorTracker : public Sink::Threaded<DetectorInfo>, public Source::Base<DetectorSummary>, public Source::Base<Trigger::Detector>, public Sink::Base<Trigger::Detector::Action>
 {
 public:
     /**
@@ -29,7 +29,7 @@ public:
      * @param trigger_sink A Sink to write the detector triggers to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<DetectorTrigger>& trigger_sink, StateSupervisor& supervisor);
+    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, StateSupervisor& supervisor);
 
     /**
      * @brief accept Check if an event is accepted
@@ -51,6 +51,7 @@ public:
      */
     void detector_status(std::size_t hash, Detector::Status status);
 
+    void get(Trigger::Detector::Action action) override;
 protected:
 
     /**
@@ -70,6 +71,8 @@ private:
     double m_factor { 1.0 };
 
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
+
+    std::map<std::size_t, std::map<Trigger::Detector::Setting::Type, Trigger::Detector::Setting>> m_detector_triggers {};
 };
 
 }

@@ -78,6 +78,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/detectortracker.h"
     "${PROJECT_HEADER_DIR}/detector.h"
     "${PROJECT_HEADER_DIR}/triggerhandler.h"
+    "${PROJECT_HEADER_DIR}/pipeline.h"
 
     "${PROJECT_HEADER_DIR}/link/database.h"
     "${PROJECT_HEADER_DIR}/link/mqtt.h"

@@ -9,6 +9,7 @@
 #include "link/mqtt.h"
 #include "sink/mqtt.h"
 #include "supervision/state.h"
+#include "supervision/timebase.h"
 
 
 #ifdef CLUSTER_RUN_SERVER
@@ -101,12 +102,13 @@ auto main(int argc, char* argv[]) -> int
 
 
     MuonPi::StateSupervisor supervisor{cluster_sinks};
-    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_sink, supervisor};
-    MuonPi::CoincidenceFilter coincidence_filter{event_sinks, detector_tracker, supervisor};
+    MuonPi::CoincidenceFilter coincidence_filter{event_sinks, supervisor};
+    MuonPi::TimeBaseSupervisor timebase_supervisor{coincidence_filter, coincidence_filter};
+    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor};
     MuonPi::TriggerHandler trigger_handler{detector_tracker};
 
 
-    MuonPi::Source::Mqtt<MuonPi::Event> event_source { coincidence_filter, mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, mqtt_link.subscribe("muonpi/data/#") };
     MuonPi::Source::Mqtt<MuonPi::DetectorInfo> log_source { detector_tracker, mqtt_link.subscribe("muonpi/log/#") };
 
     supervisor.add_thread(&detector_tracker);

@@ -6,24 +6,28 @@
 
 namespace MuonPi {
 
-TimeBaseSupervisor::TimeBaseSupervisor(std::chrono::system_clock::duration sample_time)
-    : m_sample_time { sample_time }
-{}
-
-void TimeBaseSupervisor::process_event(const Event &event)
+TimeBaseSupervisor::TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink)
+    : Pipeline<Event> { event_sink }
+    , Pipeline<TimeBase> { timebase_sink }
 {
+}
 
+void TimeBaseSupervisor::get(Event event)
+{
     if (event.start() < m_start) {
         m_start = event.start();
     } else if (event.start() > m_end) {
         m_end = event.start();
     }
+    Pipeline<Event>::put(std::move(event));
 }
 
-auto TimeBaseSupervisor::current() -> std::chrono::system_clock::duration
+void TimeBaseSupervisor::get(TimeBase timebase)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < m_sample_time) {
-        return m_current;
+        timebase.base = m_current;
+        Pipeline<TimeBase>::put(std::move(timebase));
+        return;
     }
 
     m_current = std::chrono::nanoseconds{m_end - m_start};
@@ -36,6 +40,7 @@ auto TimeBaseSupervisor::current() -> std::chrono::system_clock::duration
     } else if (m_current > s_maximum) {
         m_current = s_maximum;
     }
-    return m_current;
+    timebase.base = m_current;
+    Pipeline<TimeBase>::put(std::move(timebase));
 }
 }

@@ -9,23 +9,23 @@
 #include "messages/detectorinfo.h"
 #include "messages/clusterlog.h"
 #include "supervision/timebase.h"
-#include "detectortracker.h"
 
 #include <cinttypes>
 
 namespace MuonPi {
 
-CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor)
+CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
     : Sink::Threaded<Event> { "CoincidenceFilter", std::chrono::milliseconds {100} }
     , Source::Base<Event> { event_sink }
-    , m_detector_tracker { (detector_tracker) }
     , m_supervisor { supervisor }
 {
 }
 
-auto CoincidenceFilter::supervisor() -> StateSupervisor&
+void CoincidenceFilter::get(TimeBase timebase)
 {
-    return m_supervisor;
+    using namespace std::chrono;
+    m_timeout = milliseconds{static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor)};
+    m_supervisor.time_status(duration_cast<milliseconds>(m_timeout));
 }
 
 auto CoincidenceFilter::process() -> int
@@ -35,11 +35,6 @@ auto CoincidenceFilter::process() -> int
         return -1;
     }
 
-    {
-        using namespace std::chrono;
-        m_timeout = milliseconds{static_cast<long>(static_cast<double>(duration_cast<milliseconds>(m_time_base_supervisor->current()).count()) * m_detector_tracker.factor())};
-        m_supervisor.time_status(duration_cast<milliseconds>(m_timeout));
-    }
     // +++ Send finished constructors off to the event sink
     for (ssize_t i { static_cast<ssize_t>(m_constructors.size()) - 1 }; i >= 0; i--) {
         auto& constructor { m_constructors[static_cast<std::size_t>(i)] };
@@ -55,24 +50,8 @@ auto CoincidenceFilter::process() -> int
     return 0;
 }
 
-auto CoincidenceFilter::post_run() -> int
-{
-    int result { 0 };
-
-    m_detector_tracker.stop();
-
-    return m_detector_tracker.wait() + result;
-}
-
 auto CoincidenceFilter::process(Event event) -> int
 {
-
-    if (!m_detector_tracker.accept(event)) {
-        return 0;
-    }
-
-    m_time_base_supervisor->process_event(event);
-
     m_supervisor.increase_event_count(true);
 
     std::queue<std::size_t> matches {};

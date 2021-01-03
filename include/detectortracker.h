@@ -3,8 +3,11 @@
 
 #include "sink/base.h"
 #include "source/base.h"
+#include "pipeline.h"
+
 #include "detector.h"
 
+#include "messages/event.h"
 #include "messages/trigger.h"
 
 #include <map>
@@ -14,35 +17,28 @@
 
 namespace MuonPi {
 
-class Event;
 class DetectorInfo;
 class DetectorSummary;
 class StateSupervisor;
 
 
-class DetectorTracker : public Sink::Threaded<DetectorInfo>, public Source::Base<DetectorSummary>, public Source::Base<Trigger::Detector>, public Sink::Base<Trigger::Detector::Action>
+class DetectorTracker
+        : public Sink::Threaded<DetectorInfo>
+        , public Source::Base<DetectorSummary>
+        , public Source::Base<Trigger::Detector>
+        , public Sink::Base<Trigger::Detector::Action>
+        , public Pipeline<Event>
+        , public Source::Base<TimeBase>
 {
 public:
     /**
      * @brief DetectorTracker
      * @param summary_sink A Sink to write the detector summaries to.
      * @param trigger_sink A Sink to write the detector triggers to.
+     * @param event_sink A Sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, StateSupervisor& supervisor);
-
-    /**
-     * @brief accept Check if an event is accepted
-     * @param event The event to check
-     * @return true if the event belongs to a known detector and the detector is reliable
-     */
-    [[nodiscard]] auto accept(Event &event) -> bool;
-
-    /**
-     * @brief factor The current maximum factor
-     * @return maximum factor between all detectors
-     */
-    [[nodiscard]] auto factor() const -> double;
+    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor);
 
     /**
      * @brief detector_status Update the status of one detector
@@ -52,6 +48,8 @@ public:
     void detector_status(std::size_t hash, Detector::Status status);
 
     void get(Trigger::Detector::Action action) override;
+
+    void get(Event event) override;
 protected:
 
     /**
@@ -67,8 +65,6 @@ private:
     std::map<std::size_t, std::unique_ptr<Detector>> m_detectors {};
 
     std::queue<std::size_t> m_delete_detectors {};
-
-    double m_factor { 1.0 };
 
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 

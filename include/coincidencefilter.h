@@ -8,8 +8,8 @@
 #include "utility/eventconstructor.h"
 #include "supervision/state.h"
 #include "messages/clusterlog.h"
-#include "sink/base.h"
-#include "source/base.h"
+
+#include <pipeline.h>
 
 #include <queue>
 #include <map>
@@ -18,37 +18,24 @@
 
 namespace MuonPi {
 
-class DetectorTracker;
-
 /**
  * @brief The CoincidenceFilter class
  */
-class CoincidenceFilter : public Sink::Threaded<Event>, public Source::Base<Event>
+class CoincidenceFilter : public Sink::Threaded<Event>, public Source::Base<Event>, public Sink::Base<TimeBase>
 {
 public:
     /**
      * @brief CoincidenceFilter
      * @param event_sink A collection of event sinks to use
-     * @param detector_tracker A reference to the detector tracker which keeps track of connected detectors
      * @param supervisor A reference to a StateSupervisor, which keeps track of program metadata
      */
-    CoincidenceFilter(Sink::Base<Event>& event_sink, DetectorTracker& detector_tracker, StateSupervisor& supervisor);
-
-    /**
-     * @brief supervisor Acceess the supervision object
-     */
-    [[nodiscard]] auto supervisor() -> StateSupervisor&;
+    CoincidenceFilter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor);
 
     ~CoincidenceFilter() override = default;
 
+    void get(TimeBase timebase) override;
+
 protected:
-
-    /**
-     * @brief post_run reimplemented from ThreadRunner
-     * @return zero in case of success.
-     */
-    [[nodiscard]] auto post_run() -> int override;
-
 
     /**
      * @brief process Called from step(). Handles a new event arriving
@@ -58,9 +45,6 @@ protected:
     [[nodiscard]] auto process() -> int override;
 
 private:
-
-    DetectorTracker& m_detector_tracker;
-    std::unique_ptr<TimeBaseSupervisor> m_time_base_supervisor { std::make_unique<TimeBaseSupervisor>( std::chrono::seconds{2} ) };
 
     std::unique_ptr<Criterion> m_criterion { std::make_unique<Coincidence>() };
 

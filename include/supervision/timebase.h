@@ -1,38 +1,26 @@
 #ifndef TIMEBASESUPERVISOR_H
 #define TIMEBASESUPERVISOR_H
 
+#include "pipeline.h"
+
+#include "messages/event.h"
 
 #include <memory>
 #include <chrono>
 
 namespace MuonPi {
 
-class Event;
 
 /**
  * @brief The TimeBaseSupervisor class
  */
-class TimeBaseSupervisor
+class TimeBaseSupervisor : public Pipeline<Event>, public Pipeline<TimeBase>
 {
 public:
-    /**
-     * @brief TimeBaseSupervisor
-     * @param sample_time The sampling time of the Supervisor
-     */
-    TimeBaseSupervisor(std::chrono::system_clock::duration sample_time);
+    TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink);
 
-    /**
-     * @brief process_event Handle one incoming event
-     * @param event The event to check
-     */
-    void process_event(const Event& event);
-
-    /**
-     * @brief current get the current rate
-     * @return The current time base of incoming events
-     */
-    [[nodiscard]] auto current() -> std::chrono::system_clock::duration;
-
+    void get(Event event) override;
+    void get(TimeBase event) override;
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds{800} };
     static constexpr std::chrono::system_clock::duration s_maximum { std::chrono::minutes{60} };

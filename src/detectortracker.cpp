@@ -14,7 +14,7 @@
 namespace MuonPi {
 
 DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<DetectorInfo> { "DetectorTracker", std::chrono::milliseconds{100} }
+    : Sink::Threaded<DetectorInfo<Location>> { "DetectorTracker", std::chrono::milliseconds{100} }
     , Source::Base<DetectorSummary> { summary_sink }
     , Source::Base<Trigger::Detector> { trigger_sink }
     , m_supervisor { supervisor }
@@ -30,14 +30,14 @@ void DetectorTracker::get(Event event)
     auto& det { (*detector).second };
    det->process(event);
 
-    event.set_detector_info(det->location(), det->time_info(), det->user_info());
+        event.set_detector_info(det->location(), det->user_info());
 
     if (det->is(Detector::Status::Reliable)) {
         Source::Base<Event>::put(std::move(event));
     }
 }
 
-auto DetectorTracker::process(DetectorInfo log) -> int
+auto DetectorTracker::process(DetectorInfo<Location> log) -> int
 {
     auto detector { m_detectors.find(log.hash()) };
     if (detector == m_detectors.end()) {

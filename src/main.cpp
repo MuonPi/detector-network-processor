@@ -107,8 +107,8 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::TriggerHandler trigger_handler{detector_tracker};
 
 
-    MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, mqtt_link.subscribe("muonpi/data/#") };
-    MuonPi::Source::Mqtt<MuonPi::DetectorInfo> log_source { detector_tracker, mqtt_link.subscribe("muonpi/log/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> event_source { coincidence_filter, mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::DetectorInfo<MuonPi::Location>> detector_location_source { detector_tracker, mqtt_link.subscribe("muonpi/log/#") };
 
     supervisor.add_thread(&detector_tracker);
     supervisor.add_thread(&mqtt_link);

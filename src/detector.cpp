@@ -7,14 +7,17 @@
 
 namespace MuonPi {
 
+constexpr double LIGHTSPEED { 0.299 }; //< velocity of light in m/ns
+constexpr double MAX_TIMING_ERROR { 1000. }; //< max allowable timing error in nanoseconds	
+constexpr double MAX_LOCATION_ERROR { MAX_TIMING_ERROR * LIGHTSPEED }; //< max allowable location error in meter
+	
 void Detector::enable()
 {
     set_status(Status::Created);
 }
 
-Detector::Detector(const DetectorInfo &initial_log, DetectorTracker& tracker)
-    : m_location { initial_log.location()}
-    , m_time { initial_log.m_time_info }
+Detector::Detector(const DetectorInfo<Location> &initial_log, DetectorTracker& tracker)
+    : m_location { initial_log.item()}
     , m_hash { initial_log.hash() }
     , m_userinfo { initial_log.user_info() }
     , m_detector_tracker { tracker }
@@ -47,12 +50,10 @@ void Detector::process(const Event& event)
     m_time_acc.add(event.data().time_acc);
 }
 
-void Detector::process(const DetectorInfo &info)
+void Detector::process(const DetectorInfo<Location> &info)
 {
     m_last_log = std::chrono::system_clock::now();
-
-    m_location = info.location();
-    m_time = info.m_time_info;
+    m_location = info.item();
     check_reliability();
 }
 
@@ -76,9 +77,8 @@ auto Detector::factor() const -> double
 
 void Detector::check_reliability()
 {
-    double prec { (m_location.h_acc * m_location.v_acc) };
-    double dop { (m_time.dop * m_time.accuracy) };
-    if ((prec > 100.0) || (dop > 70.0)) {
+    const double loc_precision { m_location.dop*std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
+    if ((loc_precision > MAX_LOCATION_ERROR) || ( m_time_acc.mean() > MAX_TIMING_ERROR )) {
         set_status(Status::Unreliable);
     } else {
         set_status(Status::Reliable);
@@ -138,10 +138,4 @@ auto Detector::user_info() const -> UserInfo
 {
     return m_userinfo;
 }
-
-auto Detector::time_info() const -> DetectorInfo::Time
-{
-    return m_time;
-}
-
 }

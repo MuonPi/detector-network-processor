@@ -1,4 +1,4 @@
-﻿#ifndef DETECTORTRACKER_H
+#ifndef DETECTORTRACKER_H
 #define DETECTORTRACKER_H
 
 #include "sink/base.h"
@@ -9,6 +9,7 @@
 
 #include "messages/event.h"
 #include "messages/trigger.h"
+#include "messages/detectorinfo.h"
 
 #include <map>
 #include <memory>
@@ -17,12 +18,11 @@
 
 namespace MuonPi {
 
-class DetectorInfo;
+class Event;
 class DetectorSummary;
 class StateSupervisor;
 
-
-class DetectorTracker : public Sink::Threaded<DetectorInfo>, public Source::Base<DetectorSummary>, public Source::Base<Trigger::Detector>, public Sink::Base<Trigger::Detector::Action>
+class DetectorTracker : public Sink::Threaded<DetectorInfo<Location>>, public Source::Base<DetectorSummary>, public Source::Base<Trigger::Detector>, public Sink::Base<Trigger::Detector::Action>
 {
 public:
     /**
@@ -55,13 +55,14 @@ public:
     void detector_status(std::size_t hash, Detector::Status status);
 
     void get(Trigger::Detector::Action action) override;
+
 protected:
 
     /**
      * @brief process Process a log message. Hands the message over to a detector, if none exists, creates a new one.
      * @param log The log message to check
      */
-    [[nodiscard]] auto process(DetectorInfo log) -> int override;
+    [[nodiscard]] auto process(DetectorInfo<Location> log) -> int override;
     [[nodiscard]] auto process() -> int override;
 
 private:

@@ -50,7 +50,7 @@ public:
      * @brief Detector
      * @param initial_log The initial log message from which this detector object originates
      */
-    Detector(const DetectorInfo& initial_log, DetectorTracker& tracker);
+    Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& tracker);
 
 
     /**
@@ -63,7 +63,7 @@ public:
      * @brief process Processes a detector info message. Checks for regular log messages and warns the event listener if they are delayed or have subpar location accuracy.
      * @param info The detector info to process
      */
-    void process(const DetectorInfo& info);
+    void process(const DetectorInfo<Location>& info);
 
     /**
      * @brief is Checks the current detector status against a value
@@ -90,13 +90,11 @@ public:
      */
     [[nodiscard]] auto user_info() const -> UserInfo;
 
-    [[nodiscard]] auto time_info() const -> DetectorInfo::Time;
-
     /**
      * @brief location Accesses the location info of the detector
      * @return the Location struct
      */
-    [[nodiscard]] auto location() const -> DetectorInfo::Location { return m_location; }
+    [[nodiscard]] auto location() const -> Location { return m_location; }
 
 protected:
     /**
@@ -113,8 +111,7 @@ private:
 
     bool m_initial { true };
 
-    DetectorInfo::Location m_location {};
-    DetectorInfo::Time m_time {};
+    Location m_location {};
     std::size_t m_hash { 0 };
     UserInfo m_userinfo { };
 
@@ -132,7 +129,7 @@ private:
     std::uint16_t m_last_ublox_counter {};
 
     Ringbuffer<double, 100> m_pulselength {};
-    Ringbuffer<double, 100> m_time_acc {};
+    Ringbuffer<double, 100> m_time_acc {}; //< ring buffer for time accuracy values provided by event messages (in ns)
 
     double m_factor { 1.0 };
 };

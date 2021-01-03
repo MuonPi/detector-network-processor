@@ -15,6 +15,26 @@
 
 namespace MuonPi::Source {
 
+	
+template <typename T>
+class DetectorLogItem
+{
+public:
+	void set_item(T a_item);
+	[[nodiscard]] auto get_item() const -> const T&;
+	
+	auto item() -> T&;
+	auto item() const -> const T&;
+	
+	auto is_set() const -> bool { return m_is_set; }
+	
+private:
+	T m_item { };
+	bool m_is_set { false };
+};
+
+
+	
 /**
  * @brief The Mqtt class
  */
@@ -76,8 +96,8 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-Mqtt<DetectorInfo>::ItemCollector::ItemCollector()
-    : default_status { 0x00FF }
+Mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
+    : default_status { 0x007F }
     , status { default_status }
 {
 }
@@ -95,7 +115,7 @@ void Mqtt<T>::ItemCollector::reset() {
 }
 
 template <>
-auto Mqtt<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> int
+auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> int
 {
     if (message_id != message[0]) {
         reset();
@@ -103,32 +123,25 @@ auto Mqtt<DetectorInfo>::ItemCollector::add(MessageParser& /*topic*/, MessagePar
     }
     item.m_hash = user_info.hash();
     item.m_userinfo = user_info;
-
     try {
         if (message[1] == "geoHeightMSL") {
-            item.m_location.h = std::stod(message[2], nullptr);
+            item.m_item.h = std::stod(message[2], nullptr);
             status &= ~1;
         } else if (message[1] == "geoHorAccuracy") {
-            item.m_location.h_acc = std::stod(message[2], nullptr);
+            item.m_item.h_acc = std::stod(message[2], nullptr);
             status &= ~2;
         } else if (message[1] == "geoLatitude") {
-            item.m_location.lat = std::stod(message[2], nullptr);
+            item.m_item.lat = std::stod(message[2], nullptr);
             status &= ~4;
         } else if (message[1] == "geoLongitude") {
-            item.m_location.lon = std::stod(message[2], nullptr);
+            item.m_item.lon = std::stod(message[2], nullptr);
             status &= ~8;
         } else if (message[1] == "geoVertAccuracy") {
-            item.m_location.v_acc = std::stod(message[2], nullptr);
+            item.m_item.v_acc = std::stod(message[2], nullptr);
             status &= ~16;
         } else if (message[1] == "positionDOP") {
-            item.m_location.dop = std::stod(message[2], nullptr);
+            item.m_item.dop = std::stod(message[2], nullptr);
             status &= ~32;
-        } else if (message[1] == "timeAccuracy") {
-            item.m_time_info.accuracy = std::stod(message[2], nullptr);
-            status &= ~64;
-        } else if (message[1] == "timeDOP") {
-            item.m_time_info.dop = std::stod(message[2], nullptr);
-            status &= ~128;
         } else {
             return -1;
         }

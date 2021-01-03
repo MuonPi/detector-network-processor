@@ -249,6 +249,7 @@ void TriggerHandler::handle_post(const restbed::session_ptr session)
     m_detector_trigger[hash] = trigger;
 
     Log::debug()<<"Setting up new trigger: '" + body + "'";
+    save();
     return session->close( restbed::CREATED);
 }
 
@@ -366,6 +367,7 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
 
     m_detector_trigger.erase(hash);
     Log::debug()<<"Removing trigger: '" + body + "'";
+    save();
     return session->close(restbed::OK);
 }
 
@@ -376,6 +378,7 @@ void TriggerHandler::save()
         Log::warning()<<"Could not save trigger.";
         return;
     }
+    Log::info()<<"Saving trigger.";
     for (auto& [hash, trigger]: m_detector_trigger) {
         out<<trigger.username<<' '<<trigger.station<<' ';
         switch (trigger.type) {
@@ -404,6 +407,7 @@ void TriggerHandler::load()
         Log::warning()<<"Could not load trigger.";
         return;
     }
+    Log::info()<<"Loading trigger.";
     for (std::string line; std::getline(in, line); ) {
 
         MessageParser parser { line, ' '};

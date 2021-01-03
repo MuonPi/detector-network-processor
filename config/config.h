@@ -26,19 +26,19 @@ constexpr struct Mqtt {
     const char* host { "" };
     int port { 1883 };
     struct Login {
-        const char* username { "" };
-        const char* password { "" };
-        const char* station_id { "" };
+        const char* username { "muonuser" };
+        const char* password { "12345" };
+        const char* station_id { "cluster1" };
     } login{};
 } mqtt{};
 
 constexpr struct Influx {
-    const char* host { "" };
+    const char* host { "localhost" };
     struct Login {
-        const char* username { "" };
-        const char* password { "" };
+        const char* username { "admin" };
+        const char* password { "Getdata" };
     } login{};
-    const char* database { "" };
+    const char* database { "test_cluster_db" };
 } influx;
 
 constexpr struct Ldap {

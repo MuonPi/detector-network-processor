@@ -40,7 +40,6 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::Parameters parameters{"muondetector-custer", "Calculate coincidences for the MuonPi network"};
 
     parameters
-            <<MuonPi::Parameters::Definition{"q", "quiet", "Do not use stderr to output logmessages"}
             <<MuonPi::Parameters::Definition{"m", "mqtt", "Specify mqtt login information as <username>:<password>:<station_id>"}
             <<MuonPi::Parameters::Definition{"d", "database", "Specify database login information as <username>:<password>:<dn_name>"};
 
@@ -48,9 +47,10 @@ auto main(int argc, char* argv[]) -> int
         return 0;
     }
 
-    if (parameters.get("q")) {
-        MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::StreamSink>(std::cerr));
-    }
+#ifndef CLUSTER_RUN_SERVICE
+    MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::StreamSink>(std::cerr));
+#endif
+
     MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::SyslogSink>());
 
     MuonPi::Link::Mqtt::LoginData login;

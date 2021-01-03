@@ -183,6 +183,10 @@ void TriggerHandler::handle_authentication(const restbed::session_ptr session, c
     const auto request = session->get_request( );
 
     std::string authorisation{};
+    if (request->get_header( "Authorization" ).length() < 6) {
+        session->close( restbed::UNAUTHORIZED, { { "WWW-Authenticate", "Basic realm=\"MuonPi\""} } );
+        return ;
+    }
 
     CryptoPP::StringSource{request->get_header( "Authorization" ).substr(6), true,
                 new CryptoPP::Base64Decoder{
@@ -194,13 +198,9 @@ void TriggerHandler::handle_authentication(const restbed::session_ptr session, c
     auto username = authorisation.substr( 0, delimiter );
     auto password = authorisation.substr( delimiter + 1 );
 
-
-    if (authenticate(username, password))
-    {
+    if (authenticate(username, password)) {
         callback( session );
-    }
-    else
-    {
+    } else {
         session->close( restbed::UNAUTHORIZED, { { "WWW-Authenticate", "Basic realm=\"MuonPi\""} } );
     }
 }

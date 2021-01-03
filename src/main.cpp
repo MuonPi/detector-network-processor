@@ -102,9 +102,8 @@ auto main(int argc, char* argv[]) -> int
 
 
     MuonPi::StateSupervisor supervisor{cluster_sinks};
-    MuonPi::CoincidenceFilter coincidence_filter{event_sinks, supervisor};
-    MuonPi::TimeBaseSupervisor timebase_supervisor{coincidence_filter, coincidence_filter};
-    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor};
+    MuonPi::DetectorTracker detector_tracker{detector_sinks, trigger_sink, supervisor};
+    MuonPi::CoincidenceFilter coincidence_filter{event_sinks, detector_tracker, supervisor};
     MuonPi::TriggerHandler trigger_handler{detector_tracker};
 
 

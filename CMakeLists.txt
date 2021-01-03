@@ -67,6 +67,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/log.cpp"
     "${PROJECT_SRC_DIR}/utility/utility.cpp"
     "${PROJECT_SRC_DIR}/utility/geohash.cpp"
+    "${PROJECT_SRC_DIR}/utility/parameters.cpp"
 
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
@@ -103,6 +104,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/utility.h"
     "${PROJECT_HEADER_DIR}/utility/geohash.h"
     "${PROJECT_HEADER_DIR}/utility/eventconstructor.h"
+    "${PROJECT_HEADER_DIR}/utility/parameters.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"

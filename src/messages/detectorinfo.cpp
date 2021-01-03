@@ -15,24 +15,6 @@ DetectorInfo::DetectorInfo() noexcept
     : m_valid { false }
 {}
 
-DetectorInfo::DetectorInfo(const DetectorInfo& other)
-    : m_hash { other.m_hash }
-    , m_location { other.m_location }
-    , m_userinfo { other.m_userinfo }
-    , m_time { other.m_time }
-    , m_valid { other.m_valid }
-{
-}
-
-DetectorInfo::DetectorInfo(DetectorInfo&& other)
-    : m_hash { std::move(other.m_hash) }
-    , m_location { std::move(other.m_location) }
-    , m_userinfo { std::move(other.m_userinfo) }
-    , m_time { std::move(other.m_time) }
-    , m_valid { std::move(other.m_valid) }
-{
-}
-
 auto DetectorInfo::hash() const noexcept -> std::size_t
 {
     return m_hash;

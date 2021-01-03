@@ -39,9 +39,6 @@ public:
 
     DetectorInfo() noexcept;
 
-    DetectorInfo(const DetectorInfo& other);
-    DetectorInfo(DetectorInfo&& other);
-
     /**
      * @brief hash
      * @return The hash of the detector for this event

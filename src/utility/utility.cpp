@@ -1,5 +1,6 @@
 #include "utility/utility.h"
 #include "utility/log.h"
+#include "defaults.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -146,4 +147,9 @@ auto GUID::get_number() -> std::uint64_t
     return distribution(gen);
 }
 
+namespace CMake::Version {
+auto string() -> std::string {
+    return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+}
+}
 }

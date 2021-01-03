@@ -248,6 +248,7 @@ void TriggerHandler::handle_post(const restbed::session_ptr session)
 
     m_detector_trigger[hash] = trigger;
 
+    Log::debug()<<"Setting up new trigger: '" + body + "'";
     return session->close( restbed::CREATED);
 }
 
@@ -364,6 +365,7 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
     }
 
     m_detector_trigger.erase(hash);
+    Log::debug()<<"Removing trigger: '" + body + "'";
     return session->close(restbed::OK);
 }
 

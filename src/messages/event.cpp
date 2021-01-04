@@ -93,10 +93,9 @@ void Event::set_data(const Data& data)
     m_data = data;
 }
 
-void Event::set_detector_info(Location location, /*Time time,*/ UserInfo user)
+void Event::set_detector_info(Location location, UserInfo user)
 {
     m_location = location;
-    //m_time_info = time;
     m_user_info = user;
 }
 

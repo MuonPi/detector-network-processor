@@ -4,6 +4,7 @@
 #include <functional>
 #include <sstream>
 #include <regex>
+#include <cstring>
 
 #include <cryptopp/sha.h>
 #include <cryptopp/filters.h>
@@ -19,6 +20,7 @@ auto Mqtt::wait_for(Status status, std::chrono::milliseconds duration) -> bool
         if (m_status == status) {
             return true;
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds{10});
     }
     return false;
 }
@@ -80,7 +82,7 @@ auto Mqtt::step() -> int
             return -1;
         }
     }
-    auto status = mosquitto_loop(m_mqtt, 0, 1);
+    auto status = mosquitto_loop(m_mqtt, 100, 1);
     if (status != MOSQ_ERR_SUCCESS) {
         switch (status) {
         case MOSQ_ERR_INVAL:
@@ -287,7 +289,7 @@ auto Mqtt::connect() -> bool
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
-    Log::warning()<<"Could not connect to MQTT: " + std::to_string(result);
+    Log::warning()<<"Could not connect to MQTT: " + std::string{strerror(result)};
     return connect();
 }
 

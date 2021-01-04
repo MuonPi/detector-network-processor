@@ -97,7 +97,7 @@ private:
 // +++++++++++++++++++++++++++++++
 template <>
 Mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
-    : default_status { 0x007F }
+    : default_status { 0x003F }
     , status { default_status }
 {
 }

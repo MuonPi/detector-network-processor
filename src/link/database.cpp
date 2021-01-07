@@ -68,7 +68,7 @@ auto Database::send_string(const std::string& query) -> bool
     {
     public:
         CurlGuard(CURL* curl) : m_curl { curl } {}
-        ~CurlGuard() { if (m_curl != nullptr) curl_easy_cleanup(m_curl);}
+        ~CurlGuard() { curl_easy_cleanup(m_curl);}
     private:
         CURL* m_curl { nullptr };
     } curl_guard{curl};

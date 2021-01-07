@@ -60,12 +60,6 @@ Mqtt::Mqtt()
 
 Mqtt::~Mqtt()
 {
-    disconnect();
-    if (m_mqtt != nullptr) {
-        mosquitto_destroy(m_mqtt);
-        m_mqtt = nullptr;
-    }
-    mosquitto_lib_cleanup();
 }
 
 auto Mqtt::pre_run() -> int
@@ -174,6 +168,11 @@ auto Mqtt::post_run() -> int
     if (!disconnect()) {
         return -1;
     }
+    if (m_mqtt != nullptr) {
+        mosquitto_destroy(m_mqtt);
+        m_mqtt = nullptr;
+    }
+    mosquitto_lib_cleanup();
     return 0;
 }
 

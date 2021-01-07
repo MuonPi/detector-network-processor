@@ -118,6 +118,9 @@ auto main(int argc, char* argv[]) -> int
             <<MuonPi::Option{"rest_privkey", &MuonPi::Config::rest.privkey}
             <<MuonPi::Option{"rest_fullchain", &MuonPi::Config::rest.fullchain}
            ;
+    if (!parameters["l"]) {
+        config<<MuonPi::Option{"credentials_file", &MuonPi::Config::files.credentials};
+    }
     if (!config.read()) {
         std::cout<<"Could not read configuration file.\n";
         return 1;

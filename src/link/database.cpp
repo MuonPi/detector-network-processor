@@ -62,18 +62,19 @@ auto Database::measurement(const std::string& measurement) -> Entry
 
 auto Database::send_string(const std::string& query) -> bool
 {
-    CURL *curl { curl_easy_init() };
+    CURL* curl { curl_easy_init() };
 
-    class CurlGuard
-    {
-    public:
-        CurlGuard(CURL* curl) : m_curl { curl } {}
-        ~CurlGuard() { curl_easy_cleanup(m_curl);}
-    private:
-        CURL* m_curl { nullptr };
-    } curl_guard{curl};
 
-    if(curl) {
+    if(curl != nullptr) {
+        class CurlGuard
+        {
+        public:
+            CurlGuard(CURL* curl) : m_curl { curl } {}
+            ~CurlGuard() { curl_easy_cleanup(m_curl);}
+        private:
+            CURL* m_curl { nullptr };
+        } curl_guard{curl};
+
         std::ostringstream url {};
         url
             <<m_config.host

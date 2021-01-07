@@ -1,6 +1,7 @@
 #ifndef MQTTLINK_H
 #define MQTTLINK_H
 
+#include "defaults.h"
 #include "utility/threadrunner.h"
 
 #include <string>
@@ -38,19 +39,6 @@ public:
         {}
         std::string topic {};
         std::string content{};
-    };
-    struct LoginData
-    {
-        std::string username {};
-        std::string station_id {};
-        std::string password {};
-
-        /**
-         * @brief client_id Creates a client_id from the username and the station id.
-         * This hashes the concatenation of the two fields.
-         * @return The client id as string
-         */
-        [[nodiscard]] auto client_id() const -> std::string;
     };
 
     /**
@@ -134,11 +122,11 @@ public:
 
     /**
      * @brief Mqtt
-     * @param login The login information for the mqtt user
-     * @param server The server address to connect to
-     * @param port The port to connect to
+     * @param config The configuration to use
      */
-    Mqtt(const LoginData& login, const std::string& server = "muonpi.org", int port = 1883);
+    Mqtt(const Config::Mqtt& config);
+
+    Mqtt();
 
     ~Mqtt() override;
 
@@ -232,9 +220,7 @@ private:
         return mosquitto_new(client_id, true, this);
     }
 
-    std::string m_host {};
-    int m_port { 1883 };
-    LoginData m_login_data {};
+    Config::Mqtt m_config { Config::mqtt };
     mosquitto *m_mqtt { nullptr };
 
     Status m_status { Status::Invalid };
@@ -250,17 +236,25 @@ private:
      * @param result The status code from the callback
      */
     void callback_connected(int result);
+
     /**
      * @brief callback_disconnected Gets called by mosquitto client
      * @param result The status code from the callback
      */
     void callback_disconnected(int result);
+
     /**
      * @brief callback_message Gets called by mosquitto client in the case of an arriving message
      * @param message A const pointer to the received message
      */
     void callback_message(const mosquitto_message* message);
 
+    /**
+     * @brief client_id Creates a client_id from the username and the station id.
+     * This hashes the concatenation of the two fields.
+     * @return The client id as string
+     */
+    [[nodiscard]] auto client_id() const -> std::string;
 
     friend void wrapper_callback_connected(mosquitto* mqtt, void* object, int result);
     friend void wrapper_callback_disconnected(mosquitto* mqtt, void* object, int result);

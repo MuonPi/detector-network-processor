@@ -45,15 +45,12 @@ auto Database::Entry::operator<<(std::int_fast64_t timestamp) -> bool
     return m_link.send_string(m_stream.str());
 }
 
-Database::Database(const std::string& server, const LoginData& login, const std::string& database, const std::string& a_cluster_id)
-    : cluster_id { a_cluster_id }
-    , m_server { server }
-    , m_login_data { login }
-    , m_database { database }
-
+Database::Database(const Config::Influx& config)
+    : m_config { config }
 {
-
 }
+
+Database::Database() = default;
 
 Database::~Database() = default;
 
@@ -79,11 +76,11 @@ auto Database::send_string(const std::string& query) -> bool
     if(curl) {
         std::ostringstream url {};
         url
-            <<m_server
+            <<m_config.host
             <<"/write?db="
-            <<m_database
-            <<"&u="<<m_login_data.username
-            <<"&p="<<m_login_data.password
+            <<m_config.database
+            <<"&u="<<m_config.login.username
+            <<"&p="<<m_config.login.password
             <<"&epoch=ms";
 
         curl_easy_setopt(curl, CURLOPT_URL, url.str().c_str());

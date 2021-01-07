@@ -38,7 +38,8 @@ constexpr struct Influx {
         const char* username { "admin" };
         const char* password { "Getdata" };
     } login{};
-    const char* database { "test_cluster_db" };
+    const char* database { "" };
+    const char* cluster_id { "" };
 } influx;
 
 constexpr struct Ldap {

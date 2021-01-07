@@ -54,13 +54,8 @@ auto main(int argc, char* argv[]) -> int
 
     MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::SyslogSink>());
 
-    MuonPi::Link::Mqtt::LoginData login;
 
-    login.username = MuonPi::Config::mqtt.login.username;
-    login.password = MuonPi::Config::mqtt.login.password;
-    login.station_id = MuonPi::Config::mqtt.login.station_id;
-
-    MuonPi::Link::Mqtt mqtt_link {login, MuonPi::Config::mqtt.host, MuonPi::Config::mqtt.port};
+    MuonPi::Link::Mqtt mqtt_link {};
 
     if (!mqtt_link.wait_for(MuonPi::Link::Mqtt::Status::Connected)) {
         return -1;
@@ -69,7 +64,7 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::Sink::Mqtt<MuonPi::Trigger::Detector> trigger_sink {mqtt_link.publish("muonpi/trigger")};
 
 #ifdef CLUSTER_RUN_SERVER
-    MuonPi::Link::Database db_link {MuonPi::Config::influx.host, {MuonPi::Config::influx.login.username, MuonPi::Config::influx.login.password}, MuonPi::Config::influx.database};
+    MuonPi::Link::Database db_link {};
 
     MuonPi::Sink::Database<MuonPi::Event> event_sink { db_link };
     MuonPi::Sink::Database<MuonPi::ClusterLog> clusterlog_sink { db_link };

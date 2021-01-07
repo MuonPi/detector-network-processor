@@ -1,6 +1,8 @@
 #ifndef DATABASELINK_H
 #define DATABASELINK_H
 
+#include "defaults.h"
+
 #include <string>
 #include <vector>
 #include <variant>
@@ -46,15 +48,9 @@ public:
         Entry(const std::string& measurement, Database& link);
     };
 
-    struct LoginData
-    {
-        std::string username {};
-        std::string password {};
-    };
 
-    std::string cluster_id { "muonpi.org" };
-
-    Database(const std::string& server, const LoginData& login, const std::string& database, const std::string& a_cluster_id = "muonpi.org");
+    Database(const Config::Influx& config);
+    Database();
     ~Database();
 
     [[nodiscard]] auto measurement(const std::string& measurement) -> Entry;
@@ -64,10 +60,9 @@ private:
 
     static constexpr short s_port { 8086 };
 
-    std::string m_server {};
-    LoginData m_login_data {};
-    std::string m_database {};
     std::mutex m_mutex;
+
+    Config::Influx m_config { Config::influx };
 };
 
 }

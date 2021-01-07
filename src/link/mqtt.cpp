@@ -40,18 +40,22 @@ void wrapper_callback_message(mosquitto* /*mqtt*/, void* object, const mosquitto
     reinterpret_cast<Mqtt*>(object)->callback_message(message);
 }
 
-Mqtt::Mqtt(const LoginData& login, const std::string& server, int port)
+Mqtt::Mqtt(const Config::Mqtt& config)
     : ThreadRunner{"Mqtt"}
-    , m_host { server }
-    , m_port { port }
-    , m_login_data { login }
-    , m_mqtt { init(login.client_id().c_str()) }
+    , m_config { config }
+    , m_mqtt { init(client_id().c_str()) }
 {
     mosquitto_connect_callback_set(m_mqtt, wrapper_callback_connected);
     mosquitto_disconnect_callback_set(m_mqtt, wrapper_callback_disconnected);
     mosquitto_message_callback_set(m_mqtt, wrapper_callback_message);
 
     start();
+}
+
+Mqtt::Mqtt()
+    : ThreadRunner("Mqtt")
+    , m_mqtt { init(client_id().c_str()) }
+{
 }
 
 Mqtt::~Mqtt()
@@ -281,11 +285,11 @@ auto Mqtt::connect() -> bool
         Log::error()<<"Giving up trying to connect to MQTT.";
         return false;
     }
-    if (mosquitto_username_pw_set(m_mqtt, m_login_data.username.c_str(), m_login_data.password.c_str()) != MOSQ_ERR_SUCCESS) {
+    if (mosquitto_username_pw_set(m_mqtt, m_config.login.username, m_config.login.password) != MOSQ_ERR_SUCCESS) {
         Log::warning()<<"Could not connect to MQTT";
         return false;
     }
-    auto result { mosquitto_connect(m_mqtt, m_host.c_str(), m_port, 60) };
+    auto result { mosquitto_connect(m_mqtt, m_config.host, m_config.port, 60) };
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
@@ -345,7 +349,7 @@ auto Mqtt::reinitialise() -> bool
     }
     mosquitto_lib_cleanup();
 
-    m_mqtt = init(m_login_data.client_id().c_str());
+    m_mqtt = init(client_id().c_str());
 
     mosquitto_connect_callback_set(m_mqtt, wrapper_callback_connected);
     mosquitto_disconnect_callback_set(m_mqtt, wrapper_callback_disconnected);
@@ -390,11 +394,11 @@ auto Mqtt::Subscriber::get_subscribe_topic() const -> const std::string& {
     return m_topic;
 }
 
-auto Mqtt::LoginData::client_id() const -> std::string
+auto Mqtt::client_id() const -> std::string
 {
     CryptoPP::SHA1 sha1;
 
-    std::string source {username + station_id};
+    std::string source {std::string{m_config.login.username} + m_config.login.station_id};
     std::string id {};
     CryptoPP::StringSource{source, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(new CryptoPP::StringSink(id)))};
     return id;

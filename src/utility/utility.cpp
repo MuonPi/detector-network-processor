@@ -150,7 +150,7 @@ auto GUID::get_number() -> std::uint64_t
     return distribution(gen);
 }
 
-namespace CMake::Version {
+namespace Version {
 auto string() -> std::string {
     return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
 }

@@ -98,7 +98,7 @@ auto Parameters::start(int argc, char* argv[]) -> bool
 void Parameters::print_help() const
 {
     std::ostringstream out {};
-    out << m_name << " v" << CMake::Version::string() << "\n"<<m_description<<"\n\nPossible arguments:\n";
+    out << m_name << " v" << Version::string() << "\n"<<m_description<<"\n\nPossible arguments:\n";
     for (auto& cmd: m_arguments) {
         out << "\t-" << cmd.def.abbreviation << "\t--" << cmd.def.full;
         if (cmd.def.value) {

@@ -60,6 +60,10 @@ struct ConfigFiles {
     std::string credentials {};
 };
 
+struct Meta {
+    bool local_cluster {};
+};
+
 namespace Default {
 static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster"};
 
@@ -68,6 +72,7 @@ static Influx influx{"", {"", ""}, "", ""};
 static Ldap ldap{"ldaps://muonpi.org"};
 static Rest rest{1983, "/var/muondetector/cluster_trigger", "file://", "file://", "file://"};
 static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}};
+static Meta meta {false};
 }
 
 
@@ -78,6 +83,7 @@ static Ldap ldap { Default::ldap };
 static Rest rest { Default::rest };
 static Interval interval { Default::interval };
 static ConfigFiles files { Default::files };
+static Meta meta { Default::meta };
 }
 
 #endif // MUONDETECTOR_VERSION_H

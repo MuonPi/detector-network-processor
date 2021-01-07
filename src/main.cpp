@@ -82,6 +82,9 @@ auto main(int argc, char* argv[]) -> int
                 <<MuonPi::Option{"influx_user", &MuonPi::Config::influx.login.username}
                 <<MuonPi::Option{"influx_password", &MuonPi::Config::influx.login.password}
                 <<MuonPi::Option{"influx_database", &MuonPi::Config::influx.database}
+
+                <<MuonPi::Option{"ldap_bind_dn", &MuonPi::Config::ldap.login.bind_dn}
+                <<MuonPi::Option{"ldap_password", &MuonPi::Config::ldap.login.password}
                   ;
         if (!credentials.read()) {
             std::cout<<"Could not read input file.\n";
@@ -142,6 +145,9 @@ auto main(int argc, char* argv[]) -> int
             <<MuonPi::Option{"influx_user", &MuonPi::Config::influx.login.username}
             <<MuonPi::Option{"influx_password", &MuonPi::Config::influx.login.password}
             <<MuonPi::Option{"influx_database", &MuonPi::Config::influx.database}
+
+            <<MuonPi::Option{"ldap_bind_dn", &MuonPi::Config::ldap.login.bind_dn}
+            <<MuonPi::Option{"ldap_password", &MuonPi::Config::ldap.login.password}
               ;
     if (!credentials.read()) {
         std::cout<<"Could not read credentials file.\n";

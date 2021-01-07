@@ -123,6 +123,9 @@ auto GUID::get_mac() -> std::uint64_t
             continue;
         }
         ifname = ifa->ifa_name;
+        if (ifname == "lo") {
+            continue;
+        }
         break;
     }
     freeifaddrs(ifaddr);

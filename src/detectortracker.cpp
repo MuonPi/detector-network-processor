@@ -79,7 +79,7 @@ auto DetectorTracker::process() -> int
     steady_clock::time_point now { steady_clock::now() };
 
 
-    if ((now - m_last) >= Config::Interval::detectorsummary_interval) {
+    if ((now - m_last) >= Config::interval.detectorsummary) {
         m_last = now;
 
         for (auto& [hash, detector]: m_detectors) {

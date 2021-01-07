@@ -52,7 +52,7 @@ void Database<ClusterLog>::get(ClusterLog log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     auto fields { std::move(m_link.measurement("cluster_summary")
-            <<Link::Influx::Tag{"cluster_id", m_link.cluster_id }
+            <<Link::Influx::Tag{"cluster_id", Config::influx.cluster_id }
             <<Link::Influx::Field{"timeout", log.data().timeout}
             <<Link::Influx::Field{"frequency_in", log.data().frequency.single_in}
             <<Link::Influx::Field{"frequency_l1_out", log.data().frequency.l1_out}
@@ -82,7 +82,7 @@ void Database<DetectorSummary>::get(DetectorSummary log)
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace Link::Influx;
     auto result { std::move(m_link.measurement("detector_summary")
-            <<Tag{"cluster_id", m_link.cluster_id }
+            <<Tag{"cluster_id", Config::influx.cluster_id }
             <<Tag{"user", log.user_info().username}
             <<Tag{"detector", log.user_info().station_id}
             <<Tag{"site_id", log.user_info().site_id()}

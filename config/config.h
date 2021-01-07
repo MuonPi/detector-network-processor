@@ -17,41 +17,67 @@ auto string() -> std::string;
 }
 
 namespace MuonPi::Config {
-namespace Interval {
-constexpr std::chrono::steady_clock::duration clusterlog_interval { std::chrono::seconds{60} };
-constexpr std::chrono::steady_clock::duration detectorsummary_interval { std::chrono::seconds{120} };
+
+
+struct Interval {
+    std::chrono::steady_clock::duration clusterlog {};
+    std::chrono::steady_clock::duration detectorsummary {};
+};
+
+struct Mqtt {
+    std::string host {};
+    int port {};
+    struct Login {
+        std::string username {};
+        std::string password {};
+        std::string station_id {};
+    } login;
+};
+
+struct Influx {
+    std::string host {};
+    struct Login {
+        std::string username {};
+        std::string password {};
+    } login;
+    std::string database {};
+    std::string cluster_id {};
+};
+
+struct Ldap {
+    std::string server {};
+};
+
+struct Rest {
+    int port {};
+    std::string save_file {};
+    std::string cert {};
+    std::string privkey {};
+    std::string fullchain {};
+};
+struct ConfigFiles {
+    std::string config {};
+    std::string credentials {};
+};
+
+namespace Default {
+static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster"};
+
+static Mqtt mqtt{"", 1883, {}};
+static Influx influx{"", {"", ""}, "", ""};
+static Ldap ldap{"ldaps://muonpi.org"};
+static Rest rest{1983, "/var/muondetector/cluster_trigger", "file://", "file://", "file://"};
+static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}};
 }
 
-constexpr struct Mqtt {
-    const char* host { "" };
-    int port { 1883 };
-    struct Login {
-        const char* username { "muonuser" };
-        const char* password { "12345" };
-        const char* station_id { "cluster1" };
-    } login{};
-} mqtt{};
 
-constexpr struct Influx {
-    const char* host { "localhost" };
-    struct Login {
-        const char* username { "admin" };
-        const char* password { "Getdata" };
-    } login{};
-    const char* database { "" };
-    const char* cluster_id { "" };
-} influx;
-
-constexpr struct Ldap {
-    const char* server {"ldaps://muonpi.org"};
-} ldap;
-constexpr struct Rest {
-    std::uint16_t port { 1983 };
-    const char* save_file { "/var/muondetector/cluster_trigger" };
-    const char* cert { "file://" };
-    const char* privkey { "file://" };
-    const char* fullchain { "file://" };
-} rest;
+static Mqtt source_mqtt { Default::mqtt };
+static Mqtt sink_mqtt { Default::mqtt };
+static Influx influx { Default::influx };
+static Ldap ldap { Default::ldap };
+static Rest rest { Default::rest };
+static Interval interval { Default::interval };
+static ConfigFiles files { Default::files };
 }
 
 #endif // MUONDETECTOR_VERSION_H

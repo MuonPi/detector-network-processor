@@ -301,9 +301,9 @@ public:
     GUID(std::size_t hash, std::uint64_t time);
 
     [[nodiscard]] auto to_string() const -> std::string;
+    [[nodiscard]] static auto get_mac() -> std::uint64_t;
 
 private:
-    [[nodiscard]] static auto get_mac() -> std::uint64_t;
     [[nodiscard]] static auto get_number() -> std::uint64_t;
 
     std::uint64_t m_first { 0 };

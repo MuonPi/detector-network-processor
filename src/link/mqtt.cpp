@@ -285,11 +285,11 @@ auto Mqtt::connect() -> bool
         Log::error()<<"Giving up trying to connect to MQTT.";
         return false;
     }
-    if (mosquitto_username_pw_set(m_mqtt, m_config.login.username, m_config.login.password) != MOSQ_ERR_SUCCESS) {
+    if (mosquitto_username_pw_set(m_mqtt, m_config.login.username.c_str(), m_config.login.password.c_str()) != MOSQ_ERR_SUCCESS) {
         Log::warning()<<"Could not connect to MQTT";
         return false;
     }
-    auto result { mosquitto_connect(m_mqtt, m_config.host, m_config.port, 60) };
+    auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, 60) };
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }

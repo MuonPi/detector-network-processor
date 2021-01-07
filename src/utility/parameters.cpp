@@ -109,7 +109,7 @@ void Parameters::print_help() const
         }
         out << "\n\t\t\t" << cmd.def.description << '\n';
     }
-    std::cout<<out.str();
+    std::cout<<out.str()<<std::flush;
 }
 
 }

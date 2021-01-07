@@ -3,96 +3,89 @@
 
 
 #include <string>
+#include <optional>
+#include <variant>
+#include <iostream>
 #include <map>
-
-#include <libconfig.h++>
 
 namespace MuonPi {
 
+struct Option {
+    Option(const std::string& name, int* value);
+    Option(const std::string& name, bool* value);
+    Option(const std::string& name, double* value);
+    Option(const std::string& name, std::string* value);
+    Option();
 
-class Store
-{
-public:
-    enum Type {
-        Plain,
-        Encrypted
-    };
+    [[nodiscard]] auto name() const -> std::string;
 
     template <typename T>
-    struct Value
-    {
-        std::string key;
-        T value;
-    };
+    auto operator=(T value) -> bool;
 
-    Store(const std::string& name, Type t);
+    [[nodiscard]] auto write() -> std::string;
 
-    template<typename T>
-    [[nodiscard]] auto get(const std::string& key) -> T;
+    [[nodiscard]] auto read(const std::string& in) -> bool;
 
-    template<typename T>
-    void set(const Value<T>& value);
-
-    template<typename T>
-    auto operator>>(Value<T>& value) -> Store&;
-
-    template<typename T>
-    auto operator<(const Value<T>& value) -> Store&;
-
-    [[nodiscard]] auto save() -> bool;
-
+    [[nodiscard]] operator bool();
 private:
-    friend class Configuration;
+    template <typename T>
+    auto set(T value) -> bool;
 
-    void load();
-    void set_location(const std::string& location);
-
-    Type m_type { Plain };
+    std::variant<bool*,int*,double*,std::string*> m_option;
+    bool m_valid { false };
     std::string m_name {};
-    std::string m_location {};
-    libconfig::Config m_config;
 };
-
-template<typename T>
-auto Store::get(const std::string& key) -> T
-{
-    return static_cast<T>(m_config.getRoot().lookup(key));
-}
-
-template<typename T>
-void Store::set(const Value<T>& value)
-{
-    m_config.getRoot().lookup(value.key) = value.value;
-}
-
-template<typename T>
-auto Store::operator>>(Value<T>& value) -> Store&
-{
-    value.value = static_cast<T>(m_config.getRoot().lookup(value.key));
-    return *this;
-}
-
-template<typename T>
-auto Store::operator<(const Value<T>& value) -> Store&
-{
-    m_config.getRoot().lookup(value.key) = value.value;
-    return *this;
-}
 
 class Configuration
 {
-
 public:
-    Configuration(const std::string& location);
+    Configuration(const std::string& filename, bool encrypted = false);
 
-    [[nodiscard]] auto operator[](const std::string& name) -> Store&;
+    void set_encrypted(bool encrypted);
+    void set_filename(const std::string& filename);
 
+    [[nodiscard]] auto operator[](const std::string& name) -> Option&;
+
+    auto operator<<(Option argument) -> Configuration&;
+
+    [[nodiscard]] auto read() -> bool;
+
+    [[nodiscard]] auto write() -> bool;
 
 private:
-    std::string m_location {};
-    std::map<std::string, Store> m_stores {};
+    [[nodiscard]] auto read(std::istream& in) -> bool;
+    [[nodiscard]] auto write(std::ostream& out) -> bool;
+    [[nodiscard]] auto decrypt(std::istream &file) -> std::string;
+    void encrypt(std::ostream &file, const std::string& content);
 
+
+    std::string m_filename {};
+    bool m_encrypted { false };
+
+    std::map<std::string, Option> m_options {};
 };
+
+template <typename  T>
+auto Option::operator=(T value) -> bool
+{
+    return set<T>(value);
+}
+
+template <typename  T>
+auto Option::set(T value) -> bool
+{
+    if (!std::holds_alternative<T*>(m_option)) {
+        return false;
+    }
+    T* opt { std::get<T*>(m_option) };
+    if (opt == nullptr) {
+        return false;
+    }
+    *opt = value;
+    return true;
+}
+
+
 
 }
 #endif // CONFIGURATION_H

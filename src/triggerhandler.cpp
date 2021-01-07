@@ -4,7 +4,7 @@
 #include "utility/log.h"
 #include "utility/utility.h"
 
-#include "crypto++/base64.h"
+#include <crypto++/base64.h>
 #include <sstream>
 #include <ldap.h>
 
@@ -180,7 +180,7 @@ TriggerHandler::~TriggerHandler()
 auto TriggerHandler::authenticate(const std::string& user, const std::string& pw) -> bool
 {
     LDAP* ldap { nullptr };
-    auto code = ldap_initialize(&ldap, Config::ldap.server);
+    auto code = ldap_initialize(&ldap, Config::ldap.server.c_str());
     if (code != LDAP_SUCCESS) {
         Log::warning()<<"Could not connect to ldap: " + std::string{ldap_err2string(code)};
         return false;

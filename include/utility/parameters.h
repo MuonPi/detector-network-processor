@@ -36,8 +36,8 @@ public:
     auto start(int argc, char* argv[]) -> bool;
 
 
-private:
     void print_help() const;
+private:
 
     struct Commandline {
         Definition def;

@@ -220,7 +220,7 @@ private:
         return mosquitto_new(client_id, true, this);
     }
 
-    Config::Mqtt m_config { Config::mqtt };
+    Config::Mqtt m_config {};
     mosquitto *m_mqtt { nullptr };
 
     Status m_status { Status::Invalid };

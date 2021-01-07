@@ -63,7 +63,7 @@ auto StateSupervisor::step() -> int
         }
     }
     steady_clock::time_point now { steady_clock::now() };
-    if ((now - m_last) >= Config::Interval::clusterlog_interval) {
+    if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
         m_log_sink.get( ClusterLog{m_current_data} );

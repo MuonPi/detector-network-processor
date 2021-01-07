@@ -5,6 +5,7 @@
 #include "source/base.h"
 
 #include "messages/trigger.h"
+#include "defaults.h"
 
 #include <restbed>
 #include <future>
@@ -20,7 +21,7 @@ namespace MuonPi {
 class TriggerHandler : public Source::Base<Trigger::Detector::Action>
 {
 public:
-    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink);
+    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, const Config::Rest& rest_config, const Config::Ldap& ldap_config);
 
     ~TriggerHandler() override;
 private:
@@ -46,6 +47,9 @@ private:
     std::map<std::size_t, Trigger::Detector::Setting> m_detector_trigger {};
 
     std::future<void> m_future;
+
+    Config::Rest m_rest { Config::rest };
+    Config::Ldap m_ldap { Config::ldap };
 };
 
 }

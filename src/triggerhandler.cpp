@@ -134,8 +134,10 @@ auto my_sasl_interact(LDAP *ld, unsigned /*flags*/, void *defaults, void *in) ->
 }
 }
 
-TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink)
+TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, const Config::Rest& rest_config, const Config::Ldap& ldap_config)
     : Source::Base<Trigger::Detector::Action>{sink}
+    , m_rest { rest_config }
+    , m_ldap { ldap_config }
 {
     m_resource->set_path("/trigger");
     m_resource->set_method_handler("POST", [this](const restbed::session_ptr session){
@@ -148,15 +150,15 @@ TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink)
        handle_delete(session);
     });
 
-    m_ssl_settings->set_port( Config::rest.port );
+    m_ssl_settings->set_port( static_cast<std::uint16_t>(m_rest.port) );
     m_ssl_settings->set_http_disabled(true);
     m_ssl_settings->set_tlsv12_enabled(true);
-    m_ssl_settings->set_private_key(restbed::Uri{Config::rest.privkey});
-    m_ssl_settings->set_certificate(restbed::Uri{Config::rest.cert});
-    m_ssl_settings->set_certificate_chain(restbed::Uri{Config::rest.fullchain});
+    m_ssl_settings->set_private_key(restbed::Uri{ m_rest.privkey });
+    m_ssl_settings->set_certificate(restbed::Uri{ m_rest.cert });
+    m_ssl_settings->set_certificate_chain(restbed::Uri{ m_rest.fullchain });
     m_settings->set_ssl_settings(m_ssl_settings);
 
-    m_settings->set_port( Config::rest.port );
+    m_settings->set_port( static_cast<std::uint16_t>(m_rest.port) );
     m_settings->set_default_header( "Connection", "close" );
 
     m_service.publish(m_resource);
@@ -180,7 +182,7 @@ TriggerHandler::~TriggerHandler()
 auto TriggerHandler::authenticate(const std::string& user, const std::string& pw) -> bool
 {
     LDAP* ldap { nullptr };
-    auto code = ldap_initialize(&ldap, Config::ldap.server.c_str());
+    auto code = ldap_initialize(&ldap, m_ldap.server.c_str());
     if (code != LDAP_SUCCESS) {
         Log::warning()<<"Could not connect to ldap: " + std::string{ldap_err2string(code)};
         return false;
@@ -191,6 +193,22 @@ auto TriggerHandler::authenticate(const std::string& user, const std::string& pw
     if( ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &protocol) != LDAP_OPT_SUCCESS ) {
         Log::warning()<<"Could not set ldap options.";
         return false;
+    }
+    {
+
+        berval credentials;
+        credentials.bv_len = m_ldap.login.password.size();
+        credentials.bv_val = const_cast<char*>(m_ldap.login.password.c_str());
+
+        code = ldap_sasl_bind_s( ldap, m_ldap.login.bind_dn.c_str(),
+                          nullptr, &credentials, nullptr,
+                          nullptr, nullptr);
+
+        if (code != LDAP_SUCCESS) {
+            Log::warning()<<"Could not bind to ldap: " + std::string{ldap_err2string(code)} + " " + std::to_string(code);
+            ldap_unbind_ext_s(ldap,nullptr,nullptr);
+            return false;
+        }
     }
 
     LDAPMessage* result = nullptr;
@@ -383,7 +401,7 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
 
 void TriggerHandler::save()
 {
-    std::ofstream out {Config::rest.save_file};
+    std::ofstream out {m_rest.save_file};
     if (!out.is_open()) {
         Log::warning()<<"Could not save trigger.";
         return;
@@ -397,7 +415,7 @@ void TriggerHandler::save()
 
 void TriggerHandler::load()
 {
-    std::ifstream in {Config::rest.save_file};
+    std::ifstream in {m_rest.save_file};
     if (!in.is_open()) {
         Log::warning()<<"Could not load trigger.";
         return;

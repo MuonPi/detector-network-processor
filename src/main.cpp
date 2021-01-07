@@ -52,7 +52,7 @@ auto main(int argc, char* argv[]) -> int
     parameters
             <<MuonPi::Parameters::Definition{"c", "config", "Specify a configuration file to use", true}
             <<MuonPi::Parameters::Definition{"l", "credentials", "Specify a credentials file to use", true}
-            <<MuonPi::Parameters::Definition{"s", "setup", "Setup the Credentials file from a plaintext file given with the -l option. The file will be rewritten in place in an encrypted format."};
+            <<MuonPi::Parameters::Definition{"s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true};
 
     if (!parameters.start(argc, argv)) {
         return 0;
@@ -66,12 +66,10 @@ auto main(int argc, char* argv[]) -> int
 
     if (parameters["s"]) {
         if (!parameters["l"]) {
-            std::cout<<"Expected option -l.\n";
-            parameters.print_help();
-            return 0;
+            std::cout<<"No credentials location given, using default.\n";
         }
 
-        MuonPi::Configuration credentials{MuonPi::Config::files.credentials};
+        MuonPi::Configuration credentials{parameters["s"].value};
         credentials
                 <<MuonPi::Option{"source_mqtt_user", &MuonPi::Config::source_mqtt.login.username}
                 <<MuonPi::Option{"source_mqtt_password", &MuonPi::Config::source_mqtt.login.password}
@@ -91,6 +89,7 @@ auto main(int argc, char* argv[]) -> int
         }
 
         credentials.set_encrypted(true);
+        credentials.set_filename(MuonPi::Config::files.credentials);
 
         if (credentials.write()) {
             std::cout<<"Wrote credentials file.\n";

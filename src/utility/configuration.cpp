@@ -176,6 +176,12 @@ auto Configuration::read(std::istream& in) -> bool
             return false;
         }
 
+        std::string output {"Loaded configuration: " + name};
+        if (!m_encrypted) {
+             output += "=" + value;
+        }
+        Log::debug()<<output;
+
     }
     return true;
 }

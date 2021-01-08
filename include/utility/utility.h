@@ -12,38 +12,6 @@
 #include <string>
 #include <vector>
 
-template <class T, class U>
-auto has_plus_test(T&& t, U&& u) -> decltype(static_cast<void>(t + u), std::true_type {});
-
-std::false_type has_plus_test(...);
-
-template <class T, class U>
-using has_plus = decltype(has_plus_test(std::declval<T>(), std::declval<U>()));
-
-template <class T, class U>
-auto has_minus_test(T&& t, U&& u) -> decltype(static_cast<void>(t - u), std::true_type {});
-
-std::false_type has_minus_test(...);
-
-template <class T, class U>
-using has_minus = decltype(has_minus_test(std::declval<T>(), std::declval<U>()));
-
-template <class T, class U>
-auto has_mult_test(T&& t, U&& u) -> decltype(static_cast<void>(t * u), std::true_type {});
-
-std::false_type has_mult_test(...);
-
-template <class T, class U>
-using has_multiplication = decltype(has_mult_test(std::declval<T>(), std::declval<U>()));
-
-template <class T, class U>
-auto has_div_test(T&& t, U&& u) -> decltype(static_cast<void>(t / u), std::true_type {});
-
-std::false_type has_div_test(...);
-
-template <class T, class U>
-using has_division = decltype(has_div_test(std::declval<T>(), std::declval<U>()));
-
 namespace MuonPi {
 
 class MessageConstructor {
@@ -177,23 +145,8 @@ private:
 
 template <typename T, std::size_t N>
 class Ringbuffer {
-    static_assert(has_plus<T, std::size_t>::value);
-    static_assert(has_minus<T, std::size_t>::value);
-    static_assert(has_multiplication<T, std::size_t>::value);
-    static_assert(has_division<T, std::size_t>::value);
-
-    static_assert(has_plus<std::size_t, T>::value);
-    static_assert(has_minus<std::size_t, T>::value);
-    static_assert(has_multiplication<std::size_t, T>::value);
-    static_assert(has_division<std::size_t, T>::value);
-
-    static_assert(has_plus<T, T>::value);
-    static_assert(has_minus<T, T>::value);
-    static_assert(has_multiplication<T, T>::value);
-    static_assert(has_division<T, T>::value);
-
 public:
-    void add(const T& val);
+    void add(T val);
     [[nodiscard]] auto mean() const -> T;
     [[nodiscard]] auto stddev() const -> T;
     [[nodiscard]] auto variance() const -> T;
@@ -302,7 +255,7 @@ private:
 // +++++++++++++++++++++++++++++++
 // class Ringbuffer
 template <typename T, std::size_t N>
-void Ringbuffer<T, N>::add(const T& val)
+void Ringbuffer<N>::add(T val)
 {
     m_buffer[m_index++] = val;
     if (m_index >= N) {

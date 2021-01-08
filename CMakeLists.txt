@@ -5,6 +5,7 @@ string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 option(CLUSTER_RUN_SERVER "Build the cluster code so it behaves so it uses the database sinks" ON)
 option(CLUSTER_RUN_SERVICE "Build the cluster code so it works nicely with init scripts" ON)
+option(CLUSTER_BUILD_TIDY "run clang-tidy when building the project" OFF)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -13,13 +14,14 @@ set(PROJECT_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../bin")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake")
 
-if(${MUONDETECTOR_BUILD_TIDY})
+
+if(${CLUSTER_BUILD_TIDY})
   set(CMAKE_CXX_CLANG_TIDY
       clang-tidy;
       -header-filter=^global;
       -checks=-*,readability-*,bugprone-*,performace-*,clang-analyzer-*,modernize-*,hicpp-*;
       )
-endif(${MUONDETECTOR_BUILD_TIDY})
+endif(${CLUSTER_BUILD_TIDY})
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,7 +34,6 @@ add_compile_options(
     -Wpedantic
     -Werror
     -O3
-    -Wno-unused-private-field
     )
 
 

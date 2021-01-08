@@ -34,9 +34,6 @@ public:
 
     DetectorSummary() noexcept;
 
-    DetectorSummary(const DetectorSummary& other);
-    DetectorSummary(DetectorSummary&& other);
-
     /**
      * @brief hash
      * @return The hash of the detector for this event

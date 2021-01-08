@@ -11,10 +11,10 @@
 namespace MuonPi {
 
 struct Option {
-    Option(const std::string& name, int* value);
-    Option(const std::string& name, bool* value);
-    Option(const std::string& name, double* value);
-    Option(const std::string& name, std::string* value);
+    Option(std::string  name, int* value);
+    Option(std::string  name, bool* value);
+    Option(std::string  name, double* value);
+    Option(std::string  name, std::string* value);
     Option();
 
     [[nodiscard]] auto name() const -> std::string;
@@ -26,7 +26,7 @@ struct Option {
 
     [[nodiscard]] auto read(const std::string& in) -> bool;
 
-    [[nodiscard]] operator bool();
+    [[nodiscard]] operator bool() const;
 private:
     template <typename T>
     auto set(T value) -> bool;
@@ -39,7 +39,7 @@ private:
 class Configuration
 {
 public:
-    Configuration(const std::string& filename, bool encrypted = false);
+    Configuration(std::string  filename, bool encrypted = false);
 
     void set_encrypted(bool encrypted);
     void set_filename(const std::string& filename);
@@ -55,8 +55,8 @@ public:
 private:
     [[nodiscard]] auto read(std::istream& in) -> bool;
     [[nodiscard]] auto write(std::ostream& out) -> bool;
-    [[nodiscard]] auto decrypt(std::istream &file) -> std::string;
-    void encrypt(std::ostream &file, const std::string& content);
+    [[nodiscard]] static auto decrypt(std::istream &file) -> std::string;
+    static void encrypt(std::ostream &file, const std::string& content);
 
 
     std::string m_filename {};

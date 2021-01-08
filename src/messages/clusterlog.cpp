@@ -5,11 +5,7 @@
 namespace MuonPi {
 
 ClusterLog::ClusterLog(Data data)
-    : m_data { data }
-{}
-
-ClusterLog::ClusterLog()
-    : m_valid { false }
+    : m_data {std::move( data )}
 {}
 
 

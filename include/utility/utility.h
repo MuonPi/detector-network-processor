@@ -85,7 +85,7 @@ public:
      * @param message The message to parse
      * @param delimiter The delimiter separating the fields in the message
      */
-    MessageParser(const std::string& message, char delimiter);
+    MessageParser(std::string  message, char delimiter);
 
     /**
      * @brief size

@@ -40,7 +40,7 @@ public:
 protected:
     friend class Log;
 
-    [[nodiscard]] auto to_string(Level level) -> std::string;
+    [[nodiscard]] static auto to_string(Level level) -> std::string;
 
     virtual void sink(const Message& msg) = 0;
 

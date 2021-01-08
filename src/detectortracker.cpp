@@ -33,8 +33,13 @@ void DetectorTracker::get(Event event)
         event.set_detector_info(det->location(), det->user_info());
 
     if (det->is(Detector::Status::Reliable)) {
-        Source::Base<Event>::put(std::move(event));
+        Source::Base<Event>::put(event);
     }
+}
+
+void DetectorTracker::get(DetectorInfo<Location> detector_info)
+{
+    Threaded<DetectorInfo<Location>>::internal_get(std::move(detector_info));
 }
 
 auto DetectorTracker::process(DetectorInfo<Location> log) -> int

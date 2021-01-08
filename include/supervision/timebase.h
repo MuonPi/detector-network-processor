@@ -20,7 +20,7 @@ public:
     TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink);
 
     void get(Event event) override;
-    void get(TimeBase event) override;
+    void get(TimeBase timebase) override;
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds{800} };
     static constexpr std::chrono::system_clock::duration s_maximum { std::chrono::minutes{60} };

@@ -19,14 +19,14 @@ void TimeBaseSupervisor::get(Event event)
     } else if (event.start() > m_end) {
         m_end = event.start();
     }
-    Pipeline<Event>::put(std::move(event));
+    Pipeline<Event>::put(event);
 }
 
 void TimeBaseSupervisor::get(TimeBase timebase)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < m_sample_time) {
         timebase.base = m_current;
-        Pipeline<TimeBase>::put(std::move(timebase));
+        Pipeline<TimeBase>::put(timebase);
         return;
     }
 
@@ -41,6 +41,6 @@ void TimeBaseSupervisor::get(TimeBase timebase)
         m_current = s_maximum;
     }
     timebase.base = m_current;
-    Pipeline<TimeBase>::put(std::move(timebase));
+    Pipeline<TimeBase>::put(timebase);
 }
 }

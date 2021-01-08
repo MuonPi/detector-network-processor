@@ -20,7 +20,7 @@ struct DetectorType {
 		UNDEFINED, SCINTILLATOR, SEMICONDUCTOR, OTHER
 	} physical_type;
 	double cross_section { 0.0 };
-	[[nodiscard]] auto id() const -> std::uint8_t;
+	[[nodiscard]] static auto id() -> std::uint8_t;
 };
 
 enum class DetectorState {

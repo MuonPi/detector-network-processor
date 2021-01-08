@@ -69,11 +69,8 @@ public:
     void stop();
 private:
     std::map<std::size_t, Detector::Status> m_detectors;
-    std::chrono::milliseconds m_timeout;
+    std::chrono::milliseconds m_timeout{};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
-
-    std::size_t m_incoming_count { 0 };
-    std::size_t m_outgoing_count { 0 };
 
     RateMeasurement<100, 5000> m_incoming_rate {};
     RateMeasurement<100, 5000> m_outgoing_rate {};

@@ -92,9 +92,8 @@ void Detector::step()
         if (diff > s_quit_interval) {
             set_status(Status::Deleted);
             return;
-        } else {
-            set_status(Status::Unreliable);
-        }
+        }             set_status(Status::Unreliable);
+       
     } else {
         check_reliability();
     }

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <utility>
 
 #include <cryptopp/aes.h>
 #include <crypto++/filters.h>
@@ -17,39 +18,38 @@
 
 namespace MuonPi {
 
-Option::Option(const std::string& name, int* value)
+Option::Option(std::string  name, int* value)
     : m_option{value}
     , m_valid { true }
-    , m_name { name }
+    , m_name {std::move( name )}
 {
 }
 
-Option::Option(const std::string& name, bool* value)
+Option::Option(std::string  name, bool* value)
     : m_option{value}
     , m_valid { true }
-    , m_name { name }
+    , m_name {std::move( name )}
 {
 }
 
-Option::Option(const std::string& name, double* value)
+Option::Option(std::string  name, double* value)
     : m_option{value}
     , m_valid { true }
-    , m_name { name }
+    , m_name {std::move( name )}
 {
 }
 
-Option::Option(const std::string& name, std::string* value)
+Option::Option(std::string  name, std::string* value)
     : m_option{value}
     , m_valid { true }
-    , m_name { name }
+    , m_name {std::move( name )}
 {
 }
 
 Option::Option()
-    : m_option {}
-    , m_valid { false }
-{
-}
+     
+     
+= default;
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
@@ -63,9 +63,9 @@ auto Option::write() -> std::string
 {
     std::ostringstream out {};
     std::visit(overloaded {
-                   [&](bool* value){out<<m_name<<"=b:"<<(*value);},
-                   [&](int* value){out<<m_name<<"=i:"<<(*value);},
-                   [&](double* value){out<<m_name<<"=d:"<<(*value);},
+                   [&](const bool* value){out<<m_name<<"=b:"<<(*value);},
+                   [&](const int* value){out<<m_name<<"=i:"<<(*value);},
+                   [&](const double* value){out<<m_name<<"=d:"<<(*value);},
                    [&](std::string* value){out<<m_name<<"=s:"<<(*value);},
                }, m_option);
     return out.str();
@@ -86,7 +86,7 @@ auto Option::read(const std::string& in) -> bool
     case 'd':
         return set<double>(std::stod(in.substr(2), nullptr));
     case 's':
-        return set<std::string>(in.substr(2).c_str());
+        return set<std::string>(in.substr(2));
     default:
         return false;
     }
@@ -95,13 +95,13 @@ auto Option::read(const std::string& in) -> bool
     }
 }
 
-Option::operator bool() {
+Option::operator bool() const {
     return m_valid;
 }
 
 
-Configuration::Configuration(const std::string& filename, bool encrypted)
-    : m_filename { filename }
+Configuration::Configuration(std::string  filename, bool encrypted)
+    : m_filename {std::move( filename )}
     , m_encrypted { encrypted }
 {
 }
@@ -253,7 +253,7 @@ auto Configuration::decrypt(std::istream& file) -> std::string
 
     std::string decrypted {};
 
-    FileSource(file, true, new Base64Decoder{
+    FileSource give_me_a_name(file, true, new Base64Decoder{
                            new StreamTransformationFilter(dec,
                                                           new StringSink(decrypted))});
     return decrypted;

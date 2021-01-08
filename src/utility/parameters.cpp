@@ -3,19 +3,20 @@
 
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 namespace MuonPi {
 
-Parameters::Parameters(const std::string &name, const std::string& description)
-    : m_name { name }
-    , m_description { description}
+Parameters::Parameters(std::string name, std::string  description)
+    : m_name {std::move( name )}
+    , m_description {std::move( description)}
 {
     add({"h", "help", "Print this help"});
 }
 
 auto Parameters::get(const std::string& name) const -> State
 {
-    for (auto& cmd: m_arguments) {
+    for (const auto& cmd: m_arguments) {
         if (name.compare(cmd.def.abbreviation) * name.compare(cmd.def.full) == 0) {
             return cmd.state;
         }
@@ -63,11 +64,7 @@ auto Parameters::start(int argc, char* argv[]) -> bool
                     required++;
                 }
                 if (cmd.def.value) {
-                    if (++j >= argc) {
-                        std::cout << "expected name after " << arg << "\n";
-                        print_help();
-                        return false;
-                    } else if (argv[j][0] == '-') {
+                    if ((++j >= argc) || (argv[j][0] == '-')) {
                         std::cout << "expected name after " << arg << "\n";
                         print_help();
                         return false;
@@ -99,7 +96,7 @@ void Parameters::print_help() const
 {
     std::ostringstream out {};
     out << m_name << " v" << Version::string() << "\n"<<m_description<<"\n\nPossible arguments:\n";
-    for (auto& cmd: m_arguments) {
+    for (const auto& cmd: m_arguments) {
         out << "\t-" << cmd.def.abbreviation << "\t--" << cmd.def.full;
         if (cmd.def.value) {
             out << " (value)";

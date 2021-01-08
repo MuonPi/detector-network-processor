@@ -58,10 +58,10 @@ auto main(int argc, char* argv[]) -> int
         MuonPi::Log::Log::singleton()->add_sink(std::make_shared<MuonPi::Log::StreamSink>(std::cerr));
     }
     if (parameters["l"]) {
-        MuonPi::Config::files.credentials = parameters["l"].value.c_str();
+        MuonPi::Config::files.credentials = parameters["l"].value;
     }
     if (parameters["c"]) {
-        MuonPi::Config::files.config = parameters["c"].value.c_str();
+        MuonPi::Config::files.config = parameters["c"].value;
     }
 
     if (parameters["s"]) {
@@ -183,7 +183,8 @@ auto main(int argc, char* argv[]) -> int
         delete detectorlog_sink;
         delete db_link;
     }
-    } guard[3];
+    };
+    std::array<Guard, 3> guard{};
 
 
 

@@ -21,7 +21,7 @@ namespace MuonPi {
 class TriggerHandler : public Source::Base<Trigger::Detector::Action>
 {
 public:
-    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, const Config::Rest& rest_config, const Config::Ldap& ldap_config);
+    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Config::Rest  rest_config, Config::Ldap  ldap_config);
 
     ~TriggerHandler() override;
 private:

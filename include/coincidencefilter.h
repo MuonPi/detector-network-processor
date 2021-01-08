@@ -34,6 +34,7 @@ public:
     ~CoincidenceFilter() override = default;
 
     void get(TimeBase timebase) override;
+    void get(Event event) override;
 
 protected:
 

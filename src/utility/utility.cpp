@@ -6,14 +6,15 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <ifaddrs.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <unistd.h>
 #include <linux/if_link.h>
 #include <iomanip>
 #include <fstream>
 #include <regex>
 #include <random>
+#include <utility>
 
 namespace MuonPi {
 
@@ -35,8 +36,8 @@ auto MessageConstructor::get_string() const -> std::string
     return m_message;
 }
 
-MessageParser::MessageParser(const std::string& message, char delimiter)
-    : m_content { message }
+MessageParser::MessageParser(std::string  message, char delimiter)
+    : m_content {std::move( message )}
     , m_iterator { m_content.begin() }
     , m_delimiter { delimiter }
 {
@@ -62,7 +63,7 @@ void MessageParser::read_field()
     std::string::iterator end { m_iterator };
 
     if (start != end) {
-        m_fields.push_back(std::make_pair(start, end));
+        m_fields.emplace_back(start, end);
     }
 }
 

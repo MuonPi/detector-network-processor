@@ -48,13 +48,14 @@ public:
 
     virtual ~Threaded() override;
 
+protected:
+
     /**
-     * @brief get Reimplemented from Base<T>. gets called when a new item is available
+     * @brief internal_get
      * @param item The item that is available
      */
-    void get(T item) override final;
+    void internal_get(T item);
 
-protected:
     /**
      * @brief step Reimplemented from ThreadRunner.
      * Internally this uses the timeout given in the constructor, default is 5 seconds.
@@ -95,6 +96,8 @@ public:
 
     ~Collection() override;
 
+    void get(T item) override;
+
 protected:
     /**
      * @brief get Reimplemented from Threaded<T>. gets called when a new item is available
@@ -111,6 +114,7 @@ private:
 
 template <typename T>
 Base<T>::~Base() = default;
+
 
 
 template <typename T>
@@ -132,7 +136,7 @@ template <typename T>
 Threaded<T>::~Threaded() = default;
 
 template <typename T>
-void Threaded<T>::get(T item)
+void Threaded<T>::internal_get(T item)
 {
     std::scoped_lock<std::mutex> lock { m_mutex };
     m_items.push(item);
@@ -187,6 +191,12 @@ Collection<T, N>::Collection(std::array<Base<T>*, N> sinks)
 
 template <typename T, std::size_t N>
 Collection<T, N>::~Collection() = default;
+
+template <typename T, std::size_t N>
+void Collection<T, N>::get(T item)
+{
+    Threaded<T>::internal_get(std::move(item));
+}
 
 
 template <typename T, std::size_t N>

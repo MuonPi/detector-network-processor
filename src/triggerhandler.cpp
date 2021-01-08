@@ -11,11 +11,12 @@
 #include <regex>
 
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <ldap.h>
 #include <sasl/sasl.h>
 #include <fstream>
+#include <utility>
 
 
 
@@ -100,10 +101,11 @@ struct authdata {
 
 auto my_sasl_interact(LDAP *ld, unsigned /*flags*/, void *defaults, void *in) -> int
 {
-    authdata *auth=static_cast<authdata*>(defaults);
+    auto *auth=static_cast<authdata*>(defaults);
 
-    sasl_interact_t *interact = static_cast<sasl_interact_t*>(in);
-    if( ld == nullptr ) return LDAP_PARAM_ERROR;
+    auto *interact = static_cast<sasl_interact_t*>(in);
+    if( ld == nullptr ) { return LDAP_PARAM_ERROR;
+}
 
     while( interact->id != SASL_CB_LIST_END ) {
 
@@ -125,7 +127,7 @@ auto my_sasl_interact(LDAP *ld, unsigned /*flags*/, void *defaults, void *in) ->
        default:
            MuonPi::Log::warning()<<"unknown ldap parameter" + std::to_string(interact->id);
        }
-       interact->result = (dflt && *dflt) ? dflt : "";
+       interact->result = ((dflt != nullptr) && (*dflt != 0)) ? dflt : "";
        interact->len = strlen( static_cast<char*>(const_cast<void*>(interact->result)) );
 
        interact++;
@@ -134,10 +136,10 @@ auto my_sasl_interact(LDAP *ld, unsigned /*flags*/, void *defaults, void *in) ->
 }
 }
 
-TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, const Config::Rest& rest_config, const Config::Ldap& ldap_config)
+TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Config::Rest  rest_config, Config::Ldap  ldap_config)
     : Source::Base<Trigger::Detector::Action>{sink}
-    , m_rest { rest_config }
-    , m_ldap { ldap_config }
+    , m_rest {std::move( rest_config )}
+    , m_ldap {std::move( ldap_config )}
 {
     m_resource->set_path("/trigger");
     m_resource->set_method_handler("POST", [this](const restbed::session_ptr session){
@@ -196,7 +198,7 @@ auto TriggerHandler::authenticate(const std::string& user, const std::string& pw
     }
     {
 
-        berval credentials;
+        berval credentials{};
         credentials.bv_len = m_ldap.login.password.size();
         credentials.bv_val = const_cast<char*>(m_ldap.login.password.c_str());
 
@@ -226,7 +228,7 @@ auto TriggerHandler::authenticate(const std::string& user, const std::string& pw
 
     std::string bind_dn { "uid=" + user + ",ou=users,dc=muonpi,dc=org" };
 
-    berval credentials;
+    berval credentials{};
     credentials.bv_len = pw.size();
     credentials.bv_val = const_cast<char*>(pw.c_str());
 
@@ -256,7 +258,7 @@ void TriggerHandler::handle_authentication(const restbed::session_ptr session, c
         return ;
     }
 
-    CryptoPP::StringSource{request->get_header( "Authorization" ).substr(6), true,
+    CryptoPP::StringSource give_me_a_name{request->get_header( "Authorization" ).substr(6), true,
                 new CryptoPP::Base64Decoder{
                     new CryptoPP::StringSink{authorisation}
                 }
@@ -283,7 +285,7 @@ void TriggerHandler::handle_post(const restbed::session_ptr session)
     std::string body;
     session->fetch( content_length, [&]( const restbed::session_ptr /*sess*/, const restbed::Bytes & bod )
     {
-        for (auto& byte: bod) {
+        for (const auto& byte: bod) {
             body += static_cast<char>(byte);
         }
     } );
@@ -320,7 +322,7 @@ void TriggerHandler::handle_get(const restbed::session_ptr session)
     std::string body;
     session->fetch( content_length, [&]( const restbed::session_ptr /*sess*/, const restbed::Bytes & bod )
     {
-        for (auto& byte: bod) {
+        for (const auto& byte: bod) {
             body += static_cast<char>(byte);
         }
     } );
@@ -373,7 +375,7 @@ void TriggerHandler::handle_delete(const restbed::session_ptr session)
     std::string body;
     session->fetch( content_length, [&]( const restbed::session_ptr /*sess*/, const restbed::Bytes & bod )
     {
-        for (auto& byte: bod) {
+        for (const auto& byte: bod) {
             body += static_cast<char>(byte);
         }
     } );

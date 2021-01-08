@@ -124,7 +124,7 @@ public:
      * @brief Mqtt
      * @param config The configuration to use
      */
-    Mqtt(const Config::Mqtt& config);
+    Mqtt(Config::Mqtt  config);
 
     Mqtt();
 

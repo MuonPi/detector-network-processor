@@ -1,11 +1,13 @@
 #include "utility/threadrunner.h"
 
+#include <utility>
+
 #include "utility/log.h"
 
 namespace MuonPi {
 
-ThreadRunner::ThreadRunner(const std::string& name)
-    : m_name { name }
+ThreadRunner::ThreadRunner(std::string  name)
+    : m_name {std::move( name )}
 {}
 
 ThreadRunner::~ThreadRunner()

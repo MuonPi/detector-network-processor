@@ -21,7 +21,7 @@ public:
         Running,
         Finalising
     };
-    ThreadRunner(const std::string& name);
+    ThreadRunner(std::string  name);
     /**
      * @brief ~ThreadRunner Stops the thread and waits for it to finish.
      */

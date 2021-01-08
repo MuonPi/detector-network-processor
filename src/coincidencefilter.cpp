@@ -28,6 +28,11 @@ void CoincidenceFilter::get(TimeBase timebase)
     m_supervisor.time_status(duration_cast<milliseconds>(m_timeout));
 }
 
+void CoincidenceFilter::get(Event event)
+{
+    Threaded<Event>::internal_get(event);
+}
+
 auto CoincidenceFilter::process() -> int
 {
     if (m_supervisor.step() != 0) {
@@ -67,10 +72,10 @@ auto CoincidenceFilter::process(Event event) -> int
         EventConstructor& constructor { m_constructors[matches.front()] };
         matches.pop();
         if (constructor.event.n() == 1) {
-            Event e { std::move(constructor.event) };
-            constructor.event = Event{std::move(e), true};
+            Event e { constructor.event };
+            constructor.event = Event{e, true};
         }
-        constructor.event.add_event(std::move(event));
+        constructor.event.add_event(event);
         return 0;
     }
     // --- Event matches exactly one existing constructor
@@ -78,7 +83,7 @@ auto CoincidenceFilter::process(Event event) -> int
     // +++ Event matches either no, or more than one constructor
     if (matches.empty()) {
         EventConstructor constructor {};
-        constructor.event = std::move(event);
+        constructor.event = event;
         constructor.timeout = m_timeout;
         m_constructors.push_back(std::move(constructor));
         return 0;
@@ -86,14 +91,14 @@ auto CoincidenceFilter::process(Event event) -> int
     EventConstructor& constructor { m_constructors[matches.front()] };
     matches.pop();
     if (constructor.event.n() == 1) {
-        Event e { std::move(constructor.event) };
-        constructor.event = Event{std::move(e), true};
+        Event e { constructor.event };
+        constructor.event = Event{e, true};
     }
     constructor.event.add_event(event);
     // +++ Event matches more than one constructor
     // Combines all contesting constructors into one contesting coincience
     while (!matches.empty()) {
-        constructor.event.add_event(std::move(m_constructors[matches.front()].event));
+        constructor.event.add_event(m_constructors[matches.front()].event);
         m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(matches.front()));
         matches.pop();
     }

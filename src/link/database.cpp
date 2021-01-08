@@ -3,6 +3,7 @@
 #include "utility/log.h"
 
 #include <type_traits>
+#include <utility>
 #include <variant>
 
 #include <curl/curl.h>
@@ -45,8 +46,8 @@ auto Database::Entry::operator<<(std::int_fast64_t timestamp) -> bool
     return m_link.send_string(m_stream.str());
 }
 
-Database::Database(const Config::Influx& config)
-    : m_config { config }
+Database::Database(Config::Influx  config)
+    : m_config {std::move( config )}
 {
 }
 
@@ -69,7 +70,7 @@ auto Database::send_string(const std::string& query) -> bool
         class CurlGuard
         {
         public:
-            CurlGuard(CURL* curl) : m_curl { curl } {}
+            explicit CurlGuard(CURL* curl) : m_curl { curl } {}
             ~CurlGuard() { curl_easy_cleanup(m_curl);}
         private:
             CURL* m_curl { nullptr };
@@ -100,7 +101,7 @@ auto Database::send_string(const std::string& query) -> bool
         if (res != CURLE_OK) {
             Log::warning()<<"Couldn't write to Database: " + std::to_string(http_code) + ": " + std::string{curl_easy_strerror(res)};
             return false;
-        } else if ((http_code / 100) != 2) {
+        } if ((http_code / 100) != 2) {
             Log::warning()<<"Couldn't write to Database: " + std::to_string(http_code);
             return false;
         }

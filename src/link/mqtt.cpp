@@ -5,6 +5,7 @@
 #include <sstream>
 #include <regex>
 #include <cstring>
+#include <utility>
 
 #include <cryptopp/sha.h>
 #include <cryptopp/filters.h>
@@ -40,9 +41,9 @@ void wrapper_callback_message(mosquitto* /*mqtt*/, void* object, const mosquitto
     reinterpret_cast<Mqtt*>(object)->callback_message(message);
 }
 
-Mqtt::Mqtt(const Config::Mqtt& config)
+Mqtt::Mqtt(Config::Mqtt  config)
     : ThreadRunner{"Mqtt"}
-    , m_config { config }
+    , m_config {std::move( config )}
     , m_mqtt { init(client_id().c_str()) }
 {
     mosquitto_connect_callback_set(m_mqtt, wrapper_callback_connected);
@@ -59,8 +60,7 @@ Mqtt::Mqtt()
 }
 
 Mqtt::~Mqtt()
-{
-}
+= default;
 
 auto Mqtt::pre_run() -> int
 {
@@ -399,7 +399,7 @@ auto Mqtt::client_id() const -> std::string
 
     std::string source {std::string{m_config.login.username} + m_config.login.station_id};
     std::string id {};
-    CryptoPP::StringSource{source, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(new CryptoPP::StringSink(id)))};
+    CryptoPP::StringSource give_me_a_name{source, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(reinterpret_cast<CryptoPP::BufferedTransformation*>(new CryptoPP::StringSink(id))))};
     return id;
 }
 }

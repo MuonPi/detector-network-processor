@@ -64,7 +64,6 @@ private:
     Data m_data;
     UserInfo m_userinfo { };
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
-    bool m_valid { true };
 };
 
 

@@ -21,13 +21,10 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
 {
     switch (status) {
     case Detector::Status::Reliable:
-        m_log_sink.get( ClusterLog{m_current_data} );
-        break;
     case Detector::Status::Unreliable:
         m_log_sink.get( ClusterLog{m_current_data} );
         break;
     case Detector::Status::Created:
-        break;
     case Detector::Status::Deleted:
         break;
     }

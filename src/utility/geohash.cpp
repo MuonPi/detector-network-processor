@@ -7,20 +7,25 @@ namespace MuonPi {
 /**
  * Geohash: Gustavo Niemeyer’s geocoding system.
  */
-std::string GeoHash::hashFromCoordinates(double lon, double lat, std::size_t precision)
+auto GeoHash::hashFromCoordinates(double lon, double lat, std::size_t precision) -> std::string
 {
-    if (precision>12) precision=12;
+    if (precision>12) { precision=12;
+}
 
     uint8_t idx = 0; // index into base32 map
     uint8_t bit = 0; // each char holds 5 bits
     bool evenBit = true;
-    std::string geohash = "";
+    std::string geohash;
 
-    double latMin =  -90., latMax =  90.;
-    double lonMin = -180., lonMax = 180.;
+    double latMin =  -90.;
+    double latMax =  90.;
+    double lonMin = -180.;
+    double lonMax = 180.;
 
-    if (lon<lonMin || lon>lonMax) return geohash;
-    if (lat<latMin || lat>latMax) return geohash;
+    if (lon<lonMin || lon>lonMax) { return geohash;
+}
+    if (lat<latMin || lat>latMax) { return geohash;
+}
 
     while (geohash.size() < precision) {
         if (evenBit) {

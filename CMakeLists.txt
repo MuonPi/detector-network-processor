@@ -19,7 +19,8 @@ if(${CLUSTER_BUILD_TIDY})
   set(CMAKE_CXX_CLANG_TIDY
       clang-tidy;
       -header-filter=^global;
-      -checks=-*,readability-*,bugprone-*,performace-*,clang-analyzer-*,modernize-*,hicpp-*;
+      -checks=-*,bugprone-*,performace-*,readability-*,-readability-magic-numbers,modernize-*,hicpp-*,clang-analyzer-*;
+      -fix;
       )
 endif(${CLUSTER_BUILD_TIDY})
 

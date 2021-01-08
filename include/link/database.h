@@ -35,7 +35,7 @@ public:
         Entry() = delete;
 
         auto operator<<(const Influx::Tag& tag) -> Entry&;
-        auto operator<<(const Influx::Field& tag) -> Entry&;
+        auto operator<<(const Influx::Field& field) -> Entry&;
         [[nodiscard]] auto operator<<(std::int_fast64_t timestamp) -> bool;
 
     private:
@@ -49,7 +49,7 @@ public:
     };
 
 
-    Database(const Config::Influx& config);
+    Database(Config::Influx  config);
     Database();
     ~Database();
 

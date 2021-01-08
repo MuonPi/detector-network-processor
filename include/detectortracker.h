@@ -56,6 +56,9 @@ public:
 
     void get(Trigger::Detector::Action action) override;
 
+    void get(Event event) override;
+
+    void get(DetectorInfo<Location> detector_info) override;
 protected:
 
     /**

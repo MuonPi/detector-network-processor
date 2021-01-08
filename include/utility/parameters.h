@@ -25,7 +25,7 @@ public:
         }
     };
 
-    Parameters(const std::string& name, const std::string& description);
+    Parameters(std::string  name, std::string  description);
 
     [[nodiscard]] auto get(const std::string& name) const -> State;
     [[nodiscard]] auto operator[](const std::string& name) const -> State;

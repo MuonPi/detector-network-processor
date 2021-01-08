@@ -5,4 +5,13 @@ useradd muonuser -g users -G users -s /usr/sbin/nologin -r -N -M -b /var/muondet
 chown muonuser:users /var/muondetector
 chmod g+w /var/muondetector
 
-echo "Before starting the daemon, edit /etc/muondetector/muondetector-daemon.cfg and setup a credential file.\nTo do this edit the file /usr/share/muondetector/muondetector-cluster-credentials and execute \n\tsudo runuser -u -- muonuser muondetector-cluster -s /usr/share/muondetector/muondetector-cluster-credentials\nIf you want to run this daemon as a local cluster, add the option run_local_cluster:b:true to /etc/muondetector/muondetector-cluster.cfg."
+echo "
+\e[0;31m
+Before starting the daemon, edit /etc/muondetector/muondetector-daemon.cfg and setup a credential file.
+To do this copy the file /usr/share/muondetector/muondetector-cluster-credentials to a local directory and execute
+    sudo runuser -u muonuser -- muondetector-cluster -s muondetector-cluster-credentials
+Ensure that the file is located at a secure location since it contains the plaintext credentials. Ideally delete this file after running above command.
+If you want to run this daemon as a local cluster, add the option run_local_cluster:b:true to /etc/muondetector/muondetector-cluster.cfg.
+\e[m
+
+"

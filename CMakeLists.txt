@@ -3,8 +3,6 @@ project(muondetector-cluster LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
-option(CLUSTER_RUN_SERVER "Build the cluster code so it behaves so it uses the database sinks" ON)
-option(CLUSTER_RUN_SERVICE "Build the cluster code so it works nicely with init scripts" ON)
 option(CLUSTER_BUILD_TIDY "run clang-tidy when building the project" OFF)
 option(CLUSTER_FORMAT "run clang-format when building the project" OFF)
 

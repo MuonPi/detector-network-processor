@@ -12,11 +12,8 @@
 #include "supervision/state.h"
 #include "supervision/timebase.h"
 
-#ifdef CLUSTER_RUN_SERVER
 #include "link/database.h"
 #include "sink/database.h"
-#else
-#endif
 
 #include "sink/ascii.h"
 

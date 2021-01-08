@@ -3,18 +3,16 @@
 
 #include "criterion.h"
 
-#include <memory>
 #include <chrono>
+#include <memory>
 
 namespace MuonPi {
-
 
 /**
  * @brief The Coincidence class
  * Defines the parameters for a coincidence between two events
  */
-class Coincidence : public Criterion
-{
+class Coincidence : public Criterion {
 public:
     ~Coincidence() override;
     /**

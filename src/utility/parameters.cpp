@@ -7,16 +7,16 @@
 
 namespace MuonPi {
 
-Parameters::Parameters(std::string name, std::string  description)
-    : m_name {std::move( name )}
-    , m_description {std::move( description)}
+Parameters::Parameters(std::string name, std::string description)
+    : m_name { std::move(name) }
+    , m_description { std::move(description) }
 {
-    add({"h", "help", "Print this help"});
+    add({ "h", "help", "Print this help" });
 }
 
 auto Parameters::get(const std::string& name) const -> State
 {
-    for (const auto& cmd: m_arguments) {
+    for (const auto& cmd : m_arguments) {
         if (name.compare(cmd.def.abbreviation) * name.compare(cmd.def.full) == 0) {
             return cmd.state;
         }
@@ -34,7 +34,7 @@ void Parameters::add(const Definition& argument)
     if (argument.required) {
         m_required++;
     }
-    m_arguments.push_back({ argument, {}});
+    m_arguments.push_back({ argument, {} });
 }
 
 auto Parameters::operator<<(const Definition& argument) -> Parameters&
@@ -58,7 +58,7 @@ auto Parameters::start(int argc, char* argv[]) -> bool
     for (int j { 1 }; j < argc; j++) {
         std::string arg { argv[j] };
         bool found { false };
-        for (auto& cmd: m_arguments) {
+        for (auto& cmd : m_arguments) {
             if (arg.compare("-" + cmd.def.abbreviation) * arg.compare("--" + cmd.def.full) == 0) {
                 if (cmd.def.required) {
                     required++;
@@ -81,7 +81,7 @@ auto Parameters::start(int argc, char* argv[]) -> bool
         }
     }
     if (required < m_required) {
-        std::cout<<"Not all required arguments were provided.\n\n";
+        std::cout << "Not all required arguments were provided.\n\n";
         print_help();
         return false;
     }
@@ -95,8 +95,9 @@ auto Parameters::start(int argc, char* argv[]) -> bool
 void Parameters::print_help() const
 {
     std::ostringstream out {};
-    out << m_name << " v" << Version::string() << "\n"<<m_description<<"\n\nPossible arguments:\n";
-    for (const auto& cmd: m_arguments) {
+    out << m_name << " v" << Version::string() << "\n"
+        << m_description << "\n\nPossible arguments:\n";
+    for (const auto& cmd : m_arguments) {
         out << "\t-" << cmd.def.abbreviation << "\t--" << cmd.def.full;
         if (cmd.def.value) {
             out << " (value)";
@@ -106,7 +107,7 @@ void Parameters::print_help() const
         }
         out << "\n\t\t\t" << cmd.def.description << '\n';
     }
-    std::cout<<out.str()<<std::flush;
+    std::cout << out.str() << std::flush;
 }
 
 }

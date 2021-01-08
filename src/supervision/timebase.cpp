@@ -30,7 +30,7 @@ void TimeBaseSupervisor::get(TimeBase timebase)
         return;
     }
 
-    m_current = std::chrono::nanoseconds{m_end - m_start};
+    m_current = std::chrono::nanoseconds { m_end - m_start };
 
     m_start += 10000000000000;
     m_end = -1000000000;

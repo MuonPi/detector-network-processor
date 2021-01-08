@@ -1,11 +1,11 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <iostream>
+#include <memory>
 #include <string>
 #include <syslog.h>
-#include <memory>
 #include <vector>
-#include <iostream>
 
 namespace MuonPi::Log {
 
@@ -22,15 +22,12 @@ enum Level : int {
 
 static constexpr const char* appname { "muondetector-cluster" };
 
-struct Message
-{
+struct Message {
     const Level level { Level::Info };
     const std::string message {};
 };
 
-
-class Sink
-{
+class Sink {
 public:
     Sink(Level level);
 
@@ -48,8 +45,7 @@ private:
     Level m_level { Level::Info };
 };
 
-class StreamSink : public Sink
-{
+class StreamSink : public Sink {
 public:
     StreamSink(std::ostream& ostream, Level level = Level::Debug);
 
@@ -60,8 +56,7 @@ private:
     std::ostream& m_ostream;
 };
 
-class SyslogSink : public Sink
-{
+class SyslogSink : public Sink {
 public:
     SyslogSink(Level level = Level::Debug);
 
@@ -71,13 +66,10 @@ protected:
     void sink(const Message& msg) override;
 };
 
-
-class Log
-{
+class Log {
 public:
     template <Level L>
-    class Logger
-    {
+    class Logger {
     public:
         Logger(Log& log);
 
@@ -111,12 +103,13 @@ private:
 template <Level L>
 Log::Logger<L>::Logger(Log& log)
     : m_log { log }
-{}
+{
+}
 
 template <Level L>
 auto Log::Logger<L>::operator<<(std::string message) -> Logger<L>&
 {
-    m_log.send(Message{L, message});
+    m_log.send(Message { L, message });
     return *this;
 }
 

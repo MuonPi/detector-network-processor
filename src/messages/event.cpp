@@ -1,12 +1,7 @@
 #include "messages/event.h"
 #include "utility/log.h"
 
-
-
-
 namespace MuonPi {
-
-
 
 Event::Event(std::size_t hash, Data data) noexcept
     : m_hash { hash }
@@ -15,7 +10,7 @@ Event::Event(std::size_t hash, Data data) noexcept
 }
 
 Event::Event(Event event, bool /*foreign*/) noexcept
-    : Event{event.hash(), event.data()}
+    : Event { event.hash(), event.data() }
 {
     m_data.end = m_data.start;
 
@@ -28,7 +23,6 @@ Event::Event() noexcept
 }
 
 Event::~Event() noexcept = default;
-
 
 auto Event::start() const noexcept -> std::int_fast64_t
 {
@@ -58,7 +52,7 @@ auto Event::n() const noexcept -> std::size_t
 void Event::add_event(Event event) noexcept
 {
     if (event.n() > 1) {
-        for (auto e: event.events()) {
+        for (auto e : event.events()) {
             add_event(e);
         }
         return;

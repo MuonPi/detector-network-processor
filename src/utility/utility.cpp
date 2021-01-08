@@ -1,27 +1,27 @@
 #include "utility/utility.h"
-#include "utility/log.h"
 #include "defaults.h"
+#include "utility/log.h"
 
 #include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <ifaddrs.h>
 #include <cstdio>
 #include <cstdlib>
-#include <unistd.h>
-#include <linux/if_link.h>
-#include <iomanip>
 #include <fstream>
-#include <regex>
+#include <ifaddrs.h>
+#include <iomanip>
+#include <linux/if_link.h>
+#include <netdb.h>
 #include <random>
+#include <regex>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <utility>
 
 namespace MuonPi {
 
-
 MessageConstructor::MessageConstructor(char delimiter)
     : m_delimiter { delimiter }
-{}
+{
+}
 
 void MessageConstructor::add_field(const std::string& field)
 {
@@ -36,8 +36,8 @@ auto MessageConstructor::get_string() const -> std::string
     return m_message;
 }
 
-MessageParser::MessageParser(std::string  message, char delimiter)
-    : m_content {std::move( message )}
+MessageParser::MessageParser(std::string message, char delimiter)
+    : m_content { std::move(message) }
     , m_iterator { m_content.begin() }
     , m_delimiter { delimiter }
 {
@@ -85,7 +85,7 @@ auto MessageParser::empty() const -> bool
 
 auto MessageParser::operator[](std::size_t i) const -> std::string
 {
-    return std::string{ m_fields[i].first, m_fields[i].second };
+    return std::string { m_fields[i].first, m_fields[i].second };
 }
 
 auto MessageParser::get() const -> std::string
@@ -96,12 +96,13 @@ auto MessageParser::get() const -> std::string
 GUID::GUID(std::size_t hash, std::uint64_t time)
     : m_first { get_mac() ^ hash ^ (get_number() & 0x00000000FFFFFFFF) }
     , m_second { time ^ (get_number() & 0xFFFFFFFF00000000) }
-{}
+{
+}
 
 auto GUID::to_string() const -> std::string
 {
     std::ostringstream out {};
-    out<<std::right<<std::hex<<std::setfill('0')<<std::setw(16)<<m_first<<std::setw(16)<<m_second;
+    out << std::right << std::hex << std::setfill('0') << std::setw(16) << m_first << std::setw(16) << m_second;
     return out.str();
 }
 
@@ -112,14 +113,14 @@ auto GUID::get_mac() -> std::uint64_t
         return addr;
     }
 
-    ifaddrs *ifaddr;
+    ifaddrs* ifaddr;
     if (getifaddrs(&ifaddr) == -1) {
-        Log::error()<<"Could not get MAC address.";
+        Log::error() << "Could not get MAC address.";
         return {};
     }
 
     std::string ifname {};
-    for (ifaddrs *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+    for (ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr == nullptr) {
             continue;
         }
@@ -131,7 +132,7 @@ auto GUID::get_mac() -> std::uint64_t
     }
     freeifaddrs(ifaddr);
     if (ifname.empty()) {
-        Log::error()<<"Could not get MAC address.";
+        Log::error() << "Could not get MAC address.";
         return {};
     }
 
@@ -146,14 +147,15 @@ auto GUID::get_mac() -> std::uint64_t
 auto GUID::get_number() -> std::uint64_t
 {
     static std::mt19937 gen { static_cast<std::size_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) };
-    static std::uniform_int_distribution<std::uint64_t> distribution{0, std::numeric_limits<std::uint64_t>::max()};
+    static std::uniform_int_distribution<std::uint64_t> distribution { 0, std::numeric_limits<std::uint64_t>::max() };
 
     return distribution(gen);
 }
 
 namespace Version {
-auto string() -> std::string {
-    return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
-}
+    auto string() -> std::string
+    {
+        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch);
+    }
 }
 }

@@ -25,7 +25,7 @@ public:
         }
     };
 
-    Parameters(std::string  name, std::string  description);
+    Parameters(std::string name, std::string description);
 
     [[nodiscard]] auto get(const std::string& name) const -> State;
     [[nodiscard]] auto operator[](const std::string& name) const -> State;
@@ -35,10 +35,9 @@ public:
 
     auto start(int argc, char* argv[]) -> bool;
 
-
     void print_help() const;
-private:
 
+private:
     struct Commandline {
         Definition def;
         State state;

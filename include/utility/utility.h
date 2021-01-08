@@ -1,57 +1,52 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
-#include <string>
-#include <vector>
-#include <chrono>
-#include <numeric>
 #include <algorithm>
-#include <cmath>
 #include <array>
 #include <atomic>
-#include <sstream>
+#include <chrono>
+#include <cmath>
 #include <iomanip>
+#include <numeric>
+#include <sstream>
+#include <string>
+#include <vector>
 
-
-template<class T, class U>
-auto has_plus_test(T&& t, U&& u) -> decltype(static_cast<void>(t + u), std::true_type{});
+template <class T, class U>
+auto has_plus_test(T&& t, U&& u) -> decltype(static_cast<void>(t + u), std::true_type {});
 
 std::false_type has_plus_test(...);
 
-template<class T, class U>
+template <class T, class U>
 using has_plus = decltype(has_plus_test(std::declval<T>(), std::declval<U>()));
 
-
-template<class T, class U>
-auto has_minus_test(T&& t, U&& u) -> decltype(static_cast<void>(t - u), std::true_type{});
+template <class T, class U>
+auto has_minus_test(T&& t, U&& u) -> decltype(static_cast<void>(t - u), std::true_type {});
 
 std::false_type has_minus_test(...);
 
-template<class T, class U>
+template <class T, class U>
 using has_minus = decltype(has_minus_test(std::declval<T>(), std::declval<U>()));
 
-
-template<class T, class U>
-auto has_mult_test(T&& t, U&& u) -> decltype(static_cast<void>(t * u), std::true_type{});
+template <class T, class U>
+auto has_mult_test(T&& t, U&& u) -> decltype(static_cast<void>(t * u), std::true_type {});
 
 std::false_type has_mult_test(...);
 
-template<class T, class U>
+template <class T, class U>
 using has_multiplication = decltype(has_mult_test(std::declval<T>(), std::declval<U>()));
 
-
-template<class T, class U>
-auto has_div_test(T&& t, U&& u) -> decltype(static_cast<void>(t / u), std::true_type{});
+template <class T, class U>
+auto has_div_test(T&& t, U&& u) -> decltype(static_cast<void>(t / u), std::true_type {});
 
 std::false_type has_div_test(...);
 
-template<class T, class U>
+template <class T, class U>
 using has_division = decltype(has_div_test(std::declval<T>(), std::declval<U>()));
 
 namespace MuonPi {
 
-class MessageConstructor
-{
+class MessageConstructor {
 public:
     /**
      * @brief MessageConstructor
@@ -76,16 +71,14 @@ private:
     char m_delimiter;
 };
 
-
-class MessageParser
-{
+class MessageParser {
 public:
     /**
      * @brief MessageParser
      * @param message The message to parse
      * @param delimiter The delimiter separating the fields in the message
      */
-    MessageParser(std::string  message, char delimiter);
+    MessageParser(std::string message, char delimiter);
 
     /**
      * @brief size
@@ -110,6 +103,7 @@ public:
      * @return The original string
      */
     [[nodiscard]] auto get() const -> std::string;
+
 private:
     /**
      * @brief skip_delimiter Skips all delimiters until the next field
@@ -133,10 +127,9 @@ private:
 };
 
 template <std::size_t N, std::size_t T>
-class RateMeasurement
-{
+class RateMeasurement {
 public:
-//	typedef RateMeasurement<N,T> Current;
+    //	typedef RateMeasurement<N,T> Current;
     /**
      * @brief increase_counter Increases the counter in the current interval
      */
@@ -182,7 +175,6 @@ private:
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 };
 
-
 template <typename T, std::size_t N>
 class Ringbuffer {
     static_assert(has_plus<T, std::size_t>::value);
@@ -199,6 +191,7 @@ class Ringbuffer {
     static_assert(has_minus<T, T>::value);
     static_assert(has_multiplication<T, T>::value);
     static_assert(has_division<T, T>::value);
+
 public:
     void add(const T& val);
     [[nodiscard]] auto mean() const -> T;
@@ -207,7 +200,7 @@ public:
     [[nodiscard]] auto entries() const -> std::size_t;
 
 private:
-    std::array<T,N> m_buffer { T {} };
+    std::array<T, N> m_buffer { T {} };
     std::size_t m_index;
     bool m_full { false };
 };
@@ -220,13 +213,12 @@ private:
 /// Übergabe führt zu einem (beabsichtigten!) Compilerfehler.
 /// Grundlagen aus: http://stackoverflow.com/a/5100745/2932052
 template <typename T>
-inline std::string int_to_hex(T val, std::size_t width=sizeof(T)*2)
+inline std::string int_to_hex(T val, std::size_t width = sizeof(T) * 2)
 {
     std::stringstream ss;
-    ss << std::setfill('0') << std::setw(width) << std::hex << (val|0);
+    ss << std::setfill('0') << std::setw(width) << std::hex << (val | 0);
     return ss.str();
 }
-
 
 // +++++++++++++++++++++++++++++++
 // implementation part starts here
@@ -255,17 +247,15 @@ auto RateMeasurement<N, T>::step() -> bool
             m_full = true;
         }
         if (!m_full) {
-            m_mean = std::accumulate(m_history.begin(), m_history.begin()+m_index, 0.0) / m_index;
-            m_variance = 1.0 / ( m_index - 1 ) * std::inner_product(m_history.begin(), m_history.begin()+m_index, m_history.begin(), 0.0,
-                                               [](double const & x, double const & y) { return x + y; },
-                                               [this](double const & x, double const & y) { return (x - m_mean)*(y - m_mean); });
+            m_mean = std::accumulate(m_history.begin(), m_history.begin() + m_index, 0.0) / m_index;
+            m_variance = 1.0 / (m_index - 1) * std::inner_product(
+                             m_history.begin(), m_history.begin() + m_index, m_history.begin(), 0.0, [](double const& x, double const& y) { return x + y; }, [this](double const& x, double const& y) { return (x - m_mean) * (y - m_mean); });
         } else {
             m_mean = std::accumulate(m_history.begin(), m_history.end(), 0.0) / N;
-            m_variance = 1.0 / ( N - 1.0 ) * std::inner_product(m_history.begin(), m_history.end(), m_history.begin(), 0.0,
-                                               [](double const & x, double const & y) { return x + y; },
-                                               [this](double const & x, double const & y) { return (x - m_mean)*(y - m_mean); });
+            m_variance = 1.0 / (N - 1.0) * std::inner_product(
+                             m_history.begin(), m_history.end(), m_history.begin(), 0.0, [](double const& x, double const& y) { return x + y; }, [this](double const& x, double const& y) { return (x - m_mean) * (y - m_mean); });
         }
-        m_deviation = std::sqrt( m_variance );
+        m_deviation = std::sqrt(m_variance);
 
         m_current_n = 0;
         return true;
@@ -292,11 +282,9 @@ auto RateMeasurement<N, T>::deviation() const noexcept -> double
 }
 // -------------------------------
 
-
 // +++++++++++++++++++++++++++++++
 // class GUID
-class GUID
-{
+class GUID {
 public:
     GUID(std::size_t hash, std::uint64_t time);
 
@@ -314,20 +302,21 @@ private:
 // +++++++++++++++++++++++++++++++
 // class Ringbuffer
 template <typename T, std::size_t N>
-void Ringbuffer<T,N>::add(const T& val) {
-    m_buffer[m_index++]=val;
-    if (m_index>=N) {
-        m_index=0;
+void Ringbuffer<T, N>::add(const T& val)
+{
+    m_buffer[m_index++] = val;
+    if (m_index >= N) {
+        m_index = 0;
         m_full = true;
     }
 }
 
 template <typename T, std::size_t N>
-auto Ringbuffer<T,N>::mean() const -> T
+auto Ringbuffer<T, N>::mean() const -> T
 {
-    T mean { };
+    T mean {};
     if (!m_full) {
-        mean = std::accumulate(m_buffer.begin(), m_buffer.begin()+m_index, 0.0) / std::max<double>(m_index, 1.0);
+        mean = std::accumulate(m_buffer.begin(), m_buffer.begin() + m_index, 0.0) / std::max<double>(m_index, 1.0);
     } else {
         mean = std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0) / N;
     }
@@ -335,32 +324,30 @@ auto Ringbuffer<T,N>::mean() const -> T
 }
 
 template <typename T, std::size_t N>
-auto Ringbuffer<T,N>::stddev() const -> T
+auto Ringbuffer<T, N>::stddev() const -> T
 {
-    return std::sqrt( this->variance );
+    return std::sqrt(this->variance);
 }
 
 template <typename T, std::size_t N>
-auto Ringbuffer<T,N>::variance() const -> T
+auto Ringbuffer<T, N>::variance() const -> T
 {
     T mean { this->mean() };
-    T variance { };
+    T variance {};
     if (!m_full) {
-        variance = 1.0 / ( m_index - 1 ) * std::inner_product(m_buffer.begin(), m_buffer.begin()+m_index, m_buffer.begin(), 0.0,
-                                               [](T const & x, T const & y) { return x + y; },
-                                               [mean](T const & x, T const & y) { return (x - mean)*(y - mean); });
+        variance = 1.0 / (m_index - 1) * std::inner_product(
+                       m_buffer.begin(), m_buffer.begin() + m_index, m_buffer.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [mean](T const& x, T const& y) { return (x - mean) * (y - mean); });
     } else {
-        variance = 1.0 / ( N - 1.0 ) * std::inner_product(m_buffer.begin(), m_buffer.end(), m_buffer.begin(), 0.0,
-                                               [](T const & x, T const & y) { return x + y; },
-                                               [mean](T const & x, T const & y) { return (x - mean)*(y - mean); });
+        variance = 1.0 / (N - 1.0) * std::inner_product(
+                       m_buffer.begin(), m_buffer.end(), m_buffer.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [mean](T const& x, T const& y) { return (x - mean) * (y - mean); });
     }
     return variance;
 }
 
 template <typename T, std::size_t N>
-auto Ringbuffer<T,N>::entries() const -> std::size_t
+auto Ringbuffer<T, N>::entries() const -> std::size_t
 {
-    return ( (m_full)?N:m_index );
+    return ((m_full) ? N : m_index);
 }
 // -------------------------------
 

@@ -6,6 +6,7 @@ string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 option(CLUSTER_RUN_SERVER "Build the cluster code so it behaves so it uses the database sinks" ON)
 option(CLUSTER_RUN_SERVICE "Build the cluster code so it works nicely with init scripts" ON)
 option(CLUSTER_BUILD_TIDY "run clang-tidy when building the project" OFF)
+option(CLUSTER_FORMAT "run clang-format when building the project" OFF)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -158,6 +159,10 @@ include(GNUInstallDirs)
 
 add_custom_target(changelog-cluster ALL COMMAND gzip -cn9 "${PROJECT_CONFIG_DIR}/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz")
 add_custom_target(manpage-cluster ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1" > "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1.gz")
+
+if(${CLUSTER_FORMAT})
+add_custom_target(clangformat ALL COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/main.cpp")
+endif(${CLUSTER_FORMAT})
 
 install(TARGETS muondetector-cluster DESTINATION bin COMPONENT cluster)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}" COMPONENT cluster)

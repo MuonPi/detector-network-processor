@@ -11,8 +11,7 @@ namespace MuonPi {
  * @brief The DetectorSummary class
  * Holds information about accumulated statistics and gathered info about a detector
  */
-class DetectorSummary
-{
+class DetectorSummary {
 public:
     struct Data {
         double deadtime { 0.0 };
@@ -70,8 +69,8 @@ private:
     std::size_t m_hash { 0 };
 
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
-    Data m_data { };
-    UserInfo m_userinfo { };
+    Data m_data {};
+    UserInfo m_userinfo {};
     bool m_valid { true };
 };
 }

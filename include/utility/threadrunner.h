@@ -10,8 +10,7 @@ namespace MuonPi {
  * @brief The ThreadRunner class. Inherit from this to get a class which has an internal main loop.
  * If an instance of this class is created without inheriting from it, the main loop will stop immediatly per default.
  */
-class ThreadRunner
-{
+class ThreadRunner {
 public:
     enum class State {
         Error,
@@ -21,7 +20,7 @@ public:
         Running,
         Finalising
     };
-    ThreadRunner(std::string  name);
+    ThreadRunner(std::string name);
     /**
      * @brief ~ThreadRunner Stops the thread and waits for it to finish.
      */
@@ -102,6 +101,7 @@ protected:
 
     std::condition_variable m_condition;
     bool m_quit { false };
+
 private:
     std::atomic<bool> m_run { true };
 

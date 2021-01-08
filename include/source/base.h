@@ -1,12 +1,12 @@
 #ifndef ABSTRACTEVENTSOURCE_H
 #define ABSTRACTEVENTSOURCE_H
 
-#include "utility/threadrunner.h"
 #include "sink/base.h"
+#include "utility/threadrunner.h"
 
+#include <atomic>
 #include <future>
 #include <memory>
-#include <atomic>
 #include <queue>
 
 namespace MuonPi::Source {
@@ -16,8 +16,7 @@ template <typename T>
  * @brief The Base class
  * Represents a canonical Source for items of type T.
  */
-class Base
-{
+class Base {
 public:
     Base(Sink::Base<T>& sink);
 
@@ -35,13 +34,13 @@ protected:
 
 private:
     Sink::Base<T>& m_sink;
-
 };
 
 template <typename T>
 Base<T>::Base(Sink::Base<T>& sink)
     : m_sink { sink }
-{}
+{
+}
 
 template <typename T>
 Base<T>::~Base() = default;
@@ -51,7 +50,6 @@ void Base<T>::put(T item)
 {
     m_sink.get(std::move(item));
 }
-
 
 }
 

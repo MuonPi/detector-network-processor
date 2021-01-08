@@ -1,10 +1,10 @@
 #include "detectortracker.h"
 
-#include "messages/event.h"
+#include "detector.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
+#include "messages/event.h"
 #include "source/base.h"
-#include "detector.h"
 #include "utility/log.h"
 
 #include "defaults.h"
@@ -13,8 +13,8 @@
 
 namespace MuonPi {
 
-DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<DetectorInfo<Location>> { "DetectorTracker", std::chrono::milliseconds{100} }
+DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor)
+    : Sink::Threaded<DetectorInfo<Location>> { "DetectorTracker", std::chrono::milliseconds { 100 } }
     , Source::Base<DetectorSummary> { summary_sink }
     , Source::Base<Trigger::Detector> { trigger_sink }
     , m_supervisor { supervisor }
@@ -60,7 +60,7 @@ auto DetectorTracker::process() -> int
 
     double largest { 1.0 };
     std::size_t reliable { 0 };
-    for (auto& [hash, detector]: m_detectors) {
+    for (auto& [hash, detector] : m_detectors) {
 
         detector->step();
 
@@ -72,23 +72,21 @@ auto DetectorTracker::process() -> int
         }
     }
 
-    Source::Base<TimeBase>::put(TimeBase{largest});
+    Source::Base<TimeBase>::put(TimeBase { largest });
 
     while (!m_delete_detectors.empty()) {
         m_detectors.erase(m_delete_detectors.front());
         m_delete_detectors.pop();
     }
 
-
     // +++ push detector log messages at regular interval
     steady_clock::time_point now { steady_clock::now() };
-
 
     if ((now - m_last) >= Config::interval.detectorsummary) {
         m_last = now;
 
-        for (auto& [hash, detector]: m_detectors) {
-            Source::Base<DetectorSummary>::put( detector->current_log_data() );
+        for (auto& [hash, detector] : m_detectors) {
+            Source::Base<DetectorSummary>::put(detector->current_log_data());
         }
     }
     // --- push detector log messages at regular interval
@@ -98,7 +96,7 @@ auto DetectorTracker::process() -> int
 
 void DetectorTracker::get(Trigger::Detector::Action action)
 {
-    std::size_t hash {std::hash<std::string>{}(action.setting.username + action.setting.station)};
+    std::size_t hash { std::hash<std::string> {}(action.setting.username + action.setting.station) };
     if (action.type == Trigger::Detector::Action::Activate) {
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
             m_detector_triggers[hash] = {};
@@ -114,9 +112,9 @@ void DetectorTracker::get(Trigger::Detector::Action action)
 
 void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
 {
-    auto user_info { m_detectors[hash]->user_info()};
+    auto user_info { m_detectors[hash]->user_info() };
     if (status > Detector::Status::Deleted) {
-        Source::Base<DetectorSummary>::put( m_detectors[hash]->change_log_data() );
+        Source::Base<DetectorSummary>::put(m_detectors[hash]->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
 
@@ -129,7 +127,7 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Offline) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Offline]});
+        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Offline] });
         return;
         break;
     case Detector::Status::Created:
@@ -139,7 +137,7 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Online) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Online]});
+        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Online] });
         return;
         break;
     case Detector::Status::Reliable:
@@ -149,7 +147,7 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Reliable) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Reliable]});
+        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Reliable] });
         return;
         break;
     case Detector::Status::Unreliable:
@@ -159,10 +157,9 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Unreliable) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({m_detector_triggers[hash][Trigger::Detector::Setting::Type::Unreliable]});
+        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Unreliable] });
         return;
         break;
     }
-
 }
 }

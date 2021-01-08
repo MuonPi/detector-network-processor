@@ -5,9 +5,9 @@
 namespace MuonPi {
 
 ClusterLog::ClusterLog(Data data)
-    : m_data {std::move( data )}
-{}
-
+    : m_data { std::move(data) }
+{
+}
 
 auto ClusterLog::data() const -> Data
 {

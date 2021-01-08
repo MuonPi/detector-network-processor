@@ -1,16 +1,16 @@
 #include "supervision/state.h"
 
-#include "utility/log.h"
 #include "defaults.h"
+#include "utility/log.h"
 
 #include <sstream>
 
 namespace MuonPi {
 
-
 StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
     : m_log_sink { log_sink }
-{}
+{
+}
 
 void StateSupervisor::time_status(std::chrono::milliseconds timeout)
 {
@@ -22,13 +22,12 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
     switch (status) {
     case Detector::Status::Reliable:
     case Detector::Status::Unreliable:
-        m_log_sink.get( ClusterLog{m_current_data} );
+        m_log_sink.get(ClusterLog { m_current_data });
         break;
     case Detector::Status::Created:
     case Detector::Status::Deleted:
         break;
     }
-
 
     m_detectors[hash] = status;
     if (status == Detector::Status::Deleted) {
@@ -38,7 +37,7 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
     }
 
     std::size_t reliable { 0 };
-    for (auto& [h, detector]: m_detectors) {
+    for (auto& [h, detector] : m_detectors) {
         if (detector == Detector::Status::Reliable) {
             reliable++;
         }
@@ -46,16 +45,15 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
 
     m_current_data.total_detectors = m_detectors.size();
     m_current_data.reliable_detectors = reliable;
-
 }
 
 auto StateSupervisor::step() -> int
 {
     using namespace std::chrono;
 
-    for (auto& thread: m_threads) {
+    for (auto& thread : m_threads) {
         if (thread->state() <= ThreadRunner::State::Stopped) {
-            Log::warning()<<"The thread " + thread->name() + ": " + thread->state_string();
+            Log::warning() << "The thread " + thread->name() + ": " + thread->state_string();
             return -1;
         }
     }
@@ -63,7 +61,7 @@ auto StateSupervisor::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        m_log_sink.get( ClusterLog{m_current_data} );
+        m_log_sink.get(ClusterLog { m_current_data });
 
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();
@@ -107,7 +105,7 @@ void StateSupervisor::add_thread(ThreadRunner* thread)
 
 void StateSupervisor::stop()
 {
-    for (auto& thread: m_threads) {
+    for (auto& thread : m_threads) {
         thread->stop();
     }
 }

@@ -3,8 +3,8 @@
 
 #include "messages/event.h"
 
-#include <memory>
 #include <chrono>
+#include <memory>
 
 namespace MuonPi {
 
@@ -13,8 +13,7 @@ class Criterion;
 /**
  * @brief The EventConstructor class
  */
-class EventConstructor
-{
+class EventConstructor {
 public:
     enum class Type {
         NoMatch,
@@ -35,7 +34,7 @@ public:
     [[nodiscard]] auto timed_out() const -> bool;
 
     Event event;
-    std::chrono::system_clock::duration timeout { std::chrono::minutes{1} };
+    std::chrono::system_clock::duration timeout { std::chrono::minutes { 1 } };
 
 private:
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };

@@ -2,24 +2,22 @@
 #define STATESUPERVISOR_H
 
 #include "detector.h"
-#include "utility/utility.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
+#include "utility/utility.h"
 
-#include <cinttypes>
-#include <vector>
-#include <map>
 #include <chrono>
+#include <cinttypes>
 #include <fstream>
+#include <map>
+#include <vector>
 
 namespace MuonPi {
-
 
 /**
  * @brief The StateSupervisor class Supervises the program and collects metadata
  */
-class StateSupervisor
-{
+class StateSupervisor {
 public:
     /**
      * @brief StateSupervisor
@@ -65,11 +63,11 @@ public:
      */
     void add_thread(ThreadRunner* thread);
 
-
     void stop();
+
 private:
     std::map<std::size_t, Detector::Status> m_detectors;
-    std::chrono::milliseconds m_timeout{};
+    std::chrono::milliseconds m_timeout {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
 
     RateMeasurement<100, 5000> m_incoming_rate {};
@@ -81,7 +79,6 @@ private:
 
     ClusterLog::Data m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
-
 };
 
 }

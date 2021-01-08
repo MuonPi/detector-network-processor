@@ -6,8 +6,7 @@ namespace MuonPi {
 
 auto DetectorType::id() -> std::uint8_t
 {
-	return 0;
+    return 0;
 }
-	
-	
+
 }

@@ -4,17 +4,15 @@
 #include "userinfo.h"
 
 #include <chrono>
-#include <string>
 #include <map>
+#include <string>
 
 namespace MuonPi {
-
 
 /**
  * @brief The ClusterLog class
  */
-class ClusterLog
-{
+class ClusterLog {
 public:
     struct Data {
         std::int_fast64_t timeout { 0 }; //!< The current timeout for event constructors, in ms
@@ -62,10 +60,9 @@ public:
 
 private:
     Data m_data;
-    UserInfo m_userinfo { };
+    UserInfo m_userinfo {};
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
 };
-
 
 } // namespace MuonPi
 

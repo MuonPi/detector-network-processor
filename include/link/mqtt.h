@@ -4,26 +4,23 @@
 #include "defaults.h"
 #include "utility/threadrunner.h"
 
-#include <string>
-#include <memory>
 #include <chrono>
-#include <map>
 #include <future>
-#include <regex>
+#include <map>
+#include <memory>
 #include <queue>
+#include <regex>
+#include <string>
 
 #include <mosquitto.h>
 
 namespace MuonPi::Link {
 
-
 /**
  * @brief The Mqtt class. Connects to a Mqtt server and offers publish and subscribe methods.
  */
-class Mqtt : public ThreadRunner
-{
+class Mqtt : public ThreadRunner {
 public:
-
     enum class Status {
         Invalid,
         Connected,
@@ -31,14 +28,15 @@ public:
         Connecting,
         Error
     };
-    struct Message
-    {
+    struct Message {
         Message() = default;
         Message(const std::string& a_topic, const std::string& a_content)
-        : topic { a_topic }, content {a_content }
-        {}
+            : topic { a_topic }
+            , content { a_content }
+        {
+        }
         std::string topic {};
-        std::string content{};
+        std::string content {};
     };
 
     /**
@@ -49,7 +47,8 @@ public:
         Publisher(Mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
-        {}
+        {
+        }
 
         /**
          * @brief publish Publish a message
@@ -73,6 +72,7 @@ public:
         [[nodiscard]] auto get_publish_topic() const -> const std::string&;
 
         Publisher() = default;
+
     private:
         friend class Mqtt;
 
@@ -88,7 +88,8 @@ public:
         Subscriber(Mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
-        {}
+        {
+        }
 
         ~Subscriber()
         {
@@ -104,6 +105,7 @@ public:
          * @return a std::string containing the subscribed topic
          */
         [[nodiscard]] auto get_subscribe_topic() const -> const std::string&;
+
     private:
         friend class Mqtt;
 
@@ -118,18 +120,15 @@ public:
         std::function<void(const Message&)> m_callback;
     };
 
-
-
     /**
      * @brief Mqtt
      * @param config The configuration to use
      */
-    Mqtt(Config::Mqtt  config);
+    Mqtt(Config::Mqtt config);
 
     Mqtt();
 
     ~Mqtt() override;
-
 
     /**
      * @brief publish Create a Publisher callback object
@@ -148,7 +147,8 @@ public:
      * @param status The status to wait for
      * @param duration The duration to wait for as a maximum
      */
-    [[nodiscard]] auto wait_for(Status status, std::chrono::milliseconds duration = std::chrono::seconds{5}) -> bool;
+    [[nodiscard]] auto wait_for(Status status, std::chrono::milliseconds duration = std::chrono::seconds { 5 }) -> bool;
+
 protected:
     /**
      * @brief pre_run Reimplemented from ThreadRunner
@@ -167,7 +167,6 @@ protected:
     [[nodiscard]] auto post_run() -> int override;
 
 private:
-
     /**
      * @brief set_status Set the status for this Mqtt
      * @param status The new status
@@ -221,7 +220,7 @@ private:
     }
 
     Config::Mqtt m_config {};
-    mosquitto *m_mqtt { nullptr };
+    mosquitto* m_mqtt { nullptr };
 
     Status m_status { Status::Invalid };
 
@@ -260,7 +259,6 @@ private:
     friend void wrapper_callback_disconnected(mosquitto* mqtt, void* object, int result);
     friend void wrapper_callback_message(mosquitto* mqtt, void* object, const mosquitto_message* message);
 };
-
 
 }
 

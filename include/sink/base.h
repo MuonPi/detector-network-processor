@@ -3,9 +3,9 @@
 
 #include "utility/threadrunner.h"
 #include <array>
-#include <queue>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <queue>
 
 namespace MuonPi::Sink {
 
@@ -14,8 +14,7 @@ template <typename T>
  * @brief The Sink class
  * Represents a canonical Sink for items of type T.
  */
-class Base
-{
+class Base {
 public:
     /**
      * @brief ~Sink The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
@@ -30,8 +29,7 @@ public:
 };
 
 template <typename T>
-class Threaded : public Base<T>, public ThreadRunner
-{
+class Threaded : public Base<T>, public ThreadRunner {
 public:
     /**
      * @brief Threaded
@@ -49,7 +47,6 @@ public:
     virtual ~Threaded() override;
 
 protected:
-
     /**
      * @brief internal_get
      * @param item The item that is available
@@ -85,8 +82,7 @@ private:
 };
 
 template <typename T, std::size_t N>
-class Collection : public Threaded<T>
-{
+class Collection : public Threaded<T> {
 public:
     /**
      * @brief Collection A collection of multiple sinks
@@ -110,12 +106,8 @@ private:
     std::array<Base<T>*, N> m_sinks {};
 };
 
-
-
 template <typename T>
 Base<T>::~Base() = default;
-
-
 
 template <typename T>
 Threaded<T>::Threaded(const std::string& name)
@@ -148,7 +140,7 @@ auto Threaded<T>::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> wait_lock { mx };
-    if ((m_items.empty()) && (m_condition.wait_for(wait_lock, m_timeout ) == std::cv_status::timeout)) {
+    if ((m_items.empty()) && (m_condition.wait_for(wait_lock, m_timeout) == std::cv_status::timeout)) {
         return process();
     }
     if (m_quit) {
@@ -157,7 +149,7 @@ auto Threaded<T>::step() -> int
 
     std::size_t n { 0 };
     do {
-        auto item = [this] () -> T {
+        auto item = [this]() -> T {
             std::scoped_lock<std::mutex> lock { m_mutex };
             T res = m_items.front();
             m_items.pop();
@@ -198,7 +190,6 @@ void Collection<T, N>::get(T item)
     Threaded<T>::internal_get(std::move(item));
 }
 
-
 template <typename T, std::size_t N>
 auto Collection<T, N>::process(T item) -> int
 {
@@ -207,8 +198,6 @@ auto Collection<T, N>::process(T item) -> int
     }
     return 0;
 }
-
-
 
 }
 

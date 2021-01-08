@@ -3,32 +3,30 @@
 
 #include "defaults.h"
 
-#include <string>
-#include <vector>
-#include <variant>
 #include <mutex>
 #include <sstream>
+#include <string>
+#include <variant>
+#include <vector>
 
 namespace MuonPi::Link {
 
-
 namespace Influx {
 
-struct Tag {
-    std::string name;
-    std::string field;
-};
-struct Field {
-    std::string name;
-    std::variant<std::string,bool,std::int_fast64_t,double,std::size_t,std::uint8_t,std::uint16_t,std::uint32_t> value;
-};
+    struct Tag {
+        std::string name;
+        std::string field;
+    };
+    struct Field {
+        std::string name;
+        std::variant<std::string, bool, std::int_fast64_t, double, std::size_t, std::uint8_t, std::uint16_t, std::uint32_t> value;
+    };
 }
 
 /**
  * @brief The Database class
  */
-class Database
-{
+class Database {
 public:
     class Entry {
     public:
@@ -48,8 +46,7 @@ public:
         Entry(const std::string& measurement, Database& link);
     };
 
-
-    Database(Config::Influx  config);
+    Database(Config::Influx config);
     Database();
     ~Database();
 

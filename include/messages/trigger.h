@@ -33,10 +33,8 @@ struct Detector {
         } type;
         Setting setting;
     };
-
 };
 
 }
-
 
 #endif // TRIGGER_H

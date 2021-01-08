@@ -7,14 +7,15 @@ namespace MuonPi {
 DetectorSummary::DetectorSummary(std::size_t hash, UserInfo user_info, Data data)
     : m_hash { hash }
     , m_data { data }
-    , m_userinfo {std::move( user_info )}
+    , m_userinfo { std::move(user_info) }
 
 {
 }
 
 DetectorSummary::DetectorSummary() noexcept
     : m_valid { false }
-{}
+{
+}
 
 auto DetectorSummary::data() const -> Data
 {
@@ -30,7 +31,6 @@ auto DetectorSummary::hash() const noexcept -> std::size_t
 {
     return m_hash;
 }
-
 
 auto DetectorSummary::time() const -> std::chrono::system_clock::time_point
 {

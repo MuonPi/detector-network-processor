@@ -1,21 +1,21 @@
 ﻿#include "coincidencefilter.h"
 #include "utility/log.h"
 
+#include "messages/clusterlog.h"
+#include "messages/detectorinfo.h"
+#include "messages/event.h"
 #include "sink/base.h"
 #include "source/base.h"
+#include "supervision/timebase.h"
 #include "utility/criterion.h"
 #include "utility/eventconstructor.h"
-#include "messages/event.h"
-#include "messages/detectorinfo.h"
-#include "messages/clusterlog.h"
-#include "supervision/timebase.h"
 
 #include <cinttypes>
 
 namespace MuonPi {
 
 CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<Event> { "CoincidenceFilter", std::chrono::milliseconds {100} }
+    : Sink::Threaded<Event> { "CoincidenceFilter", std::chrono::milliseconds { 100 } }
     , Source::Base<Event> { event_sink }
     , m_supervisor { supervisor }
 {
@@ -24,7 +24,7 @@ CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, StateSupervi
 void CoincidenceFilter::get(TimeBase timebase)
 {
     using namespace std::chrono;
-    m_timeout = milliseconds{static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor)};
+    m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
     m_supervisor.time_status(duration_cast<milliseconds>(m_timeout));
 }
 
@@ -36,7 +36,7 @@ void CoincidenceFilter::get(Event event)
 auto CoincidenceFilter::process() -> int
 {
     if (m_supervisor.step() != 0) {
-        Log::error()<<"The Supervisor stopped.";
+        Log::error() << "The Supervisor stopped.";
         return -1;
     }
 
@@ -60,7 +60,7 @@ auto CoincidenceFilter::process(Event event) -> int
     m_supervisor.increase_event_count(true);
 
     std::queue<std::size_t> matches {};
-    for (std::size_t i { 0 }; i < m_constructors.size(); i++)  {
+    for (std::size_t i { 0 }; i < m_constructors.size(); i++) {
         auto& constructor { m_constructors[i] };
         if (m_criterion->maximum_false() < m_criterion->criterion(event, constructor.event)) {
             matches.push(i);
@@ -73,7 +73,7 @@ auto CoincidenceFilter::process(Event event) -> int
         matches.pop();
         if (constructor.event.n() == 1) {
             Event e { constructor.event };
-            constructor.event = Event{e, true};
+            constructor.event = Event { e, true };
         }
         constructor.event.add_event(event);
         return 0;
@@ -92,7 +92,7 @@ auto CoincidenceFilter::process(Event event) -> int
     matches.pop();
     if (constructor.event.n() == 1) {
         Event e { constructor.event };
-        constructor.event = Event{e, true};
+        constructor.event = Event { e, true };
     }
     constructor.event.add_event(event);
     // +++ Event matches more than one constructor

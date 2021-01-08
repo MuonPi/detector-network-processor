@@ -1,7 +1,6 @@
 #ifndef CRITERION_H
 #define CRITERION_H
 
-
 #include <memory>
 
 namespace MuonPi {
@@ -12,8 +11,7 @@ class Event;
  * @brief The Criterion class
  * Abstract class for a relationship between two events
  */
-class Criterion
-{
+class Criterion {
 public:
     virtual ~Criterion() = default;
     /**

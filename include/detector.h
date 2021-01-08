@@ -1,18 +1,17 @@
 #ifndef DETECTOR_H
 #define DETECTOR_H
 
-#include "utility/threadrunner.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
-#include "utility/utility.h"
 #include "messages/userinfo.h"
+#include "utility/threadrunner.h"
+#include "utility/utility.h"
 
-#include <memory>
 #include <chrono>
 #include <future>
+#include <memory>
 
 namespace MuonPi {
-
 
 // +++ forward declarations
 class Event;
@@ -20,23 +19,19 @@ class StateSupervisor;
 class DetectorTracker;
 // --- forward declarations
 
-
-
-
 /**
  * @brief The Detector class
  * Represents a connected detector.
  * Scans the message rate and deletes the runtime objects from memory if the detector has not been active for some time.
  */
-class Detector
-{
+class Detector {
 private:
     static constexpr std::size_t s_history_length { 10 };
     static constexpr std::size_t s_time_interval { 2000 };
-public:
 
-    using CurrentRateType=RateMeasurement<s_history_length, s_time_interval>;
-    using MeanRateType=RateMeasurement<s_history_length * 100, s_time_interval>;
+public:
+    using CurrentRateType = RateMeasurement<s_history_length, s_time_interval>;
+    using MeanRateType = RateMeasurement<s_history_length * 100, s_time_interval>;
 
     enum class Status {
         Created,
@@ -51,7 +46,6 @@ public:
      * @param initial_log The initial log message from which this detector object originates
      */
     Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& tracker);
-
 
     /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.
@@ -104,7 +98,6 @@ protected:
     void set_status(Status status);
 
 private:
-
     void check_reliability();
 
     Status m_status { Status::Unreliable };
@@ -113,7 +106,7 @@ private:
 
     Location m_location {};
     std::size_t m_hash { 0 };
-    UserInfo m_userinfo { };
+    UserInfo m_userinfo {};
 
     std::chrono::system_clock::time_point m_last_log { std::chrono::system_clock::now() };
 

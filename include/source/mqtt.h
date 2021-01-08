@@ -1,46 +1,41 @@
 #ifndef MQTTLOGSOURCE_H
 #define MQTTLOGSOURCE_H
 
-#include "source/base.h"
 #include "link/mqtt.h"
 #include "messages/detectorinfo.h"
-#include "messages/userinfo.h"
 #include "messages/event.h"
+#include "messages/userinfo.h"
+#include "source/base.h"
 
-#include "utility/utility.h"
 #include "utility/log.h"
+#include "utility/utility.h"
 
 #include <map>
 #include <memory>
 
 namespace MuonPi::Source {
 
-	
 template <typename T>
-class DetectorLogItem
-{
+class DetectorLogItem {
 public:
-	void set_item(T a_item);
-	[[nodiscard]] auto get_item() const -> const T&;
-	
-	auto item() -> T&;
-	auto item() const -> const T&;
-	
-	auto is_set() const -> bool { return m_is_set; }
-	
+    void set_item(T a_item);
+    [[nodiscard]] auto get_item() const -> const T&;
+
+    auto item() -> T&;
+    auto item() const -> const T&;
+
+    auto is_set() const -> bool { return m_is_set; }
+
 private:
-	T m_item { };
-	bool m_is_set { false };
+    T m_item {};
+    bool m_is_set { false };
 };
 
-
-	
 /**
  * @brief The Mqtt class
  */
 template <typename T>
-class Mqtt : public Base<T>
-{
+class Mqtt : public Base<T> {
 public:
     /**
      * @brief Mqtt
@@ -50,13 +45,11 @@ public:
 
     ~Mqtt() override;
 
-
 private:
     /**
     * @brief Adapter base class for the collection of several logically connected, but timely distributed MqttItems
     */
-    struct ItemCollector
-    {
+    struct ItemCollector {
         ItemCollector();
 
         /**
@@ -91,7 +84,6 @@ private:
     std::map<std::size_t, ItemCollector> m_buffer {};
 };
 
-
 // +++++++++++++++++++++++++++++++
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
@@ -106,11 +98,13 @@ template <>
 Mqtt<Event>::ItemCollector::ItemCollector()
     : default_status { 0x0001 }
     , status { default_status }
-{}
+{
+}
 
 template <typename T>
-void Mqtt<T>::ItemCollector::reset() {
-    user_info = UserInfo { };
+void Mqtt<T>::ItemCollector::reset()
+{
+    user_info = UserInfo {};
     status = default_status;
 }
 
@@ -145,8 +139,8 @@ auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
         } else {
             return -1;
         }
-    } catch(std::invalid_argument& e) {
-        Log::warning()<<"received exception when parsing log item: " + std::string(e.what());
+    } catch (std::invalid_argument& e) {
+        Log::warning() << "received exception when parsing log item: " + std::string(e.what());
         return -1;
     }
 
@@ -160,7 +154,7 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
 
         Event::Data data;
         try {
-            MessageParser start {content[0], '.'};
+            MessageParser start { content[0], '.' };
             if (start.size() != 2) {
                 return -1;
             }
@@ -172,7 +166,7 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
         }
 
         try {
-            MessageParser start {content[1], '.'};
+            MessageParser start { content[1], '.' };
             if (start.size() != 2) {
                 return -1;
             }
@@ -191,23 +185,22 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             data.utc = static_cast<std::uint8_t>(std::stoul(content[6], nullptr));
             data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
         } catch (std::invalid_argument& e) {
-            Log::warning()<<"Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+            Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
             return -1;
         }
-        item = Event{user_info.hash(), data};
+        item = Event { user_info.hash(), data };
         status = 0;
         return 0;
     }
     return -1;
 }
 
-
 template <typename T>
 Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& subscriber)
     : Base<T> { sink }
     , m_link { subscriber }
 {
-    subscriber.set_callback([this](const Link::Mqtt::Message& message){
+    subscriber.set_callback([this](const Link::Mqtt::Message& message) {
         process(message);
     });
 }
@@ -218,49 +211,48 @@ Mqtt<T>::~Mqtt() = default;
 template <typename T>
 void Mqtt<T>::process(const Link::Mqtt::Message& msg)
 {
-        MessageParser topic { msg.topic, '/'};
-        MessageParser content { msg.content, ' '};
-        MessageParser subscribe_topic { m_link.get_subscribe_topic(), '/' };
+    MessageParser topic { msg.topic, '/' };
+    MessageParser content { msg.content, ' ' };
+    MessageParser subscribe_topic { m_link.get_subscribe_topic(), '/' };
 
+    if ((topic.size() >= 4) && (content.size() >= 2)) {
+        if ((topic[2] == "") || (topic[2] == "cluster")) {
+            return;
+        }
+        UserInfo userinfo {};
+        userinfo.username = topic[2];
+        std::string site { topic[3] };
+        for (std::size_t i = 4; i < topic.size(); i++) {
+            site += "/" + topic[i];
+        }
+        userinfo.station_id = site;
 
-        if ((topic.size() >= 4) && (content.size() >= 2)) {
-            if ( (topic[2] == "") || (topic[2] == "cluster") ) {
-                return;
+        std::size_t hash { userinfo.hash() };
+
+        if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
+            ItemCollector& item { m_buffer[hash] };
+            if (item.add(topic, content) == 0) {
+                this->put(std::move(item.item));
+                m_buffer.erase(hash);
             }
-            UserInfo userinfo {};
-            userinfo.username =  topic[2];
-            std::string site { topic[3] };
-            for (std::size_t i = 4; i < topic.size(); i++) {
-                site += "/" + topic[i];
-            }
-            userinfo.station_id = site;
-
-            std::size_t hash { userinfo.hash() };
-
-            if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
-                ItemCollector& item { m_buffer[hash] };
-                if (item.add(topic, content) == 0) {
-                    this->put( std::move(item.item) );
-                    m_buffer.erase(hash);
-                }
-            } else {
-                ItemCollector item;
-                item.message_id = content[0];
-                item.user_info = userinfo;
-                int value { item.add(topic, content) };
-                if (value == 0) {
-                    this->put( std::move(item.item) );
-                } else if (value > 0) {
-                    m_buffer.insert( { hash, item } );
-                }
+        } else {
+            ItemCollector item;
+            item.message_id = content[0];
+            item.user_info = userinfo;
+            int value { item.add(topic, content) };
+            if (value == 0) {
+                this->put(std::move(item.item));
+            } else if (value > 0) {
+                m_buffer.insert({ hash, item });
             }
         }
+    }
 }
 
 template <>
 void Mqtt<Link::Mqtt::Message>::process(const Link::Mqtt::Message& msg)
 {
-    put( Link::Mqtt::Message { msg } );
+    put(Link::Mqtt::Message { msg });
 }
 }
 

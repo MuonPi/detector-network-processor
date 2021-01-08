@@ -2,57 +2,60 @@
 #include "utility/log.h"
 #include "utility/utility.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
-#include <filesystem>
 #include <utility>
 
-#include <cryptopp/aes.h>
+#include <crypto++/base64.h>
+#include <crypto++/files.h>
 #include <crypto++/filters.h>
 #include <crypto++/hex.h>
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
 #include <crypto++/sha.h>
-#include <crypto++/base64.h>
-#include <crypto++/files.h>
+#include <cryptopp/aes.h>
 
 namespace MuonPi {
 
-Option::Option(std::string  name, int* value)
-    : m_option{value}
+Option::Option(std::string name, int* value)
+    : m_option { value }
     , m_valid { true }
-    , m_name {std::move( name )}
+    , m_name { std::move(name) }
 {
 }
 
-Option::Option(std::string  name, bool* value)
-    : m_option{value}
+Option::Option(std::string name, bool* value)
+    : m_option { value }
     , m_valid { true }
-    , m_name {std::move( name )}
+    , m_name { std::move(name) }
 {
 }
 
-Option::Option(std::string  name, double* value)
-    : m_option{value}
+Option::Option(std::string name, double* value)
+    : m_option { value }
     , m_valid { true }
-    , m_name {std::move( name )}
+    , m_name { std::move(name) }
 {
 }
 
-Option::Option(std::string  name, std::string* value)
-    : m_option{value}
+Option::Option(std::string name, std::string* value)
+    : m_option { value }
     , m_valid { true }
-    , m_name {std::move( name )}
+    , m_name { std::move(name) }
 {
 }
 
 Option::Option()
-     
-     
-= default;
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+    = default;
+
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 auto Option::name() const -> std::string
 {
@@ -63,11 +66,12 @@ auto Option::write() -> std::string
 {
     std::ostringstream out {};
     std::visit(overloaded {
-                   [&](const bool* value){out<<m_name<<"=b:"<<(*value);},
-                   [&](const int* value){out<<m_name<<"=i:"<<(*value);},
-                   [&](const double* value){out<<m_name<<"=d:"<<(*value);},
-                   [&](std::string* value){out<<m_name<<"=s:"<<(*value);},
-               }, m_option);
+                   [&](const bool* value) { out << m_name << "=b:" << (*value); },
+                   [&](const int* value) { out << m_name << "=i:" << (*value); },
+                   [&](const double* value) { out << m_name << "=d:" << (*value); },
+                   [&](std::string* value) { out << m_name << "=s:" << (*value); },
+               },
+        m_option);
     return out.str();
 }
 
@@ -76,32 +80,32 @@ auto Option::read(const std::string& in) -> bool
     if (in[1] != ':') {
         return false;
     }
-    char type {in[0]};
+    char type { in[0] };
     try {
-    switch (type) {
-    case 'b':
-        return set<bool>(in.substr(2)=="true");
-    case 'i':
-        return set<int>(std::stoi(in.substr(2), nullptr));
-    case 'd':
-        return set<double>(std::stod(in.substr(2), nullptr));
-    case 's':
-        return set<std::string>(in.substr(2));
-    default:
-        return false;
-    }
+        switch (type) {
+        case 'b':
+            return set<bool>(in.substr(2) == "true");
+        case 'i':
+            return set<int>(std::stoi(in.substr(2), nullptr));
+        case 'd':
+            return set<double>(std::stod(in.substr(2), nullptr));
+        case 's':
+            return set<std::string>(in.substr(2));
+        default:
+            return false;
+        }
     } catch (...) {
         return false;
     }
 }
 
-Option::operator bool() const {
+Option::operator bool() const
+{
     return m_valid;
 }
 
-
-Configuration::Configuration(std::string  filename, bool encrypted)
-    : m_filename {std::move( filename )}
+Configuration::Configuration(std::string filename, bool encrypted)
+    : m_filename { std::move(filename) }
     , m_encrypted { encrypted }
 {
 }
@@ -161,27 +165,25 @@ auto Configuration::read(std::istream& in) -> bool
             continue;
         }
 
-        std::string name {line.substr(0, equal_pos) };
+        std::string name { line.substr(0, equal_pos) };
         name = name.substr(0, name.find_last_not_of(" \t") + 1);
         if (m_options.find(name) == m_options.end()) {
             continue;
         }
 
-        std::string value { line.substr(equal_pos+1) };
+        std::string value { line.substr(equal_pos + 1) };
         value = value.substr(value.find_first_not_of(" \t"));
 
-
         if (!m_options[name].read(value)) {
-            Log::warning()<<"Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
+            Log::warning() << "Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
             return false;
         }
 
-        std::string output {"Loaded configuration: " + name};
+        std::string output { "Loaded configuration: " + name };
         if (!m_encrypted) {
-             output += "=" + value;
+            output += "=" + value;
         }
-        Log::debug()<<output;
-
+        Log::debug() << output;
     }
     return true;
 }
@@ -189,18 +191,18 @@ auto Configuration::read(std::istream& in) -> bool
 auto Configuration::read() -> bool
 {
     if (!std::filesystem::exists(m_filename)) {
-        Log::error()<<"Configuration file does not exist: " + m_filename;
+        Log::error() << "Configuration file does not exist: " + m_filename;
         return false;
     }
     bool result { false };
     if (m_encrypted) {
         std::ifstream file { m_filename };
-        std::string decrypted {decrypt(file)};
+        std::string decrypted { decrypt(file) };
         file.close();
         std::istringstream in_str { decrypted };
         result = read(in_str);
     } else {
-        std::ifstream in { m_filename};
+        std::ifstream in { m_filename };
         result = read(in);
         in.close();
     }
@@ -209,8 +211,8 @@ auto Configuration::read() -> bool
 
 auto Configuration::write(std::ostream& out) -> bool
 {
-    for (auto& [name, option]: m_options) {
-        out<<option.write()<<'\n';
+    for (auto& [name, option] : m_options) {
+        out << option.write() << '\n';
     }
     return true;
 }
@@ -222,7 +224,7 @@ auto Configuration::write() -> bool
         std::ostringstream plain {};
         result = write(plain);
         std::string string { plain.str() };
-        std::ofstream file{m_filename};
+        std::ofstream file { m_filename };
         encrypt(file, string);
         file.close();
 
@@ -238,44 +240,35 @@ auto Configuration::decrypt(std::istream& file) -> std::string
 {
     using namespace CryptoPP;
 
-
-    std::ostringstream mac_stream{};
-    mac_stream<<std::hex<<std::setfill('0')<<std::setw(16)<<GUID::get_mac();
-    std::string mac{mac_stream.str()};
-
+    std::ostringstream mac_stream {};
+    mac_stream << std::hex << std::setfill('0') << std::setw(16) << GUID::get_mac();
+    std::string mac { mac_stream.str() };
 
     SecByteBlock aes_key(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
     SecByteBlock iv(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
 
-
-
-    CFB_Mode<AES>::Decryption dec{aes_key, mac.size(), iv, static_cast<int>(mac.size())};
+    CFB_Mode<AES>::Decryption dec { aes_key, mac.size(), iv, static_cast<int>(mac.size()) };
 
     std::string decrypted {};
 
-    FileSource give_me_a_name(file, true, new Base64Decoder{
-                           new StreamTransformationFilter(dec,
-                                                          new StringSink(decrypted))});
+    FileSource give_me_a_name(file, true, new Base64Decoder { new StreamTransformationFilter(dec, new StringSink(decrypted)) });
     return decrypted;
 }
 
 void Configuration::encrypt(std::ostream& file, const std::string& content)
 {
     using namespace CryptoPP;
-    std::ostringstream mac_stream{};
-    mac_stream<<std::hex<<std::setfill('0')<<std::setw(16)<<GUID::get_mac();
-    std::string mac{mac_stream.str()};
-
+    std::ostringstream mac_stream {};
+    mac_stream << std::hex << std::setfill('0') << std::setw(16) << GUID::get_mac();
+    std::string mac { mac_stream.str() };
 
     SecByteBlock aes_key(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
     SecByteBlock iv(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
 
-
-    std::string encrypted{};
-    CFB_Mode<AES>::Encryption enc{aes_key, mac.size(), iv, static_cast<int>(mac.size())};
+    std::string encrypted {};
+    CFB_Mode<AES>::Encryption enc { aes_key, mac.size(), iv, static_cast<int>(mac.size()) };
 
     StringSource(content, true,
-                           new StreamTransformationFilter(enc,new Base64Encoder{
-                                                          new FileSink(file)}));
+        new StreamTransformationFilter(enc, new Base64Encoder { new FileSink(file) }));
 }
 }

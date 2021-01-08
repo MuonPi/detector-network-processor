@@ -5,27 +5,24 @@
 #include "messages/userinfo.h"
 
 #include <chrono>
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace MuonPi {
 
 class Detector;
 
-
 struct TimeBase {
     double factor { 0.0 };
-    std::chrono::steady_clock::duration base{};
+    std::chrono::steady_clock::duration base {};
 };
-
 
 /**
  * @brief The Event class
  *  class, which is used as an interface for single events and combined events
  */
-class Event
-{
+class Event {
 public:
     struct Data {
         std::string user {};
@@ -46,7 +43,6 @@ public:
     Event() noexcept;
 
     virtual ~Event() noexcept;
-
 
     void set_detector_info(Location location, /*Time time,*/ UserInfo user);
 

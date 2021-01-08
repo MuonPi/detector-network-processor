@@ -2,10 +2,10 @@
 
 namespace MuonPi::Log {
 
-
 Sink::Sink(Level level)
     : m_level { level }
-{}
+{
+}
 
 Sink::~Sink() = default;
 
@@ -45,7 +45,8 @@ StreamSink::StreamSink(std::ostream& ostream, Level level)
 
 void StreamSink::sink(const Message& msg)
 {
-    m_ostream<<to_string(msg.level) + ": " + msg.message + "\n"<<std::flush;
+    m_ostream << to_string(msg.level) + ": " + msg.message + "\n"
+              << std::flush;
 }
 std::shared_ptr<Log> Log::s_singleton { std::make_shared<Log>() };
 
@@ -57,7 +58,7 @@ void Log::add_sink(std::shared_ptr<Sink> sink)
 SyslogSink::SyslogSink(Level level)
     : Sink { level }
 {
-    setlogmask(LOG_UPTO (level));
+    setlogmask(LOG_UPTO(level));
     openlog(appname, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 }
 
@@ -73,7 +74,7 @@ void SyslogSink::sink(const Message& msg)
 
 void Log::send(const Message& msg)
 {
-    for (auto& sink: m_sinks) {
+    for (auto& sink : m_sinks) {
         if (sink->level() >= msg.level) {
             sink->sink(msg);
         }
@@ -84,7 +85,6 @@ auto Log::singleton() -> std::shared_ptr<Log>
 {
     return s_singleton;
 }
-
 
 auto debug() -> Log::Logger<Level::Debug>&
 {
@@ -125,6 +125,5 @@ auto emergency() -> Log::Logger<Level::Emergency>&
 {
     return Log::singleton()->m_emergency;
 }
-
 
 }

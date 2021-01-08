@@ -9,43 +9,46 @@ namespace MuonPi {
  */
 auto GeoHash::hashFromCoordinates(double lon, double lat, std::size_t precision) -> std::string
 {
-    if (precision>12) { precision=12;
-}
+    if (precision > 12) {
+        precision = 12;
+    }
 
     uint8_t idx = 0; // index into base32 map
     uint8_t bit = 0; // each char holds 5 bits
     bool evenBit = true;
     std::string geohash;
 
-    double latMin =  -90.;
-    double latMax =  90.;
+    double latMin = -90.;
+    double latMax = 90.;
     double lonMin = -180.;
     double lonMax = 180.;
 
-    if (lon<lonMin || lon>lonMax) { return geohash;
-}
-    if (lat<latMin || lat>latMax) { return geohash;
-}
+    if (lon < lonMin || lon > lonMax) {
+        return geohash;
+    }
+    if (lat < latMin || lat > latMax) {
+        return geohash;
+    }
 
     while (geohash.size() < precision) {
         if (evenBit) {
             // bisect E-W longitude
             const double lonMid = (lonMin + lonMax) / 2.;
             if (lon >= lonMid) {
-                idx = idx*2 + 1;
+                idx = idx * 2 + 1;
                 lonMin = lonMid;
             } else {
-                idx = idx*2;
+                idx = idx * 2;
                 lonMax = lonMid;
             }
         } else {
             // bisect N-S latitude
             const double latMid = (latMin + latMax) / 2.;
             if (lat >= latMid) {
-                idx = idx*2 + 1;
+                idx = idx * 2 + 1;
                 latMin = latMid;
             } else {
-                idx = idx*2;
+                idx = idx * 2;
                 latMax = latMid;
             }
         }

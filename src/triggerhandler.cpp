@@ -19,6 +19,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <cstdio>
+#include <filesystem>
 
 namespace MuonPi {
 
@@ -214,13 +215,17 @@ TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Conf
         handle_delete(session);
     });
 
-    m_ssl_settings->set_port(static_cast<std::uint16_t>(m_rest.port));
-    m_ssl_settings->set_http_disabled(true);
-    m_ssl_settings->set_tlsv12_enabled(true);
-    m_ssl_settings->set_private_key(restbed::Uri { m_rest.privkey });
-    m_ssl_settings->set_certificate(restbed::Uri { m_rest.cert });
-    m_ssl_settings->set_certificate_chain(restbed::Uri { m_rest.fullchain });
-    m_settings->set_ssl_settings(m_ssl_settings);
+    if (std::filesystem::exists(m_rest.privkey) && std::filesystem::exists(m_rest.cert) && std::filesystem::exists(m_rest.fullchain)) {
+        m_ssl_settings->set_port(static_cast<std::uint16_t>(m_rest.port));
+        m_ssl_settings->set_http_disabled(true);
+        m_ssl_settings->set_tlsv12_enabled(true);
+        m_ssl_settings->set_private_key(restbed::Uri { "file://" + m_rest.privkey });
+        m_ssl_settings->set_certificate(restbed::Uri { "file://" + m_rest.cert });
+        m_ssl_settings->set_certificate_chain(restbed::Uri { "file://" + m_rest.fullchain });
+        m_settings->set_ssl_settings(m_ssl_settings);
+    } else {
+        Log::warning()<<"Could not find server certificates. Not enabling TLS for REST interface.";
+    }
 
     m_settings->set_port(static_cast<std::uint16_t>(m_rest.port));
     m_settings->set_default_header("Connection", "close");

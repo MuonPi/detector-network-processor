@@ -255,7 +255,7 @@ private:
 // +++++++++++++++++++++++++++++++
 // class Ringbuffer
 template <typename T, std::size_t N>
-void Ringbuffer<N>::add(T val)
+void Ringbuffer<T, N>::add(T val)
 {
     m_buffer[m_index++] = val;
     if (m_index >= N) {

@@ -167,6 +167,8 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz" DESTINATION "${CMAKE_IN
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1.gz" DESTINATION "share/man/man1/" COMPONENT cluster)
 install(FILES "${PROJECT_CONFIG_DIR}/copyright" DESTINATION "${CMAKE_INSTALL_DOCDIR}" COMPONENT cluster)
 install(FILES "${PROJECT_CONFIG_DIR}/muondetector-cluster.service" DESTINATION "/lib/systemd/system" COMPONENT cluster)
+install(FILES "${PROJECT_CONFIG_DIR}/muondetector-cluster.cfg" DESTINATION "/etc/muondetector/" COMPONENT cluster)
+install(FILES "${PROJECT_CONFIG_DIR}/muondetector-cluster-credentials" DESTINATION "share/muondetector/" COMPONENT cluster)
 
 
 

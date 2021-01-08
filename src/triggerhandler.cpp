@@ -16,8 +16,77 @@
 #include <ldap.h>
 #include <sasl/sasl.h>
 #include <utility>
+#include <cstdarg>
+#include <cstdlib>
+#include <cstdio>
 
 namespace MuonPi {
+
+class CustomLogger : public restbed::Logger
+{
+    public:
+        void stop( void ) override
+        {
+            Log::info()<<"Restbed stopped.";
+            return;
+        }
+
+        void start( const std::shared_ptr< const restbed::Settings >& ) override
+        {
+            Log::info()<<"Restbed started.";
+            return;
+        }
+
+        void log( const Level level, const char* format, ... ) override
+        {
+            va_list arguments;
+            va_start( arguments, format );
+
+            const std::size_t len { strlen(format) };
+
+            char* buffer {new char[len]};
+            const std::size_t written = snprintf(buffer, len, format, arguments);
+
+            if (written > len) {
+                delete[] buffer;
+                buffer = new char[written + 1];
+                snprintf(buffer, len, format, arguments);
+            }
+            switch (level) {
+            case INFO:
+                Log::info()<<"restbed: " + std::string{buffer};
+                break;
+            case DEBUG:
+                Log::debug()<<"restbed: " + std::string{buffer};
+                break;
+            case FATAL:
+                Log::critical()<<"restbed: " + std::string{buffer};
+                break;
+            case ERROR:
+                Log::error()<<"restbed: " + std::string{buffer};
+                break;
+            case WARNING:
+                Log::warning()<<"restbed: " + std::string{buffer};
+                break;
+            case SECURITY:
+                Log::alert()<<"restbed: " + std::string{buffer};
+                break;
+            }
+            delete[] buffer;
+            va_end( arguments );
+        }
+
+        void log_if( bool expression, const Level level, const char* format, ... ) override
+        {
+            if ( expression )
+            {
+                va_list arguments;
+                va_start( arguments, format );
+                log( level, format, arguments );
+                va_end( arguments );
+            }
+        }
+};
 
 namespace Trigger {
 
@@ -157,6 +226,7 @@ TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Conf
     m_settings->set_default_header("Connection", "close");
 
     m_service.publish(m_resource);
+    m_service.set_logger(std::make_shared<CustomLogger>());
     m_service.set_authentication_handler([this](const restbed::session_ptr session, const restbed::callback& callback) {
         handle_authentication(session, callback);
     });

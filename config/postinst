@@ -13,5 +13,4 @@ To do this copy the file /usr/share/muondetector/muondetector-cluster-credential
 Ensure that the file is located at a secure location since it contains the plaintext credentials. Ideally delete this file after running above command.
 If you want to run this daemon as a local cluster, add the option run_local_cluster:b:true to /etc/muondetector/muondetector-cluster.cfg.
 \e[m
-
 "

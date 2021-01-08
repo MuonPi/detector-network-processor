@@ -107,6 +107,9 @@ auto Mqtt::step() -> int
         case MOSQ_ERR_ERRNO:
             Log::error()<<"Mqtt could not execute step: system call error";
             return -1;
+        default:
+            Log::error()<<"Mqtt could not execute step:unspecified error";
+            return -1;
         }
     }
 
@@ -244,8 +247,10 @@ auto Mqtt::p_subscribe(const std::string& topic) -> bool
         case MOSQ_ERR_MALFORMED_UTF8:
             Log::error()<<"Could not subscribe to topic '" + topic + "': malformed utf8";
             break;
+        default:
+            Log::error()<<"Could not subscribe to topic '" + topic + "': other reason";
+            break;
         }
-        Log::warning()<<"Could not subscribe to topic '" + topic + "'.";
         return false;
     }
     Log::info()<<"Subscribed to topic '" + topic + "'.";

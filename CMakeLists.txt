@@ -58,6 +58,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/link/database.cpp"
 
     "${PROJECT_SRC_DIR}/messages/event.cpp"
+    "${PROJECT_SRC_DIR}/messages/detectorlog.cpp"
     "${PROJECT_SRC_DIR}/messages/detectorinfo.cpp"
     "${PROJECT_SRC_DIR}/messages/detectorsummary.cpp"
     "${PROJECT_SRC_DIR}/messages/clusterlog.cpp"
@@ -94,6 +95,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/source/mqtt.h"
 
     "${PROJECT_HEADER_DIR}/messages/event.h"
+    "${PROJECT_HEADER_DIR}/messages/detectorlog.h"
     "${PROJECT_HEADER_DIR}/messages/detectorinfo.h"
     "${PROJECT_HEADER_DIR}/messages/detectorsummary.h"
     "${PROJECT_HEADER_DIR}/messages/clusterlog.h"
@@ -150,6 +152,7 @@ target_link_libraries(muondetector-cluster
     restbed
     sasl2
     ldap
+    stdc++fs
     )
 
 

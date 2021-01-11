@@ -2,6 +2,7 @@
 #define MQTTLOGSOURCE_H
 
 #include "link/mqtt.h"
+#include "messages/detectorlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
 #include "messages/userinfo.h"
@@ -15,6 +16,7 @@
 
 namespace MuonPi::Source {
 
+/*
 template <typename T>
 class DetectorLogItem {
 public:
@@ -30,6 +32,7 @@ private:
     T m_item {};
     bool m_is_set { false };
 };
+*/
 
 /**
  * @brief The Mqtt class
@@ -50,7 +53,8 @@ private:
     * @brief Adapter base class for the collection of several logically connected, but timely distributed MqttItems
     */
     struct ItemCollector {
-        ItemCollector();
+        enum class ResultCode { Aggregating, Finished, Error, NewEpoch };
+		ItemCollector();
 
         /**
         * @brief reset Resets the ItemCollector to its default state
@@ -60,14 +64,16 @@ private:
         /**
         * @brief add Tries to add a Message to the Item. The item chooses which messages to keep
         * @param message The message to pass
-        * @return 0 if the item is complete with this message, <0 if there was an error, >0 otherwise.
+        * @return 0 if the item is complete with this message, <0 if the newly entered message does not belong to this item's time slot or if there was a general error, >0 otherwise.
         */
-        [[nodiscard]] auto add(MessageParser& topic, MessageParser& message) -> int;
+        [[nodiscard]] auto add(MessageParser& topic, MessageParser& message) -> ResultCode;
 
         UserInfo user_info {};
         std::string message_id {};
 
-        std::uint16_t default_status { 0x0000 };
+        [[nodiscard]] auto is_same_message_id(const std::string& a_message_id) const -> bool { return (a_message_id == message_id); }
+
+		std::uint16_t default_status { 0x0000 };
         std::uint16_t status { 0 };
 
         T item {};
@@ -101,6 +107,13 @@ Mqtt<Event>::ItemCollector::ItemCollector()
 {
 }
 
+template <>
+Mqtt<DetectorLogItem>::ItemCollector::ItemCollector()
+    : default_status { 2 }
+    , status { default_status }
+{
+}
+
 template <typename T>
 void Mqtt<T>::ItemCollector::reset()
 {
@@ -109,7 +122,7 @@ void Mqtt<T>::ItemCollector::reset()
 }
 
 template <>
-auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> int
+auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if (message_id != message[0]) {
         reset();
@@ -137,18 +150,18 @@ auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
             item.m_item.dop = std::stod(message[2], nullptr);
             status &= ~32;
         } else {
-            return -1;
+            return ResultCode::Aggregating;
         }
     } catch (std::invalid_argument& e) {
         Log::warning() << "received exception when parsing log item: " + std::string(e.what());
-        return -1;
+        return ResultCode::Error;
     }
 
-    return status;
+    return ((status==0)?ResultCode::Finished:ResultCode::Aggregating);
 }
 
 template <>
-auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> int
+auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> ResultCode
 {
     if ((topic.size() >= 4) && (content.size() >= 7)) {
 
@@ -156,24 +169,24 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
         try {
             MessageParser start { content[0], '.' };
             if (start.size() != 2) {
-                return -1;
+                return ResultCode::Error;
             }
             std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
             data.start = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
 
         } catch (...) {
-            return -1;
+            return ResultCode::Error;
         }
 
         try {
             MessageParser start { content[1], '.' };
             if (start.size() != 2) {
-                return -1;
+                return ResultCode::Error;
             }
             std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
             data.end = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
         } catch (...) {
-            return -1;
+            return ResultCode::Error;
         }
 
         try {
@@ -186,14 +199,52 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
         } catch (std::invalid_argument& e) {
             Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
-            return -1;
+            return ResultCode::Error;
         }
         item = Event { user_info.hash(), data };
         status = 0;
-        return 0;
+        return ResultCode::Finished;
     }
-    return -1;
+    return ResultCode::Error;
 }
+
+template <>
+auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+{
+    if ( !item.has_items() ) {
+		message_id = message[0];
+		item.set_log_id( message_id );
+		item.set_userinfo( user_info );
+	}
+	else if (message_id != message[0]) {
+        return ResultCode::NewEpoch;
+    }
+
+    try {
+        if (message[1] == "geoHeightMSL") {
+            item.add_item( { "geoHeightMSL", std::stod(message[2], nullptr) } );
+        } else if (message[1] == "geoHorAccuracy") {
+            item.add_item( { "geoHorAccuracy", std::stod(message[2], nullptr) } );
+        } else if (message[1] == "geoLatitude") {
+            item.add_item( { "geoLatitude", std::stod(message[2], nullptr) } );
+        } else if (message[1] == "geoLongitude") {
+            item.add_item( { "geoLongitude", std::stod(message[2], nullptr) } );
+        } else if (message[1] == "geoVertAccuracy") {
+            item.add_item( { "geoVertAccuracy", std::stod(message[2], nullptr) } );
+        } else if (message[1] == "positionDOP") {
+            item.add_item( { "positionDOP", std::stod(message[2], nullptr) } );
+        } else {
+            return ResultCode::Aggregating;
+        }
+    } catch (std::invalid_argument& e) {
+        Log::warning() << "received exception when parsing log item: " + std::string(e.what());
+        return ResultCode::Error;
+    }
+
+    return ResultCode::Aggregating;
+}
+
+
 
 template <typename T>
 Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& subscriber)
@@ -231,20 +282,34 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
 
         if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
             ItemCollector& item { m_buffer[hash] };
-            if (item.add(topic, content) == 0) {
+            typename ItemCollector::ResultCode result_code { item.add(topic, content) };
+			if ( result_code == ItemCollector::ResultCode::Finished ) {
                 this->put(std::move(item.item));
                 m_buffer.erase(hash);
-            }
+            } else if (result_code == ItemCollector::ResultCode::NewEpoch) {
+				// the new message has a newer log id
+				// push the item out and create a new item with the last message
+				this->put(std::move(item.item));
+				item = ItemCollector { };
+				item.message_id = content[0];
+				item.user_info = userinfo;
+				typename ItemCollector::ResultCode retry_result_code { item.add(topic, content) };
+				if ( retry_result_code == ItemCollector::ResultCode::Finished ) {
+					this->put(std::move(item.item));
+				} else if (retry_result_code == ItemCollector::ResultCode::Aggregating) {
+					m_buffer.insert({ hash, item });
+				}
+			}
         } else {
             ItemCollector item;
             item.message_id = content[0];
             item.user_info = userinfo;
-            int value { item.add(topic, content) };
-            if (value == 0) {
+            typename ItemCollector::ResultCode value { item.add(topic, content) };
+            if ( value == ItemCollector::ResultCode::Finished ) {
                 this->put(std::move(item.item));
-            } else if (value > 0) {
+            } else if (value == ItemCollector::ResultCode::Aggregating) {
                 m_buffer.insert({ hash, item });
-            }
+            } 
         }
     }
 }

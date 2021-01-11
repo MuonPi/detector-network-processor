@@ -4,7 +4,7 @@
 
 namespace MuonPi {
 
-auto DetectorType::id() -> std::uint8_t
+auto DetectorType::id() const -> std::uint8_t
 {
     return 0;
 }

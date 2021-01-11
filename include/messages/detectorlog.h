@@ -33,66 +33,6 @@ private:
 };
 
 
-/*	
-struct DetectorType {
-	enum class GateConnection {
-		NONE, XOR, AND, SINGLE
-	} detector_gate;
-	enum class DetectorCount {
-		NONE, SINGLE, DOUBLE
-	} detector_count;
-	enum class PhysicalType {
-		UNDEFINED, SCINTILLATOR, SEMICONDUCTOR, OTHER
-	} physical_type;
-	double cross_section { 0.0 };
-	[[nodiscard]] auto id() const -> std::uint8_t;
-};
-
-enum class DetectorState {
-	UNDEFINED, INACTIVE, ACTIVE
-};
-struct Location {
-	double lat { 0.0 };
-	double lon { 0.0 };
-	double h { 0.0 };
-	double v_acc { 0.0 };
-	double h_acc { 0.0 };
-	double dop { 0.0 };
-	std::string geohash { "" };
-};
-struct Time
-{
-	double accuracy { 0.0 };
-	double dop { 0.0 };
-};
-struct VersionInfo 
-{
-	std::string hw_version { "" };
-	std::string sw_version { "" };
-	std::string ublox_hw_version { "" };
-	std::string ublox_sw_version { "" };
-	std::string ublox_proto_version { "" };
-};
-struct Bias
-{
-	double bias_voltage { 0.0 };
-	double bias_current { 0.0 };
-};
-struct Thresholds
-{
-	double threshold1 { 0.0 };
-	double threshold2 { 0.0 };
-};
-struct GnssParameters
-{
-	double sats_received { 0. };
-	double sats_used { 0. };
-};
-
-*/
-
-
-
 }
 
 #endif // DETECTORLOG_H

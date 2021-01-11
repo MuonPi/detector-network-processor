@@ -16,23 +16,6 @@
 
 namespace MuonPi::Source {
 
-/*
-template <typename T>
-class DetectorLogItem {
-public:
-    void set_item(T a_item);
-    [[nodiscard]] auto get_item() const -> const T&;
-
-    auto item() -> T&;
-    auto item() const -> const T&;
-
-    auto is_set() const -> bool { return m_is_set; }
-
-private:
-    T m_item {};
-    bool m_is_set { false };
-};
-*/
 
 /**
  * @brief The Mqtt class
@@ -64,7 +47,7 @@ private:
         /**
         * @brief add Tries to add a Message to the Item. The item chooses which messages to keep
         * @param message The message to pass
-        * @return 0 if the item is complete with this message, <0 if the newly entered message does not belong to this item's time slot or if there was a general error, >0 otherwise.
+        * @return result code
         */
         [[nodiscard]] auto add(MessageParser& topic, MessageParser& message) -> ResultCode;
 

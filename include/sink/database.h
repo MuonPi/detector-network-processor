@@ -61,12 +61,17 @@ void Database<ClusterLog>::get(ClusterLog log)
         << Link::Influx::Field { "max_multiplicity", log.data().maximum_n }
         << Link::Influx::Field { "incoming", log.data().incoming }) };
 
-    for (auto& [level, n] : log.data().outgoing) {
+    std::size_t total_n { 0 };
+	
+	for (auto& [level, n] : log.data().outgoing) {
         if (level == 1) {
             continue;
         }
         fields << Link::Influx::Field { "outgoing" + std::to_string(level), n };
+		total_n += n;
     }
+
+    fields << Link::Influx::Field { "outgoing", total_n };
 
     if (!fields.commit(nanosecondsUTC)) {
         Log::warning() << "error writing ClusterLog item to DB";

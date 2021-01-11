@@ -3,9 +3,8 @@
 
 #include "messages/userinfo.h"
 
-#include <chrono>
 #include <string>
-#include <list>
+#include <queue>
 #include <variant>
 
 namespace MuonPi {
@@ -29,7 +28,7 @@ public:
 private:	
 	UserInfo m_userinfo { };
 	std::string m_log_id { };
-	std::list<DetectorLogItem> m_items { };
+	std::queue<DetectorLogItem> m_items { };
 };
 
 

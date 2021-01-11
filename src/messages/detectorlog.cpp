@@ -5,19 +5,19 @@ namespace MuonPi {
 void DetectorLog::add_item(DetectorLogItem item)
 {
 	if ( item == DetectorLogItem {} ) return;
-	m_items.push_back(item);
+	m_items.emplace(item);
 }
 
 auto DetectorLog::has_items() const -> bool
 {
-	return (m_items.size()>0);
+	return (!m_items.empty());
 }
 
 auto DetectorLog::next_item() -> DetectorLogItem
 {
 	if (!has_items()) return DetectorLogItem {};
 	DetectorLogItem item { m_items.front() };
-	m_items.pop_front();
+	m_items.pop();
 	return item;
 }
 

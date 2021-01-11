@@ -45,6 +45,8 @@ find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
 find_library(RESTBED restbed REQUIRED)
 
+find_library(STD_CPP_FS stdc++fs)
+
 
 
 
@@ -143,6 +145,18 @@ target_include_directories(muondetector-cluster PUBLIC
     ${CMAKE_CURRENT_BINARY_DIR}
     )
 
+if (NOT STD_CPP_FS)
+target_link_libraries(muondetector-cluster
+    crypto++
+    mosquitto
+    source-files
+    pthread
+    curl
+    restbed
+    sasl2
+    ldap
+    )
+else()
 target_link_libraries(muondetector-cluster
     crypto++
     mosquitto
@@ -154,6 +168,7 @@ target_link_libraries(muondetector-cluster
     ldap
     stdc++fs
     )
+endif()
 
 
 include(GNUInstallDirs)

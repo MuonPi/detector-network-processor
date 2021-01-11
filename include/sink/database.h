@@ -69,6 +69,7 @@ void Database<ClusterLog>::get(ClusterLog log)
     auto result { fields << nanosecondsUTC };
 
     if (!result) {
+		Log::warning() << "error writing ClusterLog item to DB";
         return;
     }
 }
@@ -92,6 +93,7 @@ void Database<DetectorSummary>::get(DetectorSummary log)
         << nanosecondsUTC) };
 
     if (!result) {
+		Log::warning() << "error writing DetectorSummary item to DB";
         return;
     }
 }
@@ -124,6 +126,7 @@ void Database<Event>::get(Event event)
             << evt.start();
 
         if (!result) {
+			Log::warning() << "error writing L1Event item to DB";
             return;
         }
     }
@@ -147,7 +150,8 @@ void Database<DetectorLog>::get(DetectorLog log)
     bool result { entry  << nanosecondsUTC };
 
     if (!result) {
-        return;
+		Log::warning() << "error writing DetectorLog item to DB";
+		return;
     }
 }
 

@@ -26,17 +26,15 @@ namespace MuonPi {
 class CustomLogger : public restbed::Logger
 {
     public:
-        void stop( void ) override
+        void stop( ) override
         {
             Log::info()<<"Restbed stopped.";
-            return;
-        }
+       }
 
-        void start( const std::shared_ptr< const restbed::Settings >& ) override
+        void start( const std::shared_ptr< const restbed::Settings >&  /*settings*/) override
         {
             Log::info()<<"Restbed started.";
-            return;
-        }
+       }
 
         void log( const Level level, const char* format, ... ) override
         {

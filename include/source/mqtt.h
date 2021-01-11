@@ -226,6 +226,100 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
             item.add_item({ "geoVertAccuracy", std::stod(message[2], nullptr), unit });
         } else if (message[1] == "positionDOP") {
             item.add_item({ "positionDOP", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "RXBufUsage") {
+            item.add_item({ "RXBufUsage", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "TXBufUsage") {
+            item.add_item({ "TXBufUsage", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "UBX_HW_Version") {
+            item.add_item({ "UBX_HW_Version", message[2], "" });
+        } else if (message[1] == "UBX_Prot_Version") {
+            item.add_item({ "UBX_Prot_Version", message[2], "" });
+        } else if (message[1] == "UBX_SW_Version") {
+            item.add_item({ "UBX_SW_Version", message[2], "" });
+        } else if (message[1] == "adcSamplingTime") {
+            item.add_item({ "adcSamplingTime", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "antennaPower") {
+            item.add_item({ "antennaPower", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "antennaStatus") {
+            item.add_item({ "antennaStatus", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "biasDAC") {
+            item.add_item({ "biasDAC", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "biasSwitch") {
+            item.add_item({ "biasSwitch", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "calib_coeff2") {
+            item.add_item({ "calib_coeff2", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "calib_coeff3") {
+            item.add_item({ "calib_coeff3", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "calib_rsense") {
+            item.add_item({ "calib_rsense", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "calib_vdiv") {
+            item.add_item({ "calib_vdiv", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "clockBias") {
+            item.add_item({ "clockBias", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "clockDrift") {
+            item.add_item({ "clockDrift", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "fixStatus") {
+            item.add_item({ "fixStatus", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "freqAccuracy") {
+            item.add_item({ "freqAccuracy", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "gainSwitch") {
+            item.add_item({ "gainSwitch", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+        } else if (message[1] == "ibias") {
+            item.add_item({ "ibias", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "jammingLevel") {
+            item.add_item({ "jammingLevel", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "maxCNR") {
+            item.add_item({ "maxCNR", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "maxRXBufUsage") {
+            item.add_item({ "maxTXBufUsage", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "meanGeoHeightMSL") {
+            item.add_item({ "meanGeoHeightMSL", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "polaritySwitch1") {
+            item.add_item({ "polaritySwitch1", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+        } else if (message[1] == "polaritySwitch2") {
+            item.add_item({ "polaritySwitch2", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+        } else if (message[1] == "preampAGC") {
+            item.add_item({ "preampAGC", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "preampNoise") {
+            item.add_item({ "preampNoise", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "preampSwitch1") {
+            item.add_item({ "preampSwitch1", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+        } else if (message[1] == "preampSwitch2") {
+            item.add_item({ "preampSwitch2", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+        } else if (message[1] == "rateAND") {
+            item.add_item({ "rateAND", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "rateXOR") {
+            item.add_item({ "rateXOR", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "sats") {
+            item.add_item({ "sats", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "systemFreeMem") {
+            item.add_item({ "systemFreeMem", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "systemFreeSwap") {
+            item.add_item({ "systemFreeSwap", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "systemLoadAvg") {
+            item.add_item({ "systemLoadAvg", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "systemNrCPUs") {
+            item.add_item({ "systemNrCPUs", static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
+        } else if (message[1] == "systemUptime") {
+            item.add_item({ "systemUptime", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "temperature") {
+            item.add_item({ "temperature", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "thresh1") {
+            item.add_item({ "thresh1", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "thresh2") {
+            item.add_item({ "thresh2", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "timeAccuracy") {
+            item.add_item({ "timeAccuracy", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "timeDOP") {
+            item.add_item({ "timeDOP", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "ubloxUptime") {
+            item.add_item({ "ubloxUptime", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "usedSats") {
+            item.add_item({ "usedSats", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "vbias") {
+            item.add_item({ "vbias", std::stod(message[2], nullptr), unit });
+        } else if (message[1] == "vsense") {
+            item.add_item({ "vsense", std::stod(message[2], nullptr), unit });
         } else {
             return Aggregating;
         }

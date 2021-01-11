@@ -45,7 +45,7 @@ find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
 find_library(RESTBED restbed REQUIRED)
 
-find_library(STD_CPP_FS stdc++fs)
+find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
 
 

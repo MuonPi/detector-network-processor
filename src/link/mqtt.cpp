@@ -387,12 +387,14 @@ auto Mqtt::Publisher::get_publish_topic() const -> const std::string&
 
 void Mqtt::Subscriber::set_callback(std::function<void(const Message&)> callback)
 {
-    m_callback = std::move(callback);
+    m_callback.emplace_back(std::move(callback));
 }
 
 void Mqtt::Subscriber::push_message(const Message& message)
 {
-    m_callback(message);
+    for (auto& callback : m_callback) {
+        callback(message);
+    }
 }
 
 auto Mqtt::Subscriber::get_subscribe_topic() const -> const std::string&

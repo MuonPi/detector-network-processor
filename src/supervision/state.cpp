@@ -8,7 +8,7 @@
 namespace MuonPi {
 
 StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
-    : m_log_sink { log_sink }
+    : Source::Base<ClusterLog> { log_sink }
 {
 }
 
@@ -22,7 +22,7 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
     switch (status) {
     case Detector::Status::Reliable:
     case Detector::Status::Unreliable:
-        m_log_sink.get(ClusterLog { m_current_data });
+        Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
         break;
     case Detector::Status::Created:
     case Detector::Status::Deleted:
@@ -61,7 +61,7 @@ auto StateSupervisor::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        m_log_sink.get(ClusterLog { m_current_data });
+        Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
 
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();

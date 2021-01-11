@@ -117,7 +117,7 @@ public:
 
         Mqtt* m_link { nullptr };
         std::string m_topic {};
-        std::function<void(const Message&)> m_callback;
+        std::vector<std::function<void(const Message&)>> m_callback;
     };
 
     /**

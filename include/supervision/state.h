@@ -6,6 +6,8 @@
 #include "sink/base.h"
 #include "utility/utility.h"
 
+#include "source/base.h"
+
 #include <chrono>
 #include <cinttypes>
 #include <fstream>
@@ -17,7 +19,7 @@ namespace MuonPi {
 /**
  * @brief The StateSupervisor class Supervises the program and collects metadata
  */
-class StateSupervisor {
+class StateSupervisor : public Source::Base<ClusterLog> {
 public:
     /**
      * @brief StateSupervisor
@@ -74,8 +76,6 @@ private:
     RateMeasurement<100, 5000> m_outgoing_rate {};
 
     std::vector<ThreadRunner*> m_threads;
-
-    Sink::Base<ClusterLog>& m_log_sink;
 
     ClusterLog::Data m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };

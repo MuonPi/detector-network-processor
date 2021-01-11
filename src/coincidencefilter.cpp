@@ -66,6 +66,7 @@ auto CoincidenceFilter::process(Event event) -> int
             matches.push(i);
         }
     }
+    m_supervisor.set_queue_size(m_constructors.size());
 
     // +++ Event matches exactly one existing constructor
     if (matches.size() == 1) {
@@ -104,7 +105,6 @@ auto CoincidenceFilter::process(Event event) -> int
     }
     // --- Event matches more than one constructor
     // --- Event matches either no, or more than one constructor
-    m_supervisor.set_queue_size(m_constructors.size());
     return 0;
 }
 

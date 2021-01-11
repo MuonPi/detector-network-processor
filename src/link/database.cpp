@@ -12,7 +12,7 @@ namespace MuonPi::Link {
 Database::Entry::Entry(const std::string& measurement, Database& link)
     : m_link { link }
 {
-    m_tags<<measurement;
+    m_tags << measurement;
 }
 
 auto Database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
@@ -31,14 +31,14 @@ overloaded(Ts...) -> overloaded<Ts...>;
 auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
 {
     std::visit(overloaded {
-                   [this, field](const std::string& value) {m_fields<<','<<field.name<<"=\""<<value<<'"'; },
-                   [this, field](std::int_fast64_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
-                   [this, field](std::size_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
-                   [this, field](std::uint8_t value) {m_fields<<','<<field.name<<'='<<static_cast<std::uint16_t>(value)<<'i'; },
-                   [this, field](std::uint16_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
-                   [this, field](std::uint32_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
-                   [this, field](bool value) {m_fields<<field.name<<','<<'='<<(value?'t':'f'); },
-                   [this, field](double value) {m_fields<<','<<field.name<<'='<<value; } },
+                   [this, field](const std::string& value) { m_fields << ',' << field.name << "=\"" << value << '"'; },
+                   [this, field](std::int_fast64_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
+                   [this, field](std::size_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
+                   [this, field](std::uint8_t value) { m_fields << ',' << field.name << '=' << static_cast<std::uint16_t>(value) << 'i'; },
+                   [this, field](std::uint16_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
+                   [this, field](std::uint32_t value) { m_fields << ',' << field.name << '=' << value << 'i'; },
+                   [this, field](bool value) { m_fields << field.name << ',' << '=' << (value ? 't' : 'f'); },
+                   [this, field](double value) { m_fields << ',' << field.name << '=' << value; } },
         field.value);
     return *this;
 }
@@ -48,9 +48,9 @@ auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
     if (m_fields.str().empty()) {
         return false;
     }
-    m_tags<<' '
-    <<m_fields.str().substr(1)
-    << ' ' << timestamp;
+    m_tags << ' '
+           << m_fields.str().substr(1)
+           << ' ' << timestamp;
     return m_link.send_string(m_tags.str());
 }
 

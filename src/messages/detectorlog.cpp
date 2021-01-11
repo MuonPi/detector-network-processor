@@ -4,7 +4,7 @@ namespace MuonPi {
 
 void DetectorLog::add_item(DetectorLogItem item)
 {
-    if ( item == DetectorLogItem {} ) {
+    if (item == DetectorLogItem {}) {
         return;
     }
     m_items.emplace(item);
@@ -44,6 +44,5 @@ auto DetectorLog::user_info() const -> UserInfo
 {
     return m_userinfo;
 }
-
 
 }

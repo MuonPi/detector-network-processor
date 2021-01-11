@@ -9,8 +9,8 @@
 #include "utility/utility.h"
 
 #include "messages/clusterlog.h"
-#include "messages/detectorlog.h"
 #include "messages/detectorinfo.h"
+#include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
@@ -218,19 +218,19 @@ void Mqtt<DetectorLog>::get(DetectorLog log)
 
     while (log.has_items()) {
         DetectorLogItem item { log.next_item() };
-        auto constructor { construct(stream.str(), item.name)};
+        auto constructor { construct(stream.str(), item.name) };
         std::visit(overloaded {
-                       [&](std::string value) {constructor<<value; },
-                       [&](std::int_fast64_t value) {constructor<<value; },
-                       [&](std::size_t value) {constructor<<value; },
-                       [&](std::uint8_t value) {constructor<<value; },
-                       [&](std::uint16_t value) {constructor<<value; },
-                       [&](std::uint32_t value) {constructor<<value; },
-                       [&](bool value) {constructor<<value; },
-                       [&](double value) {constructor<<value; } },
-        item.value);
+                       [&](std::string value) { constructor << value; },
+                       [&](std::int_fast64_t value) { constructor << value; },
+                       [&](std::size_t value) { constructor << value; },
+                       [&](std::uint8_t value) { constructor << value; },
+                       [&](std::uint16_t value) { constructor << value; },
+                       [&](std::uint32_t value) { constructor << value; },
+                       [&](bool value) { constructor << value; },
+                       [&](double value) { constructor << value; } },
+            item.value);
         if (!item.unit.empty()) {
-            constructor<<item.unit;
+            constructor << item.unit;
         }
         if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constructor.str())) {
             Log::warning() << "Could not publish MQTT message.";

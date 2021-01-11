@@ -10,81 +10,77 @@
 
 #include <regex>
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <ldap.h>
 #include <sasl/sasl.h>
 #include <utility>
-#include <cstdarg>
-#include <cstdlib>
-#include <cstdio>
-#include <filesystem>
 
 namespace MuonPi {
 
-class CustomLogger : public restbed::Logger
-{
-    public:
-        void stop( ) override
-        {
-            Log::info()<<"Restbed stopped.";
-       }
+class CustomLogger : public restbed::Logger {
+public:
+    void stop() override
+    {
+        Log::info() << "Restbed stopped.";
+    }
 
-        void start( const std::shared_ptr< const restbed::Settings >&  /*settings*/) override
-        {
-            Log::info()<<"Restbed started.";
-       }
+    void start(const std::shared_ptr<const restbed::Settings>& /*settings*/) override
+    {
+        Log::info() << "Restbed started.";
+    }
 
-        void log( const Level level, const char* format, ... ) override
-        {
-            va_list arguments;
-            va_start( arguments, format );
+    void log(const Level level, const char* format, ...) override
+    {
+        va_list arguments;
+        va_start(arguments, format);
 
-            const std::size_t len { strlen(format) };
+        const std::size_t len { strlen(format) };
 
-            char* buffer {new char[len]};
-            const std::size_t written = snprintf(buffer, len, format, arguments);
+        char* buffer { new char[len] };
+        const std::size_t written = snprintf(buffer, len, format, arguments);
 
-            if (written > len) {
-                delete[] buffer;
-                buffer = new char[written + 1];
-                snprintf(buffer, len, format, arguments);
-            }
-            switch (level) {
-            case INFO:
-                Log::info()<<"restbed: " + std::string{buffer};
-                break;
-            case DEBUG:
-                Log::debug()<<"restbed: " + std::string{buffer};
-                break;
-            case FATAL:
-                Log::critical()<<"restbed: " + std::string{buffer};
-                break;
-            case ERROR:
-                Log::error()<<"restbed: " + std::string{buffer};
-                break;
-            case WARNING:
-                Log::warning()<<"restbed: " + std::string{buffer};
-                break;
-            case SECURITY:
-                Log::alert()<<"restbed: " + std::string{buffer};
-                break;
-            }
+        if (written > len) {
             delete[] buffer;
-            va_end( arguments );
+            buffer = new char[written + 1];
+            snprintf(buffer, len, format, arguments);
         }
+        switch (level) {
+        case INFO:
+            Log::info() << "restbed: " + std::string { buffer };
+            break;
+        case DEBUG:
+            Log::debug() << "restbed: " + std::string { buffer };
+            break;
+        case FATAL:
+            Log::critical() << "restbed: " + std::string { buffer };
+            break;
+        case ERROR:
+            Log::error() << "restbed: " + std::string { buffer };
+            break;
+        case WARNING:
+            Log::warning() << "restbed: " + std::string { buffer };
+            break;
+        case SECURITY:
+            Log::alert() << "restbed: " + std::string { buffer };
+            break;
+        }
+        delete[] buffer;
+        va_end(arguments);
+    }
 
-        void log_if( bool expression, const Level level, const char* format, ... ) override
-        {
-            if ( expression )
-            {
-                va_list arguments;
-                va_start( arguments, format );
-                log( level, format, arguments );
-                va_end( arguments );
-            }
+    void log_if(bool expression, const Level level, const char* format, ...) override
+    {
+        if (expression) {
+            va_list arguments;
+            va_start(arguments, format);
+            log(level, format, arguments);
+            va_end(arguments);
         }
+    }
 };
 
 namespace Trigger {
@@ -222,7 +218,7 @@ TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Conf
         m_ssl_settings->set_certificate_chain(restbed::Uri { "file://" + m_rest.fullchain });
         m_settings->set_ssl_settings(m_ssl_settings);
     } else {
-        Log::warning()<<"Could not find server certificates. Not enabling TLS for REST interface.";
+        Log::warning() << "Could not find server certificates. Not enabling TLS for REST interface.";
     }
 
     m_settings->set_port(static_cast<std::uint16_t>(m_rest.port));

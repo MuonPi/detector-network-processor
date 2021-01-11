@@ -88,8 +88,8 @@ void Database<DetectorSummary>::get(DetectorSummary log)
         << Field { "pulselength", log.data().mean_pulselength }
         << Field { "incoming", log.data().incoming }
         << Field { "ublox_counter_progress", log.data().ublox_counter_progress }
-        << Field { "deadtime_factor", log.data().deadtime }
-        ).commit(nanosecondsUTC)) };
+        << Field { "deadtime_factor", log.data().deadtime })
+                                .commit(nanosecondsUTC)) };
 
     if (!result) {
         Log::warning() << "error writing DetectorSummary item to DB";
@@ -109,25 +109,24 @@ void Database<Event>::get(Event event)
     for (auto& evt : event.events()) {
         using namespace Link::Influx;
         if (!(m_link.measurement("L1Event")
-            << Tag { "user", evt.data().user }
-            << Tag { "detector", evt.data().station_id }
-            << Tag { "site_id", evt.data().user + evt.data().station_id }
-            << Field { "accuracy", evt.data().time_acc }
-            << Field { "uuid", guid.to_string() }
-            << Field { "coinc_level", event.n() }
-            << Field { "counter", evt.data().ublox_counter }
-            << Field { "length", evt.duration() }
-            << Field { "coinc_time", evt.start() - event.start() }
-            << Field { "cluster_coinc_time", cluster_coinc_time }
-            << Field { "time_ref", evt.data().gnss_time_grid }
-            << Field { "valid_fix", evt.data().fix })
-            .commit(evt.start())) {
+                << Tag { "user", evt.data().user }
+                << Tag { "detector", evt.data().station_id }
+                << Tag { "site_id", evt.data().user + evt.data().station_id }
+                << Field { "accuracy", evt.data().time_acc }
+                << Field { "uuid", guid.to_string() }
+                << Field { "coinc_level", event.n() }
+                << Field { "counter", evt.data().ublox_counter }
+                << Field { "length", evt.duration() }
+                << Field { "coinc_time", evt.start() - event.start() }
+                << Field { "cluster_coinc_time", cluster_coinc_time }
+                << Field { "time_ref", evt.data().gnss_time_grid }
+                << Field { "valid_fix", evt.data().fix })
+                 .commit(evt.start())) {
             Log::warning() << "error writing L1Event item to DB";
             return;
         }
     }
 }
-
 
 template <>
 void Database<DetectorLog>::get(DetectorLog log)
@@ -136,8 +135,8 @@ void Database<DetectorLog>::get(DetectorLog log)
     using namespace Link::Influx;
     auto entry { m_link.measurement("detector_log") };
     entry << Tag { "user", log.user_info().username }
-        << Tag { "detector", log.user_info().station_id }
-        << Tag { "site_id", log.user_info().site_id() };
+          << Tag { "detector", log.user_info().station_id }
+          << Tag { "site_id", log.user_info().site_id() };
 
     while (log.has_items()) {
         DetectorLogItem item { log.next_item() };
@@ -148,7 +147,6 @@ void Database<DetectorLog>::get(DetectorLog log)
         Log::warning() << "error writing DetectorLog item to DB";
     }
 }
-
 
 } // namespace MuonPi
 #endif // DATABASESINK_H

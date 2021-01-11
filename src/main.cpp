@@ -178,8 +178,7 @@ auto main(int argc, char* argv[]) -> int
     };
     std::array<Guard, 4> guard {};
 
-    SinkGuard<MuonPi::DetectorLog> detectorlog{};
-
+    SinkGuard<MuonPi::DetectorLog> detectorlog {};
 
     if (!MuonPi::Config::meta.local_cluster) {
         guard[0].db_link = new MuonPi::Link::Database { MuonPi::Config::influx };
@@ -188,16 +187,15 @@ auto main(int argc, char* argv[]) -> int
         guard[0].clusterlog.sink = new MuonPi::Sink::Database<MuonPi::ClusterLog> { *guard[0].db_link };
         guard[0].detectorsummary.sink = new MuonPi::Sink::Database<MuonPi::DetectorSummary> { *guard[0].db_link };
 
-        guard[3].event.sink = new MuonPi::Sink::Mqtt<MuonPi::Event>{ sink_mqtt_link.publish("muonpi/events") };
+        guard[3].event.sink = new MuonPi::Sink::Mqtt<MuonPi::Event> { sink_mqtt_link.publish("muonpi/events") };
 
-        detectorlog.sink = new MuonPi::Sink::Database<MuonPi::DetectorLog>{ *guard[0].db_link };
+        detectorlog.sink = new MuonPi::Sink::Database<MuonPi::DetectorLog> { *guard[0].db_link };
     } else {
         guard[0].event.sink = new MuonPi::Sink::Mqtt<MuonPi::Event> { sink_mqtt_link.publish("muonpi/l1data") };
         guard[0].clusterlog.sink = new MuonPi::Sink::Mqtt<MuonPi::ClusterLog> { sink_mqtt_link.publish("muonpi/cluster") };
         guard[0].detectorsummary.sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorSummary> { sink_mqtt_link.publish("muonpi/cluster") };
-        detectorlog.sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorLog>{ sink_mqtt_link.publish("muonpi/log/") };
+        detectorlog.sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorLog> { sink_mqtt_link.publish("muonpi/log/") };
     }
-
 
     if (parameters["d"]) {
         guard[1].event.sink = new MuonPi::Sink::Ascii<MuonPi::Event> { std::cout };
@@ -205,17 +203,17 @@ auto main(int argc, char* argv[]) -> int
         guard[1].detectorsummary.sink = new MuonPi::Sink::Ascii<MuonPi::DetectorSummary> { std::cout };
 
         if (!MuonPi::Config::meta.local_cluster) {
-            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 3> { { guard[1].event.sink, guard[0].event.sink, guard[3].event.sink} };
+            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 3> { { guard[1].event.sink, guard[0].event.sink, guard[3].event.sink } };
         } else {
-            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 2> { { guard[1].event.sink, guard[0].event.sink} };
+            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 2> { { guard[1].event.sink, guard[0].event.sink } };
         }
         guard[2].clusterlog.sink = new MuonPi::Sink::Collection<MuonPi::ClusterLog, 2> { { guard[1].clusterlog.sink, guard[0].clusterlog.sink } };
         guard[2].detectorsummary.sink = new MuonPi::Sink::Collection<MuonPi::DetectorSummary, 2> { { guard[1].detectorsummary.sink, guard[0].detectorsummary.sink } };
     } else {
         if (!MuonPi::Config::meta.local_cluster) {
-            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 2> { {guard[0].event.sink, guard[3].event.sink} };
+            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 2> { { guard[0].event.sink, guard[3].event.sink } };
         } else {
-            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 1> { {guard[0].event.sink} };
+            guard[2].event.sink = new MuonPi::Sink::Collection<MuonPi::Event, 1> { { guard[0].event.sink } };
         }
         guard[2].clusterlog.sink = new MuonPi::Sink::Collection<MuonPi::ClusterLog, 1> { { guard[0].clusterlog.sink } };
         guard[2].detectorsummary.sink = new MuonPi::Sink::Collection<MuonPi::DetectorSummary, 1> { { guard[0].detectorsummary.sink } };
@@ -230,9 +228,7 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, source_mqtt_link.subscribe("muonpi/data/#") };
     MuonPi::Source::Mqtt<MuonPi::DetectorInfo<MuonPi::Location>> detector_location_source { detector_tracker, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    MuonPi::Source::Mqtt<MuonPi::DetectorLog> detectorlog_source{*detectorlog.sink, source_mqtt_link.subscribe("muonpi/log/#")};
-
-
+    MuonPi::Source::Mqtt<MuonPi::DetectorLog> detectorlog_source { *detectorlog.sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
     supervisor.add_thread(&detector_tracker);
     supervisor.add_thread(&sink_mqtt_link);

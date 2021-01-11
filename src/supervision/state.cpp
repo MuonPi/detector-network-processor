@@ -19,16 +19,6 @@ void StateSupervisor::time_status(std::chrono::milliseconds timeout)
 
 void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
 {
-    switch (status) {
-    case Detector::Status::Reliable:
-    case Detector::Status::Unreliable:
-        Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
-        break;
-    case Detector::Status::Created:
-    case Detector::Status::Deleted:
-        break;
-    }
-
     m_detectors[hash] = status;
     if (status == Detector::Status::Deleted) {
         if (m_detectors.find(hash) != m_detectors.end()) {

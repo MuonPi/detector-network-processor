@@ -122,7 +122,7 @@ void Ascii<DetectorSummary>::get(DetectorSummary log)
     std::ostringstream out {};
 
     out
-        << "Detector Log: " << log.user_info().site_id()
+        << "Detector Summary: " << log.user_info().site_id()
         << "\n\teventrate: " << data.mean_eventrate
         << "\n\tpulselength: " << data.mean_pulselength
         << "\n\tincoming: " << data.incoming

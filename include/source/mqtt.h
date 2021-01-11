@@ -35,10 +35,16 @@ private:
     * @brief Adapter base class for the collection of several logically connected, but timely distributed MqttItems
     */
     struct ItemCollector {
-        enum class ResultCode { Aggregating,
-            Finished,
-            Error,
-            NewEpoch };
+        enum ResultCode : std::uint8_t {
+            Error = 0,
+            Aggregating = 1,
+            Finished = 2,
+            Abort = 4,
+            NewEpoch = 8,
+            Commit = Finished | NewEpoch,
+            Reset = Abort | NewEpoch
+        };
+
         ItemCollector();
 
         /**
@@ -110,8 +116,7 @@ template <>
 auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if (message_id != message[0]) {
-        reset();
-        message_id = message[0];
+        return Reset;
     }
     item.m_hash = user_info.hash();
     item.m_userinfo = user_info;
@@ -154,13 +159,13 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
         try {
             MessageParser start { content[0], '.' };
             if (start.size() != 2) {
-                return ResultCode::Error;
+                return Error;
             }
             std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
             data.start = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
 
         } catch (...) {
-            return ResultCode::Error;
+            return Error;
         }
 
         try {
@@ -171,7 +176,7 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
             data.end = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
         } catch (...) {
-            return ResultCode::Error;
+            return Error;
         }
 
         try {
@@ -184,13 +189,13 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
         } catch (std::invalid_argument& e) {
             Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
-            return ResultCode::Error;
+            return Error;
         }
         item = Event { user_info.hash(), data };
         status = 0;
-        return ResultCode::Finished;
+        return Finished;
     }
-    return ResultCode::Error;
+    return Error;
 }
 
 template <>
@@ -201,7 +206,7 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
         item.set_log_id(message_id);
         item.set_userinfo(user_info);
     } else if (message_id != message[0]) {
-        return ResultCode::NewEpoch;
+        return Commit;
     }
 
     std::string unit {};
@@ -222,14 +227,14 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
         } else if (message[1] == "positionDOP") {
             item.add_item({ "positionDOP", std::stod(message[2], nullptr), unit });
         } else {
-            return ResultCode::Aggregating;
+            return Aggregating;
         }
     } catch (std::invalid_argument& e) {
         Log::warning() << "received exception when parsing log item: " + std::string(e.what());
-        return ResultCode::Error;
+        return Error;
     }
 
-    return ResultCode::Aggregating;
+    return Aggregating;
 }
 
 template <typename T>
@@ -268,34 +273,27 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
 
         if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
             ItemCollector& item { m_buffer[hash] };
-            typename ItemCollector::ResultCode result_code { item.add(topic, content) };
-            if (result_code == ItemCollector::ResultCode::Finished) {
+            auto result_code { item.add(topic, content) };
+            if ((result_code & ItemCollector::Finished) != 0) {
                 this->put(std::move(item.item));
                 m_buffer.erase(hash);
-            } else if (result_code == ItemCollector::ResultCode::NewEpoch) {
-                // the new message has a newer log id
-                // push the item out and create a new item with the last message
-                this->put(std::move(item.item));
-                item = ItemCollector {};
-                item.message_id = content[0];
-                item.user_info = userinfo;
-                typename ItemCollector::ResultCode retry_result_code { item.add(topic, content) };
-                if (retry_result_code == ItemCollector::ResultCode::Finished) {
-                    this->put(std::move(item.item));
-                } else if (retry_result_code == ItemCollector::ResultCode::Aggregating) {
-                    m_buffer.insert({ hash, item });
-                }
+            } else if ((result_code & ItemCollector::Abort) != 0) {
+                m_buffer.erase(hash);
+            } else {
+                return;
             }
-        } else {
-            ItemCollector item;
-            item.message_id = content[0];
-            item.user_info = userinfo;
-            typename ItemCollector::ResultCode value { item.add(topic, content) };
-            if (value == ItemCollector::ResultCode::Finished) {
-                this->put(std::move(item.item));
-            } else if (value == ItemCollector::ResultCode::Aggregating) {
-                m_buffer.insert({ hash, item });
+            if ((result_code & ItemCollector::NewEpoch) == 0) {
+                return;
             }
+        }
+        ItemCollector item;
+        item.message_id = content[0];
+        item.user_info = userinfo;
+        auto value { item.add(topic, content) };
+        if ((value & ItemCollector::Finished) != 0) {
+            this->put(std::move(item.item));
+        } else if ((value & ItemCollector::Aggregating) != 0) {
+            m_buffer.insert({ hash, item });
         }
     }
 }

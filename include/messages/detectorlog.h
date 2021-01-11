@@ -23,6 +23,7 @@ public:
 	auto has_items() const -> bool;
 	auto next_item() -> DetectorLogItem;
 	auto log_id() const -> const std::string&;
+	auto user_info() const -> UserInfo;
 	void set_userinfo(UserInfo user_info);
 	void set_log_id(const std::string& log_id);
 private:	

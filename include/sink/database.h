@@ -129,5 +129,28 @@ void Database<Event>::get(Event event)
     }
 }
 
+
+template <>
+void Database<DetectorLog>::get(DetectorLog log)
+{
+    auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
+    using namespace Link::Influx;
+    auto entry { m_link.measurement("detector_log") };
+	entry << Tag { "user", log.user_info().username }
+        << Tag { "detector", log.user_info().station_id }
+        << Tag { "site_id", log.user_info().site_id() };
+	
+	while (log.has_items()) {	
+		DetectorLogItem item { log.next_item() };
+		entry << Field { item.name, item.value };
+	}
+    bool result { entry  << nanosecondsUTC };
+
+    if (!result) {
+        return;
+    }
+}
+
+
 } // namespace MuonPi
 #endif // DATABASESINK_H

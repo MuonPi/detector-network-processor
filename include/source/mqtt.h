@@ -91,7 +91,7 @@ Mqtt<Event>::ItemCollector::ItemCollector()
 }
 
 template <>
-Mqtt<DetectorLogItem>::ItemCollector::ItemCollector()
+Mqtt<DetectorLog>::ItemCollector::ItemCollector()
     : default_status { 2 }
     , status { default_status }
 {

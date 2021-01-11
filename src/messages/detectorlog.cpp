@@ -36,5 +36,10 @@ void DetectorLog::set_log_id(const std::string& log_id)
 	m_log_id = log_id;
 }
 
+auto DetectorLog::user_info() const -> UserInfo
+{
+	return m_userinfo;
+}
+
 
 }

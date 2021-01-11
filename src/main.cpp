@@ -160,18 +160,18 @@ auto main(int argc, char* argv[]) -> int
 
     std::unique_ptr<MuonPi::Sink::Base<MuonPi::Event>> event_sink { nullptr };
     std::unique_ptr<MuonPi::Sink::Base<MuonPi::Event>> clusterlog_sink { nullptr };
-    std::unique_ptr<MuonPi::Sink::Base<MuonPi::Event>> detectorlog_sink { nullptr };
+    std::unique_ptr<MuonPi::Sink::Base<MuonPi::Event>> detectorsummary_sink { nullptr };
     std::unique_ptr<MuonPi::Link::Database> db_link { nullptr };
     struct Guard {
         MuonPi::Sink::Base<MuonPi::Event>* event_sink { nullptr };
         MuonPi::Sink::Base<MuonPi::ClusterLog>* clusterlog_sink { nullptr };
-        MuonPi::Sink::Base<MuonPi::DetectorSummary>* detectorlog_sink { nullptr };
+        MuonPi::Sink::Base<MuonPi::DetectorSummary>* detectorsummary_sink { nullptr };
         MuonPi::Link::Database* db_link { nullptr };
         ~Guard()
         {
             delete event_sink;
             delete clusterlog_sink;
-            delete detectorlog_sink;
+            delete detectorsummary_sink;
             delete db_link;
         }
     };
@@ -182,11 +182,11 @@ auto main(int argc, char* argv[]) -> int
 
         guard[0].event_sink = new MuonPi::Sink::Database<MuonPi::Event> { *guard[0].db_link };
         guard[0].clusterlog_sink = new MuonPi::Sink::Database<MuonPi::ClusterLog> { *guard[0].db_link };
-        guard[0].detectorlog_sink = new MuonPi::Sink::Database<MuonPi::DetectorSummary> { *guard[0].db_link };
+        guard[0].detectorsummary_sink = new MuonPi::Sink::Database<MuonPi::DetectorSummary> { *guard[0].db_link };
     } else {
         guard[0].event_sink = new MuonPi::Sink::Mqtt<MuonPi::Event> { sink_mqtt_link.publish("muonpi/l1data") };
         guard[0].clusterlog_sink = new MuonPi::Sink::Mqtt<MuonPi::ClusterLog> { sink_mqtt_link.publish("muonpi/cluster") };
-        guard[0].detectorlog_sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorSummary> { sink_mqtt_link.publish("muonpi/cluster") };
+        guard[0].detectorsummary_sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorSummary> { sink_mqtt_link.publish("muonpi/cluster") };
     }
 
     MuonPi::Sink::Mqtt<MuonPi::Event> mqtt_broadcast_sink { sink_mqtt_link.publish("muonpi/events") };
@@ -194,21 +194,21 @@ auto main(int argc, char* argv[]) -> int
     if (parameters["d"]) {
         guard[1].event_sink = new MuonPi::Sink::Ascii<MuonPi::Event> { std::cout };
         guard[1].clusterlog_sink = new MuonPi::Sink::Ascii<MuonPi::ClusterLog> { std::cout };
-        guard[1].detectorlog_sink = new MuonPi::Sink::Ascii<MuonPi::DetectorSummary> { std::cout };
+        guard[1].detectorsummary_sink = new MuonPi::Sink::Ascii<MuonPi::DetectorSummary> { std::cout };
 
         guard[2].event_sink = new MuonPi::Sink::Collection<MuonPi::Event, 3> { { guard[1].event_sink, guard[0].event_sink, &mqtt_broadcast_sink } };
         guard[2].clusterlog_sink = new MuonPi::Sink::Collection<MuonPi::ClusterLog, 2> { { guard[1].clusterlog_sink, guard[0].clusterlog_sink } };
-        guard[2].detectorlog_sink = new MuonPi::Sink::Collection<MuonPi::DetectorSummary, 2> { { guard[1].detectorlog_sink, guard[0].detectorlog_sink } };
+        guard[2].detectorsummary_sink = new MuonPi::Sink::Collection<MuonPi::DetectorSummary, 2> { { guard[1].detectorsummary_sink, guard[0].detectorsummary_sink } };
     } else {
         guard[2].event_sink = new MuonPi::Sink::Collection<MuonPi::Event, 2> { { guard[0].event_sink, &mqtt_broadcast_sink } };
         guard[2].clusterlog_sink = new MuonPi::Sink::Collection<MuonPi::ClusterLog, 1> { { guard[0].clusterlog_sink } };
-        guard[2].detectorlog_sink = new MuonPi::Sink::Collection<MuonPi::DetectorSummary, 1> { { guard[0].detectorlog_sink } };
+        guard[2].detectorsummary_sink = new MuonPi::Sink::Collection<MuonPi::DetectorSummary, 1> { { guard[0].detectorsummary_sink } };
     }
 
     MuonPi::StateSupervisor supervisor { *guard[2].clusterlog_sink };
     MuonPi::CoincidenceFilter coincidence_filter { *guard[2].event_sink, supervisor };
     MuonPi::TimeBaseSupervisor timebase_supervisor { coincidence_filter, coincidence_filter };
-    MuonPi::DetectorTracker detector_tracker { *guard[2].detectorlog_sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
+    MuonPi::DetectorTracker detector_tracker { *guard[2].detectorsummary_sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
     MuonPi::TriggerHandler trigger_handler { detector_tracker, MuonPi::Config::rest, MuonPi::Config::ldap };
 
     MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, source_mqtt_link.subscribe("muonpi/data/#") };
@@ -218,7 +218,7 @@ auto main(int argc, char* argv[]) -> int
     supervisor.add_thread(&sink_mqtt_link);
     supervisor.add_thread(&source_mqtt_link);
     supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::Event>*>(guard[2].event_sink));
-    supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::DetectorSummary>*>(guard[2].detectorlog_sink));
+    supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::DetectorSummary>*>(guard[2].detectorsummary_sink));
     supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::ClusterLog>*>(guard[2].clusterlog_sink));
 
     shutdown_handler = [&](int signal) {

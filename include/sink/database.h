@@ -9,6 +9,7 @@
 #include "utility/utility.h"
 
 #include "messages/clusterlog.h"
+#include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 
@@ -66,11 +67,9 @@ void Database<ClusterLog>::get(ClusterLog log)
         }
         fields << Link::Influx::Field { "outgoing" + std::to_string(level), n };
     }
-    auto result { fields << nanosecondsUTC };
 
-    if (!result) {
-		Log::warning() << "error writing ClusterLog item to DB";
-        return;
+    if (!fields.commit(nanosecondsUTC)) {
+        Log::warning() << "error writing ClusterLog item to DB";
     }
 }
 
@@ -79,7 +78,7 @@ void Database<DetectorSummary>::get(DetectorSummary log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace Link::Influx;
-    auto result { std::move(m_link.measurement("detector_summary")
+    auto result { std::move((m_link.measurement("detector_summary")
         << Tag { "cluster_id", Config::influx.cluster_id }
         << Tag { "user", log.user_info().username }
         << Tag { "detector", log.user_info().station_id }
@@ -90,11 +89,10 @@ void Database<DetectorSummary>::get(DetectorSummary log)
         << Field { "incoming", log.data().incoming }
         << Field { "ublox_counter_progress", log.data().ublox_counter_progress }
         << Field { "deadtime_factor", log.data().deadtime }
-        << nanosecondsUTC) };
+        ).commit(nanosecondsUTC)) };
 
     if (!result) {
-		Log::warning() << "error writing DetectorSummary item to DB";
-        return;
+        Log::warning() << "error writing DetectorSummary item to DB";
     }
 }
 
@@ -110,7 +108,7 @@ void Database<Event>::get(Event event)
     GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
     for (auto& evt : event.events()) {
         using namespace Link::Influx;
-        bool result = m_link.measurement("L1Event")
+        if (!(m_link.measurement("L1Event")
             << Tag { "user", evt.data().user }
             << Tag { "detector", evt.data().station_id }
             << Tag { "site_id", evt.data().user + evt.data().station_id }
@@ -122,11 +120,9 @@ void Database<Event>::get(Event event)
             << Field { "coinc_time", evt.start() - event.start() }
             << Field { "cluster_coinc_time", cluster_coinc_time }
             << Field { "time_ref", evt.data().gnss_time_grid }
-            << Field { "valid_fix", evt.data().fix }
-            << evt.start();
-
-        if (!result) {
-			Log::warning() << "error writing L1Event item to DB";
+            << Field { "valid_fix", evt.data().fix })
+            .commit(evt.start())) {
+            Log::warning() << "error writing L1Event item to DB";
             return;
         }
     }
@@ -139,19 +135,17 @@ void Database<DetectorLog>::get(DetectorLog log)
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace Link::Influx;
     auto entry { m_link.measurement("detector_log") };
-	entry << Tag { "user", log.user_info().username }
+    entry << Tag { "user", log.user_info().username }
         << Tag { "detector", log.user_info().station_id }
         << Tag { "site_id", log.user_info().site_id() };
-	
-	while (log.has_items()) {	
-		DetectorLogItem item { log.next_item() };
-		entry << Field { item.name, item.value };
-	}
-    bool result { entry  << nanosecondsUTC };
 
-    if (!result) {
-		Log::warning() << "error writing DetectorLog item to DB";
-		return;
+    while (log.has_items()) {
+        DetectorLogItem item { log.next_item() };
+        entry << Field { item.name, item.value };
+    }
+
+    if (!entry.commit(nanosecondsUTC)) {
+        Log::warning() << "error writing DetectorLog item to DB";
     }
 }
 

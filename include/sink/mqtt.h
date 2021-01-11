@@ -9,6 +9,7 @@
 #include "utility/utility.h"
 
 #include "messages/clusterlog.h"
+#include "messages/detectorlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
@@ -198,6 +199,43 @@ void Mqtt<Trigger::Detector>::get(Trigger::Detector trigger)
 
     if (!m_link.publish(trigger.setting.username + "/" + trigger.setting.station, stream.str())) {
         Log::warning() << "Could not publish MQTT message.";
+    }
+}
+
+template <class... Ts>
+struct overloaded : Ts... {
+    using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+template <>
+
+void Mqtt<DetectorLog>::get(DetectorLog log)
+{
+    std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
+    std::ostringstream stream {};
+    stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
+
+    while (log.has_items()) {
+        DetectorLogItem item { log.next_item() };
+        auto constructor { construct(stream.str(), item.name)};
+        std::visit(overloaded {
+                       [&](std::string value) {constructor<<value; },
+                       [&](std::int_fast64_t value) {constructor<<value; },
+                       [&](std::size_t value) {constructor<<value; },
+                       [&](std::uint8_t value) {constructor<<value; },
+                       [&](std::uint16_t value) {constructor<<value; },
+                       [&](std::uint32_t value) {constructor<<value; },
+                       [&](bool value) {constructor<<value; },
+                       [&](double value) {constructor<<value; } },
+        item.value);
+        if (!item.unit.empty()) {
+            constructor<<item.unit;
+        }
+        if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constructor.str())) {
+            Log::warning() << "Could not publish MQTT message.";
+            return;
+        }
     }
 }
 

@@ -12,12 +12,12 @@ namespace MuonPi::Link {
 Database::Entry::Entry(const std::string& measurement, Database& link)
     : m_link { link }
 {
-    m_stream << measurement;
+    m_tags<<measurement;
 }
 
 auto Database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
 {
-    m_stream << ',' << tag.name << '=' << tag.field;
+    m_tags << ',' << tag.name << '=' << tag.field;
     return *this;
 }
 
@@ -31,23 +31,27 @@ overloaded(Ts...) -> overloaded<Ts...>;
 auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
 {
     std::visit(overloaded {
-                   [this, field](const std::string& value) {m_stream<<(m_has_field?',':' ')<<field.name<<"=\""<<value<<'"'; m_has_field = true; },
-                   [this, field](std::int_fast64_t value) {m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true; },
-                   [this, field](std::size_t value) {m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true; },
-                   [this, field](std::uint8_t value) {m_stream<<(m_has_field?',':' ')<<field.name<<'='<<static_cast<std::uint16_t>(value)<<'i'; m_has_field = true; },
-                   [this, field](std::uint16_t value) {m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true; },
-                   [this, field](std::uint32_t value) {m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true; },
-                   //                   [this, field](std::uint64_t value){m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value<<'i'; m_has_field = true;},
-                   [this, field](bool value) {m_stream<<field.name<<(m_has_field?',':' ')<<'='<<(value?'t':'f'); m_has_field = true; },
-                   [this, field](double value) {m_stream<<(m_has_field?',':' ')<<field.name<<'='<<value; m_has_field = true; } },
+                   [this, field](const std::string& value) {m_fields<<','<<field.name<<"=\""<<value<<'"'; },
+                   [this, field](std::int_fast64_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
+                   [this, field](std::size_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
+                   [this, field](std::uint8_t value) {m_fields<<','<<field.name<<'='<<static_cast<std::uint16_t>(value)<<'i'; },
+                   [this, field](std::uint16_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
+                   [this, field](std::uint32_t value) {m_fields<<','<<field.name<<'='<<value<<'i'; },
+                   [this, field](bool value) {m_fields<<field.name<<','<<'='<<(value?'t':'f'); },
+                   [this, field](double value) {m_fields<<','<<field.name<<'='<<value; } },
         field.value);
     return *this;
 }
 
-auto Database::Entry::operator<<(std::int_fast64_t timestamp) -> bool
+auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
 {
-    m_stream << ' ' << timestamp;
-    return m_link.send_string(m_stream.str());
+    if (m_fields.str().empty()) {
+        return false;
+    }
+    m_tags<<' '
+    <<m_fields.str().substr(1)
+    << ' ' << timestamp;
+    return m_link.send_string(m_tags.str());
 }
 
 Database::Database(Config::Influx config)

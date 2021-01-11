@@ -37,7 +37,7 @@ private:
     */
     struct ItemCollector {
         enum class ResultCode { Aggregating, Finished, Error, NewEpoch };
-		ItemCollector();
+        ItemCollector();
 
         /**
         * @brief reset Resets the ItemCollector to its default state
@@ -56,7 +56,7 @@ private:
 
         [[nodiscard]] auto is_same_message_id(const std::string& a_message_id) const -> bool { return (a_message_id == message_id); }
 
-		std::uint16_t default_status { 0x0000 };
+        std::uint16_t default_status { 0x0000 };
         std::uint16_t status { 0 };
 
         T item {};
@@ -195,27 +195,31 @@ template <>
 auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if ( !item.has_items() ) {
-		message_id = message[0];
-		item.set_log_id( message_id );
-		item.set_userinfo( user_info );
-	}
-	else if (message_id != message[0]) {
+        message_id = message[0];
+        item.set_log_id( message_id );
+        item.set_userinfo( user_info );
+    }
+    else if (message_id != message[0]) {
         return ResultCode::NewEpoch;
     }
 
+    std::string unit {};
+    if (message.size() > 3) {
+        unit = message[3];
+    }
     try {
         if (message[1] == "geoHeightMSL") {
-            item.add_item( { "geoHeightMSL", std::stod(message[2], nullptr) } );
+            item.add_item( { "geoHeightMSL", std::stod(message[2], nullptr), unit} );
         } else if (message[1] == "geoHorAccuracy") {
-            item.add_item( { "geoHorAccuracy", std::stod(message[2], nullptr) } );
+            item.add_item( { "geoHorAccuracy", std::stod(message[2], nullptr), unit } );
         } else if (message[1] == "geoLatitude") {
-            item.add_item( { "geoLatitude", std::stod(message[2], nullptr) } );
+            item.add_item( { "geoLatitude", std::stod(message[2], nullptr), unit } );
         } else if (message[1] == "geoLongitude") {
-            item.add_item( { "geoLongitude", std::stod(message[2], nullptr) } );
+            item.add_item( { "geoLongitude", std::stod(message[2], nullptr), unit } );
         } else if (message[1] == "geoVertAccuracy") {
-            item.add_item( { "geoVertAccuracy", std::stod(message[2], nullptr) } );
+            item.add_item( { "geoVertAccuracy", std::stod(message[2], nullptr), unit } );
         } else if (message[1] == "positionDOP") {
-            item.add_item( { "positionDOP", std::stod(message[2], nullptr) } );
+            item.add_item( { "positionDOP", std::stod(message[2], nullptr), unit } );
         } else {
             return ResultCode::Aggregating;
         }
@@ -266,23 +270,23 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
         if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
             ItemCollector& item { m_buffer[hash] };
             typename ItemCollector::ResultCode result_code { item.add(topic, content) };
-			if ( result_code == ItemCollector::ResultCode::Finished ) {
+            if ( result_code == ItemCollector::ResultCode::Finished ) {
                 this->put(std::move(item.item));
                 m_buffer.erase(hash);
             } else if (result_code == ItemCollector::ResultCode::NewEpoch) {
-				// the new message has a newer log id
-				// push the item out and create a new item with the last message
-				this->put(std::move(item.item));
-				item = ItemCollector { };
-				item.message_id = content[0];
-				item.user_info = userinfo;
-				typename ItemCollector::ResultCode retry_result_code { item.add(topic, content) };
-				if ( retry_result_code == ItemCollector::ResultCode::Finished ) {
-					this->put(std::move(item.item));
-				} else if (retry_result_code == ItemCollector::ResultCode::Aggregating) {
-					m_buffer.insert({ hash, item });
-				}
-			}
+                // the new message has a newer log id
+                // push the item out and create a new item with the last message
+                this->put(std::move(item.item));
+                item = ItemCollector { };
+                item.message_id = content[0];
+                item.user_info = userinfo;
+                typename ItemCollector::ResultCode retry_result_code { item.add(topic, content) };
+                if ( retry_result_code == ItemCollector::ResultCode::Finished ) {
+                    this->put(std::move(item.item));
+                } else if (retry_result_code == ItemCollector::ResultCode::Aggregating) {
+                    m_buffer.insert({ hash, item });
+                }
+            }
         } else {
             ItemCollector item;
             item.message_id = content[0];
@@ -292,7 +296,7 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
                 this->put(std::move(item.item));
             } else if (value == ItemCollector::ResultCode::Aggregating) {
                 m_buffer.insert({ hash, item });
-            } 
+            }
         }
     }
 }

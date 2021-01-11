@@ -34,11 +34,13 @@ public:
 
         auto operator<<(const Influx::Tag& tag) -> Entry&;
         auto operator<<(const Influx::Field& field) -> Entry&;
-        [[nodiscard]] auto operator<<(std::int_fast64_t timestamp) -> bool;
+
+        [[nodiscard]] auto commit(std::int_fast64_t timestamp) -> bool;
 
     private:
-        std::ostringstream m_stream {};
-        bool m_has_field { false };
+        std::ostringstream m_tags {};
+        std::ostringstream m_fields {};
+
         Database& m_link;
 
         friend class Database;

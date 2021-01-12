@@ -4,7 +4,7 @@ project(muondetector-cluster LANGUAGES CXX C)
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
 option(CLUSTER_BUILD_TIDY "run clang-tidy when building the project" OFF)
-option(CLUSTER_FORMAT "run clang-format when building the project" OFF)
+option(CLUSTER_FORMAT "run clang-format when building the project" ON)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")

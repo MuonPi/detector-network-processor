@@ -62,13 +62,13 @@ void Database<ClusterLog>::get(ClusterLog log)
         << Link::Influx::Field { "incoming", log.data().incoming }) };
 
     std::size_t total_n { 0 };
-	
-	for (auto& [level, n] : log.data().outgoing) {
+
+    for (auto& [level, n] : log.data().outgoing) {
         if (level == 1) {
             continue;
         }
         fields << Link::Influx::Field { "outgoing" + std::to_string(level), n };
-		total_n += n;
+        total_n += n;
     }
 
     fields << Link::Influx::Field { "outgoing", total_n };

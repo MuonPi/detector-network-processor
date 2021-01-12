@@ -253,112 +253,65 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
         unit = message[3];
     }
     try {
-        if (message[1] == "geoHeightMSL") {
-            item.add_item({ "geoHeightMSL", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "geoHorAccuracy") {
-            item.add_item({ "geoHorAccuracy", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "geoLatitude") {
-            item.add_item({ "geoLatitude", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "geoLongitude") {
-            item.add_item({ "geoLongitude", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "geoVertAccuracy") {
-            item.add_item({ "geoVertAccuracy", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "positionDOP") {
-            item.add_item({ "positionDOP", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "RXBufUsage") {
-            item.add_item({ "RXBufUsage", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "TXBufUsage") {
-            item.add_item({ "TXBufUsage", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "UBX_HW_Version") {
-            item.add_item({ "UBX_HW_Version", message[2], "" });
-        } else if (message[1] == "UBX_Prot_Version") {
-            item.add_item({ "UBX_Prot_Version", message[2], "" });
-        } else if (message[1] == "UBX_SW_Version") {
-            item.add_item({ "UBX_SW_Version", message[2], "" });
-        } else if (message[1] == "adcSamplingTime") {
-            item.add_item({ "adcSamplingTime", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "antennaPower") {
-            item.add_item({ "antennaPower", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "antennaStatus") {
-            item.add_item({ "antennaStatus", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "biasDAC") {
-            item.add_item({ "biasDAC", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "biasSwitch") {
-            item.add_item({ "biasSwitch", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "calib_coeff2") {
-            item.add_item({ "calib_coeff2", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "calib_coeff3") {
-            item.add_item({ "calib_coeff3", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "calib_rsense") {
-            item.add_item({ "calib_rsense", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "calib_vdiv") {
-            item.add_item({ "calib_vdiv", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "clockBias") {
-            item.add_item({ "clockBias", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "clockDrift") {
-            item.add_item({ "clockDrift", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "fixStatus") {
-            item.add_item({ "fixStatus", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "freqAccuracy") {
-            item.add_item({ "freqAccuracy", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "gainSwitch") {
-            item.add_item({ "gainSwitch", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "ibias") {
-            item.add_item({ "ibias", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "jammingLevel") {
-            item.add_item({ "jammingLevel", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "maxCNR") {
-            item.add_item({ "maxCNR", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "maxRXBufUsage") {
-            item.add_item({ "maxTXBufUsage", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "meanGeoHeightMSL") {
-            item.add_item({ "meanGeoHeightMSL", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "polaritySwitch1") {
-            item.add_item({ "polaritySwitch1", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "polaritySwitch2") {
-            item.add_item({ "polaritySwitch2", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "preampAGC") {
-            item.add_item({ "preampAGC", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "preampNoise") {
-            item.add_item({ "preampNoise", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "preampSwitch1") {
-            item.add_item({ "preampSwitch1", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "preampSwitch2") {
-            item.add_item({ "preampSwitch2", static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "rateAND") {
-            item.add_item({ "rateAND", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "rateXOR") {
-            item.add_item({ "rateXOR", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "sats") {
-            item.add_item({ "sats", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "systemFreeMem") {
-            item.add_item({ "systemFreeMem", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "systemFreeSwap") {
-            item.add_item({ "systemFreeSwap", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "systemLoadAvg") {
-            item.add_item({ "systemLoadAvg", std::stod(message[2], nullptr), unit });
+        if ((message[1] == "geoHeightMSL")
+            || (message[1] == "geoHorAccuracy")
+            || (message[1] == "geoLatitude")
+            || (message[1] == "geoLongitude")
+            || (message[1] == "geoVertAccuracy")
+            || (message[1] == "positionDOP")
+            || (message[1] == "RXBufUsage")
+            || (message[1] == "TXBufUsage")
+            || (message[1] == "adcSamplingTime")
+            || (message[1] == "antennaPower")
+            || (message[1] == "antennaStatus")
+            || (message[1] == "biasDAC")
+            || (message[1] == "biasSwitch")
+            || (message[1] == "calib_coeff2")
+            || (message[1] == "calib_coeff3")
+            || (message[1] == "calib_rsense")
+            || (message[1] == "calib_vdiv")
+            || (message[1] == "clockBias")
+            || (message[1] == "clockDrift")
+            || (message[1] == "fixStatus")
+            || (message[1] == "freqAccuracy")
+            || (message[1] == "ibias")
+            || (message[1] == "jammingLevel")
+            || (message[1] == "maxCNR")
+            || (message[1] == "maxRXBufUsage")
+            || (message[1] == "meanGeoHeightMSL")
+            || (message[1] == "preampAGC")
+            || (message[1] == "preampNoise")
+            || (message[1] == "rateAND")
+            || (message[1] == "rateXOR")
+            || (message[1] == "sats")
+            || (message[1] == "systemFreeMem")
+            || (message[1] == "systemFreeSwap")
+            || (message[1] == "systemLoadAvg")
+            || (message[1] == "systemUptime")
+            || (message[1] == "temperature")
+            || (message[1] == "thresh1")
+            || (message[1] == "thresh2")
+            || (message[1] == "timeAccuracy")
+            || (message[1] == "timeDOP")
+            || (message[1] == "ubloxUptime")
+            || (message[1] == "usedSats")
+            || (message[1] == "vbias")
+            || (message[1] == "vsense")) {
+            item.add_item({ message[1], std::stod(message[2], nullptr), unit });
+        } else if (
+            (message[1] == "UBX_HW_Version")
+            || (message[1] == "UBX_Prot_Version")
+            || (message[1] == "UBX_SW_Version")) {
+            item.add_item({ message[1], message[2], "" });
+        } else if (
+            (message[1] == "gainSwitch")
+            || (message[1] == "polaritySwitch1")
+            || (message[1] == "polaritySwitch2")
+            || (message[1] == "preampSwitch1")
+            || (message[1] == "preampSwitch2")) {
+            item.add_item({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else if (message[1] == "systemNrCPUs") {
-            item.add_item({ "systemNrCPUs", static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "systemUptime") {
-            item.add_item({ "systemUptime", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "temperature") {
-            item.add_item({ "temperature", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "thresh1") {
-            item.add_item({ "thresh1", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "thresh2") {
-            item.add_item({ "thresh2", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "timeAccuracy") {
-            item.add_item({ "timeAccuracy", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "timeDOP") {
-            item.add_item({ "timeDOP", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "ubloxUptime") {
-            item.add_item({ "ubloxUptime", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "usedSats") {
-            item.add_item({ "usedSats", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "vbias") {
-            item.add_item({ "vbias", std::stod(message[2], nullptr), unit });
-        } else if (message[1] == "vsense") {
-            item.add_item({ "vsense", std::stod(message[2], nullptr), unit });
+            item.add_item({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else {
             return Aggregating;
         }

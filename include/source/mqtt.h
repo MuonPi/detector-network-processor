@@ -13,6 +13,7 @@
 
 #include <map>
 #include <memory>
+#include <string>
 
 namespace MuonPi::Source {
 
@@ -26,7 +27,7 @@ public:
      * @brief Mqtt
      * @param subscriber The Mqtt Topic this source should be subscribed to
      */
-    Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& subscriber);
+    Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& topic);
 
     ~Mqtt() override;
 
@@ -76,6 +77,8 @@ private:
      */
     void process(const Link::Mqtt::Message& msg);
 
+    [[nodiscard]] auto generate_hash(MessageParser& topic, MessageParser& message) -> std::size_t;
+
     Link::Mqtt::Subscriber& m_link;
 
     std::map<std::size_t, ItemCollector> m_buffer {};
@@ -93,7 +96,7 @@ Mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
 
 template <>
 Mqtt<Event>::ItemCollector::ItemCollector()
-    : default_status { 0x0001 }
+    : default_status { 0x0000 }
     , status { default_status }
 {
 }
@@ -153,49 +156,85 @@ auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
 template <>
 auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> ResultCode
 {
-    if ((topic.size() >= 4) && (content.size() >= 7)) {
+    if ((topic.size() < 4) || (content.size() < 7)) {
+        return Error;
+    }
+    if (topic[1] == "l1data") {
+        if (content.size() < 13) {
+            return Error;
+        }
 
         Event::Data data;
-        try {
-            MessageParser start { content[0], '.' };
-            if (start.size() != 2) {
-                return Error;
-            }
-            std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
-            data.start = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
 
-        } catch (...) {
-            return Error;
-        }
-
+        std::size_t hash { 0 };
+        std::size_t n { 0 };
         try {
-            MessageParser start { content[1], '.' };
-            if (start.size() != 2) {
-                return ResultCode::Error;
-            }
-            std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
-            data.end = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
-        } catch (...) {
-            return Error;
-        }
-
-        try {
+            hash = std::stoul(content[1], nullptr, 16);
+            n = std::stoul(content[4], nullptr);
             data.user = topic[2];
-            data.station_id = user_info.station_id;
-            data.time_acc = static_cast<std::uint32_t>(std::stoul(content[2], nullptr));
-            data.ublox_counter = static_cast<std::uint16_t>(std::stoul(content[3], nullptr));
-            data.fix = static_cast<std::uint8_t>(std::stoul(content[4], nullptr));
-            data.utc = static_cast<std::uint8_t>(std::stoul(content[6], nullptr));
-            data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
+            data.station_id = topic[3];
+            data.time_acc = static_cast<std::uint32_t>(std::stoul(content[3], nullptr));
+            data.ublox_counter = static_cast<std::uint16_t>(std::stoul(content[7], nullptr));
+            data.fix = static_cast<std::uint8_t>(std::stoul(content[10], nullptr));
+            data.utc = static_cast<std::uint8_t>(std::stoul(content[12], nullptr));
+            data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[9], nullptr));
+            data.start = std::stoll(content[11], nullptr);
+            data.end = std::stoll(content[8], nullptr) + data.start;
         } catch (std::invalid_argument& e) {
             Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
             return Error;
         }
-        item = Event { user_info.hash(), data };
-        status = 0;
-        return Finished;
+        if (status == 0) {
+            item = Event { hash, data };
+            status = n - 1;
+            return Aggregating;
+        } else {
+            item.add_event(Event { hash, data });
+            status--;
+            if (status == 0) {
+                return Finished;
+            }
+        }
     }
-    return Error;
+    Event::Data data;
+    try {
+        MessageParser start { content[0], '.' };
+        if (start.size() != 2) {
+            return Error;
+        }
+        std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
+        data.start = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
+
+    } catch (...) {
+        return Error;
+    }
+
+    try {
+        MessageParser start { content[1], '.' };
+        if (start.size() != 2) {
+            return ResultCode::Error;
+        }
+        std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
+        data.end = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
+    } catch (...) {
+        return Error;
+    }
+
+    try {
+        data.user = topic[2];
+        data.station_id = user_info.station_id;
+        data.time_acc = static_cast<std::uint32_t>(std::stoul(content[2], nullptr));
+        data.ublox_counter = static_cast<std::uint16_t>(std::stoul(content[3], nullptr));
+        data.fix = static_cast<std::uint8_t>(std::stoul(content[4], nullptr));
+        data.utc = static_cast<std::uint8_t>(std::stoul(content[6], nullptr));
+        data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
+    } catch (std::invalid_argument& e) {
+        Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+        return Error;
+    }
+    item = Event { user_info.hash(), data };
+    status = 0;
+    return Finished;
 }
 
 template <>
@@ -332,11 +371,11 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
 }
 
 template <typename T>
-Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& subscriber)
+Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& topic)
     : Base<T> { sink }
-    , m_link { subscriber }
+    , m_link { topic }
 {
-    subscriber.set_callback([this](const Link::Mqtt::Message& message) {
+    topic.set_callback([this](const Link::Mqtt::Message& message) {
         process(message);
     });
 }
@@ -345,50 +384,72 @@ template <typename T>
 Mqtt<T>::~Mqtt() = default;
 
 template <typename T>
+auto Mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) -> std::size_t
+{
+    UserInfo userinfo {};
+    userinfo.username = topic[2];
+    std::string site { topic[3] };
+    for (std::size_t i = 4; i < topic.size(); i++) {
+        site += "/" + topic[i];
+    }
+    userinfo.station_id = site;
+
+    return userinfo.hash();
+}
+
+template <>
+auto Mqtt<Event>::generate_hash(MessageParser& /*topic*/, MessageParser& message) -> std::size_t
+{
+    return std::hash<std::string> {}(message[0]);
+}
+
+template <typename T>
 void Mqtt<T>::process(const Link::Mqtt::Message& msg)
 {
     MessageParser topic { msg.topic, '/' };
     MessageParser content { msg.content, ' ' };
-    MessageParser subscribe_topic { m_link.get_subscribe_topic(), '/' };
 
-    if ((topic.size() >= 4) && (content.size() >= 2)) {
-        if ((topic[2] == "") || (topic[2] == "cluster")) {
+    if ((topic.size() < 4) || (content.size() < 2)) {
+        return;
+    }
+    if ((topic[2] == "") || (topic[2] == "cluster")) {
+        return;
+    }
+
+    std::size_t hash { generate_hash(topic, content) };
+
+    if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
+        ItemCollector& item { m_buffer[hash] };
+        auto result_code { item.add(topic, content) };
+        if ((result_code & ItemCollector::Finished) != 0) {
+            this->put(std::move(item.item));
+            m_buffer.erase(hash);
+        } else if ((result_code & ItemCollector::Abort) != 0) {
+            m_buffer.erase(hash);
+        } else {
             return;
         }
-        UserInfo userinfo {};
-        userinfo.username = topic[2];
-        std::string site { topic[3] };
-        for (std::size_t i = 4; i < topic.size(); i++) {
-            site += "/" + topic[i];
+        if ((result_code & ItemCollector::NewEpoch) == 0) {
+            return;
         }
-        userinfo.station_id = site;
+    }
 
-        std::size_t hash { userinfo.hash() };
+    UserInfo userinfo {};
+    userinfo.username = topic[2];
+    std::string site { topic[3] };
+    for (std::size_t i = 4; i < topic.size(); i++) {
+        site += "/" + topic[i];
+    }
+    userinfo.station_id = site;
 
-        if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
-            ItemCollector& item { m_buffer[hash] };
-            auto result_code { item.add(topic, content) };
-            if ((result_code & ItemCollector::Finished) != 0) {
-                this->put(std::move(item.item));
-                m_buffer.erase(hash);
-            } else if ((result_code & ItemCollector::Abort) != 0) {
-                m_buffer.erase(hash);
-            } else {
-                return;
-            }
-            if ((result_code & ItemCollector::NewEpoch) == 0) {
-                return;
-            }
-        }
-        ItemCollector item;
-        item.message_id = content[0];
-        item.user_info = userinfo;
-        auto value { item.add(topic, content) };
-        if ((value & ItemCollector::Finished) != 0) {
-            this->put(std::move(item.item));
-        } else if ((value & ItemCollector::Aggregating) != 0) {
-            m_buffer.insert({ hash, item });
-        }
+    ItemCollector item;
+    item.message_id = content[0];
+    item.user_info = userinfo;
+    auto value { item.add(topic, content) };
+    if ((value & ItemCollector::Finished) != 0) {
+        this->put(std::move(item.item));
+    } else if ((value & ItemCollector::Aggregating) != 0) {
+        m_buffer.insert({ hash, item });
     }
 }
 

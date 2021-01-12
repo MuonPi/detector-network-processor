@@ -322,7 +322,7 @@ auto Mqtt::reconnect() -> bool
     m_tries++;
     set_status(Status::Disconnected);
 
-    if (m_tries > (s_max_tries - 5)) {
+    if (m_tries > (s_max_tries - 8)) {
         Log::error() << "Giving up trying to reconnect to MQTT.";
         return reinitialise();
     }
@@ -349,8 +349,8 @@ auto Mqtt::reinitialise() -> bool
     if (m_mqtt != nullptr) {
         mosquitto_destroy(m_mqtt);
         m_mqtt = nullptr;
+        mosquitto_lib_cleanup();
     }
-    mosquitto_lib_cleanup();
 
     m_mqtt = init(client_id().c_str());
 

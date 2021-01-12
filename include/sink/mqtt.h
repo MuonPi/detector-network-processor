@@ -38,6 +38,8 @@ public:
 
     ~Mqtt() override;
 
+    void set_detailed();
+
     void get(T message) override;
 
 private:
@@ -67,6 +69,8 @@ private:
     [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> Constructor;
 
     Link::Mqtt::Publisher& m_link;
+
+    bool m_detailed { false };
 };
 
 template <typename T>
@@ -77,6 +81,12 @@ Mqtt<T>::Mqtt(Link::Mqtt::Publisher& publisher)
 
 template <typename T>
 Mqtt<T>::~Mqtt() = default;
+
+template <typename T>
+void Mqtt<T>::set_detailed()
+{
+    m_detailed = true;
+}
 
 template <typename T>
 auto Mqtt<T>::construct(const std::string& time, const std::string& parname) -> Constructor
@@ -152,8 +162,6 @@ void Mqtt<Event>::get(Event event)
         std::string geohash = GeoHash::hashFromCoordinates(loc.lon, loc.lat, 5);
         MessageConstructor message { ' ' };
         message.add_field(guid.to_string()); // UUID for the L1Event
-        //message.add_field(evt.data().user); // user name
-        //message.add_field(evt.data().station_id); // station (detector) name
         message.add_field(int_to_hex(evt.hash())); // the hashed detector id
         message.add_field(geohash); // the geohash of the detector's location
         message.add_field(std::to_string(evt.data().time_acc)); // station's time accuracy
@@ -165,10 +173,16 @@ void Mqtt<Event>::get(Event event)
         message.add_field(std::to_string(evt.data().gnss_time_grid)); // the time grid to which the station was synced at the moment of the event
         message.add_field(std::to_string(evt.data().fix)); // if the station had a valid GNSS fix at the time of the event
         message.add_field(std::to_string(evt.start())); // the timestamp of the stations hit
+        message.add_field(std::to_string(evt.data().utc)); //if the station uses utc
 
-        if (!m_link.publish(message.get_string())) {
-            Log::warning() << "Could not publish MQTT message.";
-            return;
+        if (m_detailed) {
+            if (!m_link.publish(evt.data().user + "/" + evt.data().station_id, message.get_string())) {
+                Log::warning() << "Could not publish MQTT message.";
+            }
+        } else {
+            if (!m_link.publish(message.get_string())) {
+                Log::warning() << "Could not publish MQTT message.";
+            }
         }
     }
 }

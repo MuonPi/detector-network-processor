@@ -195,6 +195,8 @@ auto main(int argc, char* argv[]) -> int
         guard[0].clusterlog.sink = new MuonPi::Sink::Mqtt<MuonPi::ClusterLog> { sink_mqtt_link.publish("muonpi/cluster") };
         guard[0].detectorsummary.sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorSummary> { sink_mqtt_link.publish("muonpi/cluster") };
         detectorlog.sink = new MuonPi::Sink::Mqtt<MuonPi::DetectorLog> { sink_mqtt_link.publish("muonpi/log/") };
+
+        reinterpret_cast<MuonPi::Sink::Mqtt<MuonPi::Event>*>(guard[0].event.sink)->set_detailed();
     }
 
     if (parameters["d"]) {
@@ -226,6 +228,7 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::TriggerHandler trigger_handler { detector_tracker, MuonPi::Config::rest, MuonPi::Config::ldap };
 
     MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, source_mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> l1_source { detector_tracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
     MuonPi::Source::Mqtt<MuonPi::DetectorInfo<MuonPi::Location>> detector_location_source { detector_tracker, source_mqtt_link.subscribe("muonpi/log/#") };
 
     MuonPi::Source::Mqtt<MuonPi::DetectorLog> detectorlog_source { *detectorlog.sink, source_mqtt_link.subscribe("muonpi/log/#") };

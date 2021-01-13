@@ -48,6 +48,12 @@ public:
     Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& tracker);
 
     /**
+     * @brief Detector Construct the detector from a serialised string
+     * @param serialised The serialised string
+     */
+    Detector(const std::string& serialised, DetectorTracker& tracker);
+
+    /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.
      * @param event the event to process
      */
@@ -89,6 +95,12 @@ public:
      * @return the Location struct
      */
     [[nodiscard]] auto location() const -> Location { return m_location; }
+
+    /**
+     * @brief serialise Serialise the current detector information
+     * @return Serialised string
+     */
+    [[nodiscard]] auto serialise() const -> std::string;
 
 protected:
     /**

@@ -19,6 +19,7 @@ DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink
     , Source::Base<Trigger::Detector> { trigger_sink }
     , m_supervisor { supervisor }
 {
+    load();
 }
 
 void DetectorTracker::get(Event event)
@@ -48,6 +49,7 @@ auto DetectorTracker::process(DetectorInfo<Location> log) -> int
     if (detector == m_detectors.end()) {
         m_detectors[log.hash()] = std::make_unique<Detector>(log, *this);
         m_detectors[log.hash()]->enable();
+        save();
         return 0;
     }
     (*detector).second->process(log);
@@ -129,7 +131,6 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
         }
         Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Offline] });
         return;
-        break;
     case Detector::Status::Created:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
             return;
@@ -138,7 +139,6 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
             return;
         }
         Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Online] });
-        return;
         break;
     case Detector::Status::Reliable:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
@@ -148,7 +148,6 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
             return;
         }
         Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Reliable] });
-        return;
         break;
     case Detector::Status::Unreliable:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
@@ -158,8 +157,55 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
             return;
         }
         Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Unreliable] });
-        return;
         break;
     }
+    save();
+}
+
+void DetectorTracker::load()
+{
+    std::ifstream in { Config::files.state };
+
+    if (!in.is_open()) {
+        Log::warning() << "Could not load detectors.";
+        return;
+    }
+    try {
+        Log::info() << "Loading detector states.";
+        std::string line {};
+        std::getline(in, line);
+        std::chrono::system_clock::time_point state { std::chrono::seconds { std::stoll(line, nullptr) } };
+        if ((state + std::chrono::minutes { 3 }) > std::chrono::system_clock::now()) {
+            Log::warning() << "Detector state stale, discarding.";
+            in.close();
+            return;
+        }
+        for (; std::getline(in, line);) {
+            auto detector { std::make_unique<Detector>(line, *this) };
+            if (detector->is(Detector::Status::Deleted)) {
+                continue;
+            }
+            m_detectors.emplace(detector->user_info().hash(), std::move(detector));
+        }
+        in.close();
+    } catch (...) {
+        Log::warning() << "Could not load detectors.";
+        return;
+    }
+}
+
+void DetectorTracker::save()
+{
+    std::ofstream out { Config::files.state };
+
+    if (!out.is_open()) {
+        Log::warning() << "Could not save detectors.";
+        return;
+    }
+    out << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() << '\n';
+    for (auto& [hash, detector] : m_detectors) {
+        out << detector->serialise() << '\n';
+    }
+    out.close();
 }
 }

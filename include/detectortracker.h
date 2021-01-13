@@ -72,6 +72,9 @@ protected:
     [[nodiscard]] auto process(DetectorInfo<Location> log) -> int override;
     [[nodiscard]] auto process() -> int override;
 
+    void save();
+    void load();
+
 private:
     StateSupervisor& m_supervisor;
 

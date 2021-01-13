@@ -2,6 +2,7 @@
 #include "messages/event.h"
 #include "supervision/state.h"
 #include "utility/log.h"
+#include "utility/utility.h"
 
 #include "detectortracker.h"
 
@@ -22,6 +23,58 @@ Detector::Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& t
     , m_userinfo { initial_log.user_info() }
     , m_detector_tracker { tracker }
 {
+}
+
+Detector::Detector(const std::string& serialised, DetectorTracker& tracker)
+    : m_detector_tracker { tracker }
+{
+    MessageParser in { serialised, ' ' };
+    if (in.size() < 10) {
+        m_status = Status::Deleted;
+        return;
+    }
+    m_hash = std::stoul(in[0], nullptr);
+    m_userinfo.username = in[1];
+    m_userinfo.station_id = in[2];
+    if (in[3] == "created") {
+        m_status = Status::Created;
+    } else if (in[3] == "deleted") {
+        m_status = Status::Deleted;
+    } else if (in[3] == "reliable") {
+        m_status = Status::Reliable;
+    } else {
+        m_status = Status::Unreliable;
+    }
+
+    m_location.lat = std::stod(in[4], nullptr);
+    m_location.lon = std::stod(in[5], nullptr);
+    m_location.h = std::stod(in[6], nullptr);
+    m_location.h_acc = std::stod(in[7], nullptr);
+    m_location.v_acc = std::stod(in[8], nullptr);
+    m_location.dop = std::stod(in[9], nullptr);
+}
+
+auto Detector::serialise() const -> std::string
+{
+    std::ostringstream out {};
+    out << m_hash << ' ' << m_userinfo.username << ' ' << m_userinfo.station_id << ' ';
+    switch (m_status) {
+    case Status::Created:
+        out << "created";
+        break;
+    case Status::Deleted:
+        out << "deleted";
+        break;
+    case Status::Reliable:
+        out << "reliable";
+        break;
+    case Status::Unreliable:
+        out << "unreliable";
+        break;
+    }
+    out << ' ' << m_location.lat << ' ' << m_location.lon << ' ' << m_location.h << ' ' << m_location.h_acc << ' ' << m_location.v_acc << ' ' << m_location.dop;
+
+    return out.str();
 }
 
 void Detector::process(const Event& event)

@@ -59,6 +59,7 @@ struct Rest {
 struct ConfigFiles {
     std::string config {};
     std::string credentials {};
+    std::string state {};
 };
 
 struct Meta {
@@ -66,7 +67,7 @@ struct Meta {
 };
 
 namespace Default {
-static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster"};
+static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster", "/var/muondetector/muondetector-cluster.state"};
 
 static Mqtt mqtt{"", 1883, {}};
 static Influx influx{"", {"", ""}, "", ""};

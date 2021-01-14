@@ -18,7 +18,7 @@
 namespace MuonPi::Source {
 
 /**
- * @brief The Mqtt class
+ * @brief The Source::Mqtt class
  */
 template <typename T>
 class Mqtt : public Base<T> {
@@ -301,7 +301,8 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
         } else if (
             (message[1] == "UBX_HW_Version")
             || (message[1] == "UBX_Prot_Version")
-            || (message[1] == "UBX_SW_Version")) {
+            || (message[1] == "UBX_SW_Version")
+            || (message[1] == "geoHash")) {
             item.add_item({ message[1], message[2], "" });
         } else if (
             (message[1] == "gainSwitch")
@@ -313,7 +314,8 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
         } else if (message[1] == "systemNrCPUs") {
             item.add_item({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else {
-            return Aggregating;
+            // unknown log message, forward as string as it is
+            item.add_item({ message[1], message.get(), "" });
         }
     } catch (std::invalid_argument& e) {
         Log::warning() << "received exception when parsing log item: " + std::string(e.what());

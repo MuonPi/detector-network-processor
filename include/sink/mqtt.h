@@ -112,6 +112,8 @@ void Mqtt<ClusterLog>::get(ClusterLog log)
             && m_link.publish((construct(stream.str(), "total_detectors") << log.data().total_detectors).str())
             && m_link.publish((construct(stream.str(), "reliable_detectors") << log.data().reliable_detectors).str())
             && m_link.publish((construct(stream.str(), "max_coincidences") << log.data().maximum_n).str())
+            && m_link.publish((construct(stream.str(), "cpu_load") << log.data().cpu_load).str())
+            && m_link.publish((construct(stream.str(), "memory_usage") << log.data().memory_usage).str())
             && m_link.publish((construct(stream.str(), "incoming") << log.data().incoming).str()))) {
         Log::warning() << "Could not publish MQTT message.";
         return;

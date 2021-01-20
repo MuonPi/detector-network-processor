@@ -59,6 +59,8 @@ void Database<ClusterLog>::get(ClusterLog log)
         << Link::Influx::Field { "total_detectors", log.data().total_detectors }
         << Link::Influx::Field { "reliable_detectors", log.data().reliable_detectors }
         << Link::Influx::Field { "max_multiplicity", log.data().maximum_n }
+        << Link::Influx::Field { "cpu_load", log.data().cpu_load }
+        << Link::Influx::Field { "memory_usage", log.data().memory_usage }
         << Link::Influx::Field { "incoming", log.data().incoming }) };
 
     std::size_t total_n { 0 };

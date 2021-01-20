@@ -51,6 +51,8 @@ auto StateSupervisor::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
+        m_current_data.cpu_load = m_resource_tracker.cpu_load();
+        m_current_data.memory_usage = m_resource_tracker.memory_usage();
         Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
 
         m_current_data.incoming = 0;

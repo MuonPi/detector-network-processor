@@ -4,6 +4,7 @@
 #include "detector.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
+#include "utility/resourcetracker.h"
 #include "utility/utility.h"
 
 #include "source/base.h"
@@ -79,6 +80,8 @@ private:
 
     ClusterLog::Data m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
+
+    ResourceTracker m_resource_tracker {};
 };
 
 }

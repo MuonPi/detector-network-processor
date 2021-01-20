@@ -50,8 +50,10 @@ public:
     /**
      * @brief Detector Construct the detector from a serialised string
      * @param serialised The serialised string
+     * @param tracker The detector tracker to use
+     * @param stale whether the configuration is stale or not. If true, this detector will be marked as unreliable
      */
-    Detector(const std::string& serialised, DetectorTracker& tracker);
+    Detector(const std::string& serialised, DetectorTracker& tracker, bool stale);
 
     /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.

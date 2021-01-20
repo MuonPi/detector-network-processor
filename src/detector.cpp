@@ -25,7 +25,7 @@ Detector::Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& t
 {
 }
 
-Detector::Detector(const std::string& serialised, DetectorTracker& tracker)
+Detector::Detector(const std::string& serialised, DetectorTracker& tracker, bool stale)
     : m_detector_tracker { tracker }
 {
     MessageParser in { serialised, ' ' };
@@ -40,10 +40,10 @@ Detector::Detector(const std::string& serialised, DetectorTracker& tracker)
         m_status = Status::Created;
     } else if (in[3] == "deleted") {
         m_status = Status::Deleted;
-    } else if (in[3] == "reliable") {
-        m_status = Status::Reliable;
-    } else {
+    } else if ((in[3] != "reliable") || (stale)) {
         m_status = Status::Unreliable;
+    } else {
+        m_status = Status::Reliable;
     }
 
     m_location.lat = std::stod(in[4], nullptr);

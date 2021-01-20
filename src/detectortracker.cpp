@@ -175,13 +175,13 @@ void DetectorTracker::load()
         std::string line {};
         std::getline(in, line);
         std::chrono::system_clock::time_point state { std::chrono::seconds { std::stoll(line, nullptr) } };
+        bool stale { false };
         if ((state + std::chrono::minutes { 3 }) > std::chrono::system_clock::now()) {
-            Log::warning() << "Detector state stale, discarding.";
-            in.close();
-            return;
+            Log::warning() << "Detector state stale, marking all detectors unreliable.";
+            stale = true;
         }
         for (; std::getline(in, line);) {
-            auto detector { std::make_unique<Detector>(line, *this) };
+            auto detector { std::make_unique<Detector>(line, *this, stale) };
             if (detector->is(Detector::Status::Deleted)) {
                 continue;
             }
@@ -204,6 +204,9 @@ void DetectorTracker::save()
     }
     out << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() << '\n';
     for (auto& [hash, detector] : m_detectors) {
+        if (detector->is(Detector::Status::Deleted)) {
+            continue;
+        }
         out << detector->serialise() << '\n';
     }
     out.close();

@@ -48,12 +48,15 @@ auto StateSupervisor::step() -> int
         }
     }
     steady_clock::time_point now { steady_clock::now() };
+    if ((std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() % 2) == 0) {
+        auto data = m_resource_tracker.get_data();
+        m_current_data.memory_usage = data.memory_usage;
+        m_cpu_load.add(data.cpu_load);
+        m_current_data.cpu_load = m_cpu_load.mean();
+    }
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        auto data = m_resource_tracker.get_data();
-        m_current_data.cpu_load = data.cpu_load;
-        m_current_data.memory_usage = data.memory_usage;
         Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
 
         m_current_data.incoming = 0;

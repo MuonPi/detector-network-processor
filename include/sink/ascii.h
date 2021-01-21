@@ -102,7 +102,8 @@ void Ascii<ClusterLog>::get(ClusterLog log)
         << "\n\tout: " << data.frequency.l1_out << " Hz"
         << "\n\tbuffer: " << data.buffer_length
         << "\n\tevents in interval: " << data.incoming
-        << "\n\tcpu load: " << data.cpu_load
+        << "\n\tcpu load: " << data.system_cpu_load
+        << "\n\tprocess cpu load: " << data.process_cpu_load
         << "\n\tmemory usage: " << data.memory_usage
         << "\n\tout in interval: ";
 

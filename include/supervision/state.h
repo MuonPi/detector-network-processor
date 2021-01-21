@@ -73,7 +73,8 @@ private:
     std::chrono::milliseconds m_timeout {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
 
-    Ringbuffer<float, 100> m_cpu_load {};
+    Ringbuffer<float, 100> m_process_cpu_load {};
+    Ringbuffer<float, 100> m_system_cpu_load {};
     RateMeasurement<100, 5000> m_incoming_rate {};
     RateMeasurement<100, 5000> m_outgoing_rate {};
 

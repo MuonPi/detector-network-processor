@@ -8,7 +8,8 @@ namespace MuonPi {
 class ResourceTracker {
 public:
     struct Data {
-        float cpu_load {};
+        float process_cpu_load {};
+        float system_cpu_load {};
         float memory_usage {};
     };
 
@@ -17,7 +18,8 @@ public:
 private:
     struct {
         std::uint64_t total_time_last {};
-        std::uint64_t used_time_last {};
+        std::uint64_t process_time_last {};
+        std::uint64_t system_time_last {};
     } m_cpu {};
 
     bool m_first { true };

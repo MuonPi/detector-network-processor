@@ -51,8 +51,10 @@ auto StateSupervisor::step() -> int
     if ((std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() % 2) == 0) {
         auto data = m_resource_tracker.get_data();
         m_current_data.memory_usage = data.memory_usage;
-        m_cpu_load.add(data.cpu_load);
-        m_current_data.cpu_load = m_cpu_load.mean();
+        m_process_cpu_load.add(data.process_cpu_load);
+        m_current_data.process_cpu_load = m_process_cpu_load.mean();
+        m_system_cpu_load.add(data.system_cpu_load);
+        m_current_data.system_cpu_load = m_system_cpu_load.mean();
     }
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;

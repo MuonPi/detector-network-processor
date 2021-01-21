@@ -27,7 +27,8 @@ public:
         std::size_t total_detectors { 0 }; //!< The current total number of tracked detectors
         std::size_t reliable_detectors { 0 }; //!< The current number of tracked detectors deemed reliable
         std::size_t maximum_n { 0 }; //!< The maximum coincidence level found so far since program start
-        float cpu_load { 0.0 }; //!< The current cpu load in percent
+        float process_cpu_load { 0.0 }; //!< The current cpu load in percent
+        float system_cpu_load { 0.0 }; //!< The current cpu load in percent
         float memory_usage { 0.0 }; //!< The current memory usage in percent
     };
 

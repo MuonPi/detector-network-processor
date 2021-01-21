@@ -1,40 +1,52 @@
 #include "utility/resourcetracker.h"
 
 #include <algorithm>
+#include <fstream>
+#include <string>
+#include <unistd.h>
 
 namespace MuonPi {
 
-auto ResourceTracker::memory_usage() -> float
+auto ResourceTracker::get_data() -> Data
 {
-    glibtop_init();
-    glibtop_mem memory;
-    glibtop_get_mem(&memory);
+    std::ifstream stat_stream("/proc/self/stat", std::ios_base::in);
 
-    return static_cast<float>(memory.used - memory.cached - memory.buffer);
-}
+    std::string pid, comm, state, ppid, pgrp, session, tty_nr;
+    std::string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+    std::string utime, stime, cutime, cstime, priority, nice;
+    std::string O, itrealvalue, starttime;
 
-auto ResourceTracker::cpu_load() -> float
-{
+    std::size_t cpu_total;
+    std::size_t cpu_user;
+    std::size_t cpu_system;
 
-    glibtop_cpu cpu;
+    std::size_t vsize;
+    std::size_t rss;
 
-    glibtop_get_cpu(&cpu);
+    stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
+        >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
+        >> cpu_user >> cpu_system >> cpu_total >> cstime >> priority >> nice
+        >> O >> itrealvalue >> starttime >> vsize >> rss;
+    stat_stream.close();
 
-    if (m_cpu.total_time_last == 0) {
-        m_cpu.total_time_last = cpu.total;
-        m_cpu.used_time_last = cpu.user + cpu.nice + cpu.sys;
-        return 0.0;
+    long page_size_b = sysconf(_SC_PAGE_SIZE);
+
+    float total = cpu_total - m_cpu.total_time_last;
+    float used = cpu_user + cpu_system - m_cpu.used_time_last;
+    m_cpu.total_time_last = cpu_total;
+    m_cpu.used_time_last = cpu_user + cpu_system;
+
+    Data data;
+    data.memory_usage = rss * page_size_b;
+    data.cpu_load = 0;
+
+    if (!m_first) {
+        data.cpu_load = 100.0 * used / std::max(total, 1.0f);
+    } else {
+        m_first = false;
     }
 
-    float total = cpu.total - m_cpu.total_time_last;
-    float used = cpu.user + cpu.sys - m_cpu.used_time_last;
-    m_cpu.total_time_last = cpu.total;
-    m_cpu.used_time_last = cpu.user + cpu.sys;
-
-    float load = 100.0 * used / std::max(total, 1.0f);
-    load = std::min(load, 100.0f);
-
-    return load;
+    return data;
 }
 
 }

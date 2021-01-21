@@ -44,7 +44,6 @@ find_library(CURL curl REQUIRED)
 find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
 find_library(RESTBED restbed REQUIRED)
-find_library(GTOP gtop-2.0 REQUIRED)
 
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
@@ -135,9 +134,6 @@ add_library(source-files OBJECT ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES})
 target_include_directories(source-files PUBLIC
     ${PROJECT_HEADER_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    "/usr/include/libgtop-2.0"
-    "/usr/include/glib-2.0"
-    "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
     )
 
 add_executable(muondetector-cluster "${PROJECT_SRC_DIR}/main.cpp")
@@ -149,9 +145,6 @@ endif ()
 target_include_directories(muondetector-cluster PUBLIC
     ${PROJECT_HEADER_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    "/usr/include/libgtop-2.0"
-    "/usr/include/glib-2.0"
-    "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
     )
 
 if (NOT STD_CPP_FS)
@@ -164,7 +157,6 @@ target_link_libraries(muondetector-cluster
     restbed
     sasl2
     ldap
-    gtop-2.0
     )
 else()
 target_link_libraries(muondetector-cluster
@@ -176,7 +168,6 @@ target_link_libraries(muondetector-cluster
     restbed
     sasl2
     ldap
-    gtop-2.0
     stdc++fs
     )
 endif()

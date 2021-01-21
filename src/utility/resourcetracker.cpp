@@ -9,6 +9,22 @@ namespace MuonPi {
 
 auto ResourceTracker::get_data() -> Data
 {
+    std::ifstream total_stream("/proc/stat", std::ios_base::in);
+
+    std::size_t cpu_total {};
+
+    std::string cpu;
+
+    total_stream >> cpu;
+
+    for (std::size_t i { 0 }; i < 10; i++) {
+        std::size_t v {};
+        total_stream >> v;
+        cpu_total += v;
+    }
+
+    total_stream.close();
+
     std::ifstream stat_stream("/proc/self/stat", std::ios_base::in);
 
     std::string pid, comm, state, ppid, pgrp, session, tty_nr;
@@ -16,7 +32,6 @@ auto ResourceTracker::get_data() -> Data
     std::string utime, stime, cutime, cstime, priority, nice;
     std::string O, itrealvalue, starttime;
 
-    std::size_t cpu_total;
     std::size_t cpu_user;
     std::size_t cpu_system;
 
@@ -25,7 +40,7 @@ auto ResourceTracker::get_data() -> Data
 
     stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
         >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
-        >> cpu_user >> cpu_system >> cpu_total >> cstime >> priority >> nice
+        >> cpu_user >> cpu_system >> cutime >> cstime >> priority >> nice
         >> O >> itrealvalue >> starttime >> vsize >> rss;
     stat_stream.close();
 

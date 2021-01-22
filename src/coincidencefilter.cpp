@@ -25,7 +25,7 @@ void CoincidenceFilter::get(TimeBase timebase)
 {
     using namespace std::chrono;
     m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
-    m_supervisor.time_status(duration_cast<milliseconds>(m_timeout));
+    m_supervisor.time_status(duration_cast<milliseconds>(timebase.base), duration_cast<milliseconds>(m_timeout));
 }
 
 void CoincidenceFilter::get(Event event)

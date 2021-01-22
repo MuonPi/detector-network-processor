@@ -53,6 +53,7 @@ void Database<ClusterLog>::get(ClusterLog log)
     auto fields { std::move(m_link.measurement("cluster_summary")
         << Link::Influx::Tag { "cluster_id", Config::influx.cluster_id }
         << Link::Influx::Field { "timeout", log.data().timeout }
+        << Link::Influx::Field { "timebase", log.data().timebase }
         << Link::Influx::Field { "frequency_in", log.data().frequency.single_in }
         << Link::Influx::Field { "frequency_l1_out", log.data().frequency.l1_out }
         << Link::Influx::Field { "buffer_length", log.data().buffer_length }

@@ -12,8 +12,9 @@ StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
 {
 }
 
-void StateSupervisor::time_status(std::chrono::milliseconds timeout)
+void StateSupervisor::time_status(std::chrono::milliseconds timebase, std::chrono::milliseconds timeout)
 {
+    m_timebase = timebase;
     m_timeout = timeout;
 }
 
@@ -68,6 +69,7 @@ auto StateSupervisor::step() -> int
     if (m_outgoing_rate.step()) {
         m_incoming_rate.step();
         m_current_data.timeout = duration_cast<milliseconds>(m_timeout).count();
+        m_current_data.timebase = duration_cast<milliseconds>(m_timebase).count();
         m_current_data.frequency.single_in = m_incoming_rate.mean();
         m_current_data.frequency.l1_out = m_outgoing_rate.mean();
     }

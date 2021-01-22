@@ -32,7 +32,7 @@ public:
      * @brief time_status Update the current timeout used
      * @param timeout the timeout in ms
      */
-    void time_status(std::chrono::milliseconds timeout);
+    void time_status(std::chrono::milliseconds timebase, std::chrono::milliseconds timeout);
 
     /**
      * @brief detector_status Update the status of one detector
@@ -71,6 +71,7 @@ public:
 private:
     std::map<std::size_t, Detector::Status> m_detectors;
     std::chrono::milliseconds m_timeout {};
+    std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
 
     Ringbuffer<float, 100> m_process_cpu_load {};

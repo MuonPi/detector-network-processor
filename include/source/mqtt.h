@@ -201,8 +201,12 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
     Event::Data data;
 
     try {
-        // This check is necessary in order to detect invalid messages occesionally sent out by the detectors
-        if ((std::count(content[0].begin(), content[0].end(), '.') > 1) || (std::count(content[1].begin(), content[1].end(), '.') > 1)) {
+
+        if ((content[0].length() < 17) || (content[1].length() < 17)) {
+            return Error;
+        }
+
+        if ((content[0][0] == '.') || (content[1][0] == '.')) {
             return Error;
         }
 

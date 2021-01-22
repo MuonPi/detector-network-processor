@@ -77,7 +77,7 @@ auto Detector::serialise() const -> std::string
     return out.str();
 }
 
-void Detector::process(const Event& event)
+auto Detector::process(const Event& event) -> bool
 {
     m_current_rate.increase_counter();
     m_mean_rate.increase_counter();
@@ -101,6 +101,13 @@ void Detector::process(const Event& event)
         m_pulselength.add(pulselength);
     }
     m_time_acc.add(event.data().time_acc);
+    m_reliability_time_acc.add(event.data().time_acc);
+
+    if (event.data().time_acc > (MAX_TIMING_ERROR * 100)) {
+        set_status(Status::Unreliable);
+    }
+
+    return (event.data().time_acc <= MAX_TIMING_ERROR) && (event.data().fix == 1);
 }
 
 void Detector::process(const DetectorInfo<Location>& info)
@@ -131,7 +138,7 @@ auto Detector::factor() const -> double
 void Detector::check_reliability()
 {
     const double loc_precision { m_location.dop * std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
-    if ((loc_precision > MAX_LOCATION_ERROR) || (m_time_acc.mean() > MAX_TIMING_ERROR)) {
+    if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR)) {
         set_status(Status::Unreliable);
     } else {
         set_status(Status::Reliable);

@@ -58,8 +58,9 @@ public:
     /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.
      * @param event the event to process
+     * @return true if the event is accepted, false if not.
      */
-    void process(const Event& event);
+    [[nodiscard]] auto process(const Event& event) -> bool;
 
     /**
      * @brief process Processes a detector info message. Checks for regular log messages and warns the event listener if they are delayed or have subpar location accuracy.
@@ -137,6 +138,7 @@ private:
 
     Ringbuffer<double, 100> m_pulselength {};
     Ringbuffer<double, 100> m_time_acc {}; //< ring buffer for time accuracy values provided by event messages (in ns)
+    Ringbuffer<double, 5> m_reliability_time_acc {}; //< ring buffer for time accuracy for use as reliability measure
 
     double m_factor { 1.0 };
 };

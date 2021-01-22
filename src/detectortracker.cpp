@@ -28,7 +28,10 @@ void DetectorTracker::get(Event event)
         return;
     }
     auto& det { (*detector).second };
-   det->process(event);
+
+    if (!det->process(event)) {
+        return;
+    }
 
         event.set_detector_info(det->location(), det->user_info());
 

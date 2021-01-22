@@ -107,6 +107,7 @@ void Mqtt<ClusterLog>::get(ClusterLog log)
     if (!(
             m_link.publish((construct(stream.str(), "timeout") << log.data().timeout).str())
             && m_link.publish((construct(stream.str(), "timebase") << log.data().timebase).str())
+            && m_link.publish((construct(stream.str(), "uptime") << log.data().uptime).str())
             && m_link.publish((construct(stream.str(), "frequency_in") << log.data().frequency.single_in).str())
             && m_link.publish((construct(stream.str(), "frequency_l1_out") << log.data().frequency.l1_out).str())
             && m_link.publish((construct(stream.str(), "buffer_length") << log.data().buffer_length).str())

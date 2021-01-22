@@ -54,6 +54,7 @@ void Database<ClusterLog>::get(ClusterLog log)
         << Link::Influx::Tag { "cluster_id", Config::influx.cluster_id }
         << Link::Influx::Field { "timeout", log.data().timeout }
         << Link::Influx::Field { "timebase", log.data().timebase }
+        << Link::Influx::Field { "uptime", log.data().uptime }
         << Link::Influx::Field { "frequency_in", log.data().frequency.single_in }
         << Link::Influx::Field { "frequency_l1_out", log.data().frequency.l1_out }
         << Link::Influx::Field { "buffer_length", log.data().buffer_length }

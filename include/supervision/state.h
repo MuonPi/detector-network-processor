@@ -73,6 +73,7 @@ private:
     std::chrono::milliseconds m_timeout {};
     std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
+    std::chrono::system_clock::time_point m_startup { std::chrono::system_clock::now() };
 
     Ringbuffer<float, 100> m_process_cpu_load {};
     Ringbuffer<float, 100> m_system_cpu_load {};

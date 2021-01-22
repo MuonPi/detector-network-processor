@@ -17,6 +17,7 @@ public:
     struct Data {
         std::int_fast64_t timeout { 0 }; //!< The current timeout for event constructors, in ms
         std::int_fast64_t timebase { 0 }; //!< The current timebase for event constructors, in ms
+        std::int_fast64_t uptime { 0 }; //!< The current uptime for cluster, in minutes
         struct {
             double single_in { 0 }; //!< The mean rate of incoming events
             double l1_out { 0 }; //!< The mean rate of outgoing l1 events

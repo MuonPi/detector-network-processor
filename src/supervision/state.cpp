@@ -70,6 +70,8 @@ auto StateSupervisor::step() -> int
         m_incoming_rate.step();
         m_current_data.timeout = duration_cast<milliseconds>(m_timeout).count();
         m_current_data.timebase = duration_cast<milliseconds>(m_timebase).count();
+        m_current_data.uptime = duration_cast<minutes>(system_clock::now() - m_startup).count();
+
         m_current_data.frequency.single_in = m_incoming_rate.mean();
         m_current_data.frequency.l1_out = m_outgoing_rate.mean();
     }

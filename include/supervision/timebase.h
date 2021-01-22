@@ -22,13 +22,13 @@ public:
 
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds { 800 } };
-    static constexpr std::chrono::system_clock::duration s_maximum { std::chrono::minutes { 60 } };
+    static constexpr std::chrono::system_clock::duration s_maximum { std::chrono::minutes { 5 } };
+    static constexpr std::chrono::system_clock::duration s_sample_time { std::chrono::seconds { 2 } };
 
-    std::chrono::system_clock::duration m_sample_time { std::chrono::seconds { 2 } };
     std::chrono::system_clock::time_point m_sample_start { std::chrono::system_clock::now() };
 
-    std::int_fast64_t m_start { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() + 10000000000 };
-    std::int_fast64_t m_end { -1000000000 };
+    std::int_fast64_t m_start { std::numeric_limits<std::int_fast64_t>::max() };
+    std::int_fast64_t m_end { std::numeric_limits<std::int_fast64_t>::min() };
 
     std::chrono::system_clock::duration m_current { s_minimum };
 };

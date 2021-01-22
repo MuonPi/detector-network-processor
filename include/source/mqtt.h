@@ -11,10 +11,10 @@
 #include "utility/log.h"
 #include "utility/utility.h"
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <string>
-#include <algorithm>
 
 namespace MuonPi::Source {
 

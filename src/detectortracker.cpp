@@ -19,7 +19,6 @@ DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink
     , Source::Base<Trigger::Detector> { trigger_sink }
     , m_supervisor { supervisor }
 {
-    load();
 }
 
 void DetectorTracker::get(Event event)

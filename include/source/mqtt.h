@@ -14,6 +14,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <algorithm>
 
 namespace MuonPi::Source {
 
@@ -188,39 +189,25 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             item = Event { hash, data };
             status = n - 1;
             return Aggregating;
+        }
+        item.add_event(Event { hash, data });
+        status--;
+        if (status == 0) {
+            return Finished;
         } else {
-            item.add_event(Event { hash, data });
-            status--;
-            if (status == 0) {
-                return Finished;
-            }
+            return Aggregating;
         }
     }
     Event::Data data;
+
     try {
-        MessageParser start { content[0], '.' };
-        if (start.size() != 2) {
+        // This check is necessary in order to detect invalid messages occesionally sent out by the detectors
+        if ((std::count(content[0].begin(), content[0].end(), '.') > 1) || (std::count(content[1].begin(), content[1].end(), '.') > 1)) {
             return Error;
         }
-        std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
-        data.start = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
 
-    } catch (...) {
-        return Error;
-    }
-
-    try {
-        MessageParser start { content[1], '.' };
-        if (start.size() != 2) {
-            return ResultCode::Error;
-        }
-        std::int_fast64_t epoch = std::stoll(start[0]) * static_cast<std::int_fast64_t>(1e9);
-        data.end = epoch + std::stoll(start[1]) * static_cast<std::int_fast64_t>(std::pow(10, (9 - start[1].length())));
-    } catch (...) {
-        return Error;
-    }
-
-    try {
+        data.start = static_cast<std::int_fast64_t>(std::stold(content[0]) * 1e9);
+        data.end = static_cast<std::int_fast64_t>(std::stold(content[1]) * 1e9);
         data.user = topic[2];
         data.station_id = user_info.station_id;
         data.time_acc = static_cast<std::uint32_t>(std::stoul(content[2], nullptr));
@@ -230,6 +217,8 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
         data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
     } catch (std::invalid_argument& e) {
         Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+        return Error;
+    } catch (...) {
         return Error;
     }
     item = Event { user_info.hash(), data };

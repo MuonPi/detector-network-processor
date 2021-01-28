@@ -11,6 +11,7 @@ namespace MuonPi {
 constexpr double LIGHTSPEED { 0.299 }; //< velocity of light in m/ns
 constexpr double MAX_TIMING_ERROR { 1000. }; //< max allowable timing error in nanoseconds
 constexpr double MAX_LOCATION_ERROR { MAX_TIMING_ERROR * LIGHTSPEED }; //< max allowable location error in meter
+constexpr double stddev_factor { 0.75 };
 
 void Detector::enable()
 {
@@ -138,7 +139,7 @@ auto Detector::factor() const -> double
 void Detector::check_reliability()
 {
     const double loc_precision { m_location.dop * std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
-    if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR)) {
+    if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR) || (m_mean_rate.deviation() > (m_mean_rate.mean() * stddev_factor))) {
         set_status(Status::Unreliable);
     } else {
         set_status(Status::Reliable);

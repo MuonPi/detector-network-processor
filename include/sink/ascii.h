@@ -129,6 +129,7 @@ void Ascii<DetectorSummary>::get(DetectorSummary log)
     out
         << "Detector Summary: " << log.user_info().site_id()
         << "\n\teventrate: " << data.mean_eventrate
+        << "\n\teventrate stddev: " << data.stddev_eventrate
         << "\n\tpulselength: " << data.mean_pulselength
         << "\n\tincoming: " << data.incoming
         << "\n\tublox counter progess: " << data.ublox_counter_progress

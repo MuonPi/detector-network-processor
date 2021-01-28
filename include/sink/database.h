@@ -94,6 +94,7 @@ void Database<DetectorSummary>::get(DetectorSummary log)
         << Tag { "detector", log.user_info().station_id }
         << Tag { "site_id", log.user_info().site_id() }
         << Field { "eventrate", log.data().mean_eventrate }
+        << Field { "eventrate_stddev", log.data().stddev_eventrate }
         << Field { "time_acc", log.data().mean_time_acc }
         << Field { "pulselength", log.data().mean_pulselength }
         << Field { "incoming", log.data().incoming }

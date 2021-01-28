@@ -142,6 +142,7 @@ void Mqtt<DetectorSummary>::get(DetectorSummary log)
     std::string name { log.user_info().username + " " + log.user_info().station_id };
     if (!(
             m_link.publish((construct(stream.str(), name + " eventrate") << log.data().mean_eventrate).str())
+            && m_link.publish((construct(stream.str(), name + " eventrate_stddev") << log.data().stddev_eventrate).str())
             && m_link.publish((construct(stream.str(), name + " time_acc") << log.data().mean_time_acc).str())
             && m_link.publish((construct(stream.str(), name + " pulselength") << log.data().mean_pulselength).str())
             && m_link.publish((construct(stream.str(), name + " incoming") << log.data().incoming).str())

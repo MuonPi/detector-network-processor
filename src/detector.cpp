@@ -173,6 +173,7 @@ void Detector::step()
 auto Detector::current_log_data() -> DetectorSummary
 {
     m_current_data.mean_eventrate = m_current_rate.mean();
+    m_current_data.stddev_eventrate = m_current_rate.deviation();
     m_current_data.mean_pulselength = m_pulselength.mean();
     m_current_data.mean_time_acc = m_time_acc.mean();
 

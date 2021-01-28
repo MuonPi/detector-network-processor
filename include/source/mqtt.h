@@ -62,9 +62,8 @@ private:
         [[nodiscard]] auto add(MessageParser& topic, MessageParser& message) -> ResultCode;
 
         UserInfo user_info {};
-        std::string message_id {};
 
-        [[nodiscard]] auto is_same_message_id(const std::string& a_message_id) const -> bool { return (a_message_id == message_id); }
+        const std::chrono::system_clock::time_point m_first_message { std::chrono::system_clock::now() };
 
         std::uint16_t default_status { 0x0000 };
         std::uint16_t status { 0 };
@@ -119,7 +118,7 @@ void Mqtt<T>::ItemCollector::reset()
 template <>
 auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
-    if (message_id != message[0]) {
+    if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Reset;
     }
     item.m_hash = user_info.hash();
@@ -234,10 +233,9 @@ template <>
 auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if (!item.has_items()) {
-        message_id = message[0];
-        item.set_log_id(message_id);
+        item.set_log_id(message[0]);
         item.set_userinfo(user_info);
-    } else if (message_id != message[0]) {
+    } else if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Commit;
     }
 
@@ -391,7 +389,6 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
     userinfo.station_id = site;
 
     ItemCollector item;
-    item.message_id = content[0];
     item.user_info = userinfo;
     auto value { item.add(topic, content) };
     if ((value & ItemCollector::Finished) != 0) {

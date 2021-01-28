@@ -27,11 +27,11 @@ class DetectorTracker;
 class Detector {
 private:
     static constexpr std::size_t s_history_length { 10 };
-    static constexpr std::size_t s_time_interval { 2000 };
+    static constexpr std::size_t s_time_interval { 30000 };
 
 public:
     using CurrentRateType = RateMeasurement<s_history_length, s_time_interval>;
-    using MeanRateType = RateMeasurement<s_history_length * 100, s_time_interval>;
+    using MeanRateType = RateMeasurement<s_history_length * 10, s_time_interval>;
 
     enum class Status {
         Created,

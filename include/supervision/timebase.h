@@ -22,7 +22,7 @@ public:
 
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds { 800 } };
-    static constexpr std::chrono::system_clock::duration s_maximum { std::chrono::minutes { 5 } };
+    static constexpr std::chrono::system_clock::duration s_maximum { std::chrono::minutes { 2 } };
     static constexpr std::chrono::system_clock::duration s_sample_time { std::chrono::seconds { 2 } };
 
     std::chrono::system_clock::time_point m_sample_start { std::chrono::system_clock::now() };

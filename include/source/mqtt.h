@@ -224,6 +224,9 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
     } catch (...) {
         return Error;
     }
+    if (data.start > data.end) {
+        return Error;
+    }
     item = Event { user_info.hash(), data };
     status = 0;
     return Finished;

@@ -165,7 +165,7 @@ void Mqtt<Event>::get(Event event)
     for (auto& evt : event.events()) {
         Location loc = evt.location();
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
-        std::string geohash = GeoHash::hashFromCoordinates(loc.lon, loc.lat, 5);
+        std::string geohash = GeoHash::hashFromCoordinates(loc.lon, loc.lat, loc.max_geohash_length);
         MessageConstructor message { ' ' };
         message.add_field(guid.to_string()); // UUID for the L1Event
         message.add_field(int_to_hex(evt.hash())); // the hashed detector id

@@ -97,12 +97,7 @@ auto Event::location() const -> Location
 {
     return m_location;
 }
-/*
-auto Event::time_info() const -> Time
-{
-    return m_time_info;
-}
-*/
+
 auto Event::user_info() const -> UserInfo
 {
     return m_user_info;

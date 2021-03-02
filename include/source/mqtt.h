@@ -142,6 +142,8 @@ auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
         } else if (message[1] == "positionDOP") {
             item.m_item.dop = std::stod(message[2], nullptr);
             status &= ~32;
+        } else if (message[1] == "maxGeohashLength") {
+            item.m_item.max_geohash_length = std::stoi(message[2], nullptr);
         } else {
             return ResultCode::Aggregating;
         }

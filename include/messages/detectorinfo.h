@@ -35,6 +35,7 @@ enum class DetectorState {
     INACTIVE,
     ACTIVE
 };
+
 struct Location {
     double lat { 0.0 };
     double lon { 0.0 };
@@ -43,6 +44,7 @@ struct Location {
     double h_acc { 0.0 };
     double dop { 0.0 };
     std::string geohash { "" };
+    std::uint8_t max_geohash_length {};
 };
 struct Time {
     double accuracy { 0.0 };

@@ -3,6 +3,7 @@
 
 #include "messages/detectorinfo.h"
 #include "messages/userinfo.h"
+#include "defaults.h"
 
 #include <chrono>
 #include <memory>
@@ -47,7 +48,7 @@ public:
     void set_detector_info(Location location, /*Time time,*/ UserInfo user);
 
     auto location() const -> Location;
-    //auto time_info() const -> Time;
+
     auto user_info() const -> UserInfo;
 
     /**
@@ -92,10 +93,22 @@ public:
      */
     void add_event(Event event) noexcept;
 
+    /**
+     * @brief valid
+     * @return true when the event is valid
+     */
     [[nodiscard]] auto valid() const -> bool;
 
+    /**
+     * @brief data get the data
+     * @return The data struct of the event
+     */
     [[nodiscard]] auto data() const -> Data;
 
+    /**
+     * @brief set_data Sets the data for the event
+     * @param data The new data to use
+     */
     void set_data(const Data& data);
 
 private:
@@ -106,8 +119,8 @@ private:
 
     Data m_data {};
 
+
     Location m_location {};
-    //Time m_time_info {};
     UserInfo m_user_info {};
 };
 }

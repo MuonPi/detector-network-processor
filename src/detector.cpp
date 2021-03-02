@@ -199,4 +199,5 @@ auto Detector::user_info() const -> UserInfo
 {
     return m_userinfo;
 }
+
 }

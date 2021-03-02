@@ -122,7 +122,8 @@ auto main(int argc, char* argv[]) -> int
         << MuonPi::Option { "rest_privkey", &MuonPi::Config::rest.privkey }
         << MuonPi::Option { "rest_fullchain", &MuonPi::Config::rest.fullchain }
 
-        << MuonPi::Option { "run_local_cluster", &MuonPi::Config::meta.local_cluster };
+        << MuonPi::Option { "run_local_cluster", &MuonPi::Config::meta.local_cluster }
+        << MuonPi::Option { "max_geohash_length", &MuonPi::Config::meta.max_geohash_length };
     if (!parameters["l"]) {
         config << MuonPi::Option { "credentials_file", &MuonPi::Config::files.credentials };
     }

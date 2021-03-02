@@ -6,6 +6,7 @@
 #include "messages/userinfo.h"
 #include "utility/threadrunner.h"
 #include "utility/utility.h"
+#include "defaults.h"
 
 #include <chrono>
 #include <future>

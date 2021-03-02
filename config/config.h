@@ -64,6 +64,7 @@ struct ConfigFiles {
 
 struct Meta {
     bool local_cluster {};
+    int max_geohash_length {};
 };
 
 namespace Default {
@@ -74,7 +75,7 @@ static Influx influx{"", {"", ""}, "", ""};
 static Ldap ldap{"ldaps://muonpi.org", {"", ""}};
 static Rest rest{1983, "/var/muondetector/cluster_trigger", "file://", "file://", "file://"};
 static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}};
-static Meta meta {false};
+static Meta meta {false, 6};
 }
 
 

@@ -1,6 +1,8 @@
 #ifndef GEOHASH_H
 #define GEOHASH_H
 
+#include "defaults.h"
+
 #include <string>
 
 namespace MuonPi {
@@ -11,7 +13,7 @@ namespace MuonPi {
 class GeoHash {
 public:
     GeoHash() = delete;
-    static std::string hashFromCoordinates(double lon, double lat, std::size_t precision = 6);
+    static std::string hashFromCoordinates(double lon, double lat, std::size_t precision);
 };
 
 } // namespace MuonPi

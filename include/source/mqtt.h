@@ -152,6 +152,9 @@ auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
         return ResultCode::Error;
     }
 
+    if (item.m_item.max_geohash_length == 0) {
+        item.m_item.max_geohash_length = Config::meta.max_geohash_length;
+    }
     return ((status == 0) ? ResultCode::Finished : ResultCode::Aggregating);
 }
 

@@ -94,7 +94,6 @@ private:
     std::vector<std::pair<std::string::iterator, std::string::iterator>> m_fields {};
 };
 
-
 class GUID {
 public:
     GUID(std::size_t hash, std::uint64_t time);

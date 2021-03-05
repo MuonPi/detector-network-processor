@@ -10,8 +10,7 @@
 namespace MuonPi {
 
 template <typename T>
-class buffered_value
-{
+class buffered_value {
 public:
     /**
      * @brief buffered_value
@@ -33,7 +32,7 @@ public:
      * @brief get Get the buffered value. If the function marker returns true, a new value is calculated.
      * @return The most recent value
      */
-    [[nodiscard]] inline auto get() -> T
+    [[nodiscard]] inline auto get() const -> T
     {
         if (m_marker()) {
             m_value = m_calculation();
@@ -45,7 +44,7 @@ public:
      * @brief operator() Get the buffered value. If the function marker returns true, a new value is calculated.
      * @return The most recent value
      */
-    [[nodiscard]] inline auto operator()() -> T
+    [[nodiscard]] inline auto operator()() const -> T
     {
         return get();
     }
@@ -53,11 +52,12 @@ public:
 private:
     std::function<T()> m_calculation {};
     std::function<bool()> m_marker;
-    T m_value {};
+    mutable T m_value {};
 };
 
 template <typename T, std::size_t N, bool Sample = false>
 class data_series {
+public:
     void add(T value);
     [[nodiscard]] auto mean() const -> T;
     [[nodiscard]] auto stddev() const -> T;
@@ -79,24 +79,21 @@ private:
         return false;
     }
 
-
     std::array<T, N> m_buffer { T {} };
     std::size_t m_index { 0 };
     bool m_full { false };
     bool m_mean_dirty { false };
     bool m_var_dirty { false };
     bool m_stddev_dirty { false };
-    buffered_value<T> m_mean{[this]{return private_mean();}, [this]{return dirty(m_mean_dirty);}};
-    buffered_value<T> m_stddev{[this]{return private_stddev();}, [this]{return dirty(m_stddev_dirty);}};
-    buffered_value<T> m_variance{[this]{return private_variance();}, [this]{return dirty(m_var_dirty);}};
+    buffered_value<T> m_mean { [this] { return private_mean(); }, [this] { return dirty(m_mean_dirty); } };
+    buffered_value<T> m_stddev { [this] { return private_stddev(); }, [this] { return dirty(m_stddev_dirty); } };
+    buffered_value<T> m_variance { [this] { return private_variance(); }, [this] { return dirty(m_var_dirty); } };
 };
 
 template <typename T, std::size_t N>
-class histogram
-{
+class histogram {
 public:
-    struct bin
-    {
+    struct bin {
         T lower {};
         T upper {};
         std::size_t count { 0 };
@@ -106,7 +103,6 @@ public:
     explicit histogram(T lower, T upper);
 
     void add(T value);
-
 
     [[nodiscard]] auto bins() const -> const std::array<bin, N>&;
 
@@ -136,11 +132,9 @@ private:
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 };
 
-
 // +++++++++++++++++++++++++++++++
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
-
 
 // +++++++++++++++++++++++++++++++
 // class histogram
@@ -151,10 +145,10 @@ histogram<T, N>::histogram(T width)
     , m_width { width }
 {
     T last { m_lower };
-    for (auto& [i, bin]: m_bins) {
-        bin.lower = last;
+    for (auto& [i, b] : m_bins) {
+        b.lower = last;
         last += m_width;
-        bin.upper = last;
+        b.upper = last;
     }
 }
 
@@ -165,10 +159,10 @@ histogram<T, N>::histogram(T lower, T upper)
     , m_width { (upper - lower) / N }
 {
     T last { m_lower };
-    for (auto& [i, bin]: m_bins) {
-        bin.lower = last;
+    for (auto& [i, b] : m_bins) {
+        b.lower = last;
         last += m_width;
-        bin.upper = last;
+        b.upper = last;
     }
 }
 
@@ -189,16 +183,14 @@ auto histogram<T, N>::bins() const -> const std::array<bin, N>&
 }
 // -------------------------------
 
-
-
 // +++++++++++++++++++++++++++++++
 // class data_series
 template <typename T, std::size_t N, bool Sample>
 auto data_series<T, N, Sample>::private_mean() const -> T
 {
-    const auto n {m_full?N:(std::max<double>(m_index, 1.0))};
-    const auto end {m_full?m_buffer.end():m_buffer.begin() + m_index};
-    const auto begin {m_buffer.begin()};
+    const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
+    const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
+    const auto begin { m_buffer.begin() };
 
     return std::accumulate(begin, end, 0.0) / n;
 }
@@ -206,15 +198,14 @@ auto data_series<T, N, Sample>::private_mean() const -> T
 template <typename T, std::size_t N, bool Sample>
 auto data_series<T, N, Sample>::private_variance() const -> T
 {
-    const auto n {m_full?N:(std::max<double>(m_index, 1.0))};
-    const auto end {m_full?m_buffer.end():m_buffer.begin() + m_index};
-    const auto begin {m_buffer.begin()};
-    const auto denominator { Sample?(n - 1.0):n};
-    const auto mean { m_mean() };
+    const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
+    const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
+    const auto begin { m_buffer.begin() };
+    const auto denominator { Sample ? (n - 1.0) : n };
+    const auto m { m_mean() };
 
-
-    return 1.0 / (denominator) * std::inner_product(
-                       begin, end, begin, 0.0, [](T const& x, T const& y) { return x + y; }, [mean](T const& x, T const& y) { return (x - mean) * (y - mean); });
+    return 1.0 / (denominator)*std::inner_product(
+               begin, end, begin, 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
 }
 
 template <typename T, std::size_t N, bool Sample>
@@ -269,7 +260,6 @@ auto data_series<T, N, Sample>::current() const -> T
 }
 // -------------------------------
 
-
 // +++++++++++++++++++++++++++++++
 // class rate_measurement
 template <std::size_t N, std::size_t T, bool Sample>
@@ -291,7 +281,6 @@ auto rate_measurement<N, T, Sample>::step() -> bool
     return false;
 }
 // -------------------------------
-
 
 }
 #endif // ANALYSIS_H

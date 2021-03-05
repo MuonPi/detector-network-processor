@@ -18,7 +18,7 @@ namespace MuonPi {
 struct DetectorLogItem {
     std::string name {}; ///< the parameter name of the log item
     std::variant<std::string, bool, std::int_fast64_t, double, std::size_t, std::uint8_t, std::uint16_t, std::uint32_t> value;
-        ///< the parameter value of the log item
+    ///< the parameter value of the log item
     std::string unit {}; ///< the unit string of the log item
     /**
      * @brief the == operator of the log item which asserts equality by comparing the name and value fields of two log items

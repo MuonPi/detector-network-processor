@@ -1,9 +1,9 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+#include "defaults.h"
 #include "messages/detectorinfo.h"
 #include "messages/userinfo.h"
-#include "defaults.h"
 
 #include <chrono>
 #include <memory>
@@ -118,7 +118,6 @@ private:
     bool m_valid { true };
 
     Data m_data {};
-
 
     Location m_location {};
     UserInfo m_user_info {};

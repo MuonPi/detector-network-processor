@@ -17,6 +17,7 @@ void detector_pairs::remove_detector(std::size_t hash)
         return;
     }
     m_data.remove_index(std::distance(m_detectors.begin(), it));
+    m_detectors.erase(it);
 }
 
 void detector_pairs::increase_count(std::size_t hash_1, std::size_t hash_2)

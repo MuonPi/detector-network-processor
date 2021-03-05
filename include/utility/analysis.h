@@ -10,15 +10,15 @@
 namespace MuonPi {
 
 template <typename T>
-class buffered_value {
+class cached_value {
 public:
     /**
-     * @brief buffered_value
+     * @brief cached_value
      * @param calculation The calculation to perform in order to get a new value
      * @param marker The criterium to determine whether a new value should be calculated or not. Return true for new calculation
      * @param invoke if true, calculation gets called immediatly upon construction
      */
-    explicit buffered_value(std::function<T()> calculation, std::function<bool()> marker, bool invoke = false)
+    explicit cached_value(std::function<T()> calculation, std::function<bool()> marker, bool invoke = false)
         : m_calculation { calculation }
         , m_marker { marker }
         , m_value {}
@@ -85,9 +85,9 @@ private:
     bool m_mean_dirty { false };
     bool m_var_dirty { false };
     bool m_stddev_dirty { false };
-    buffered_value<T> m_mean { [this] { return private_mean(); }, [this] { return dirty(m_mean_dirty); } };
-    buffered_value<T> m_stddev { [this] { return private_stddev(); }, [this] { return dirty(m_stddev_dirty); } };
-    buffered_value<T> m_variance { [this] { return private_variance(); }, [this] { return dirty(m_var_dirty); } };
+    cached_value<T> m_mean { [this] { return private_mean(); }, [this] { return dirty(m_mean_dirty); } };
+    cached_value<T> m_stddev { [this] { return private_stddev(); }, [this] { return dirty(m_stddev_dirty); } };
+    cached_value<T> m_variance { [this] { return private_variance(); }, [this] { return dirty(m_var_dirty); } };
 };
 
 template <typename T, std::size_t N>

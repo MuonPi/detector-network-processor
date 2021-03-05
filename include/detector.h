@@ -5,6 +5,7 @@
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
 #include "messages/userinfo.h"
+#include "utility/analysis.h"
 #include "utility/threadrunner.h"
 #include "utility/utility.h"
 
@@ -31,8 +32,8 @@ private:
     static constexpr std::size_t s_time_interval { 30000 };
 
 public:
-    using CurrentRateType = RateMeasurement<s_history_length, s_time_interval>;
-    using MeanRateType = RateMeasurement<s_history_length * 10, s_time_interval>;
+    using CurrentRateType = rate_measurement<s_history_length, s_time_interval>;
+    using MeanRateType = rate_measurement<s_history_length * 10, s_time_interval>;
 
     enum class Status {
         Created,
@@ -137,9 +138,9 @@ private:
     DetectorSummary::Data m_current_data;
     std::uint16_t m_last_ublox_counter {};
 
-    Ringbuffer<double, 100> m_pulselength {};
-    Ringbuffer<double, 100> m_time_acc {}; //< ring buffer for time accuracy values provided by event messages (in ns)
-    Ringbuffer<double, 5> m_reliability_time_acc {}; //< ring buffer for time accuracy for use as reliability measure
+    data_series<double, 100> m_pulselength {};
+    data_series<double, 100> m_time_acc {}; //< ring buffer for time accuracy values provided by event messages (in ns)
+    data_series<double, 5> m_reliability_time_acc {}; //< ring buffer for time accuracy for use as reliability measure
 
     double m_factor { 1.0 };
 };

@@ -139,7 +139,7 @@ auto Detector::factor() const -> double
 void Detector::check_reliability()
 {
     const double loc_precision { m_location.dop * std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
-    if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR) || (m_mean_rate.deviation() > (m_mean_rate.mean() * stddev_factor))) {
+    if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR) || (m_mean_rate.stddev() > (m_mean_rate.mean() * stddev_factor))) {
         set_status(Status::Unreliable);
     } else {
         set_status(Status::Reliable);
@@ -162,8 +162,8 @@ void Detector::step()
 
     if (m_current_rate.step()) {
         m_mean_rate.step();
-        if (m_current_rate.mean() < (m_mean_rate.mean() - m_mean_rate.deviation())) {
-            m_factor = ((m_mean_rate.mean() - m_current_rate.mean()) / (m_mean_rate.deviation()) + 1.0) * 2.0;
+        if (m_current_rate.mean() < (m_mean_rate.mean() - m_mean_rate.stddev())) {
+            m_factor = ((m_mean_rate.mean() - m_current_rate.mean()) / (m_mean_rate.stddev()) + 1.0) * 2.0;
         } else {
             m_factor = 1.0;
         }
@@ -173,7 +173,7 @@ void Detector::step()
 auto Detector::current_log_data() -> DetectorSummary
 {
     m_current_data.mean_eventrate = m_current_rate.mean();
-    m_current_data.stddev_eventrate = m_current_rate.deviation();
+    m_current_data.stddev_eventrate = m_current_rate.stddev();
     m_current_data.mean_pulselength = m_pulselength.mean();
     m_current_data.mean_time_acc = m_time_acc.mean();
 

@@ -19,7 +19,7 @@ public:
      * @param marker The criterium to determine whether a new value should be calculated or not. Return true for new calculation
      * @param invoke if true, calculation gets called immediatly upon construction
      */
-    explicit buffered_value(std::function<T()> calculation, std::function<bool()> marker, bool invoke = true)
+    explicit buffered_value(std::function<T()> calculation, std::function<bool()> marker, bool invoke = false)
         : m_calculation { calculation }
         , m_marker { marker }
         , m_value {}
@@ -66,10 +66,18 @@ class data_series {
     [[nodiscard]] auto current() const -> T;
 
 private:
-    [[nodiscard]] inline auto priv_dirty() const -> bool;
-    [[nodiscard]] inline auto priv_mean() const -> T;
-    [[nodiscard]] inline auto priv_stddev() const -> T;
-    [[nodiscard]] inline auto priv_variance() const -> T;
+    [[nodiscard]] inline auto private_mean() const -> T;
+    [[nodiscard]] inline auto private_stddev() const -> T;
+    [[nodiscard]] inline auto private_variance() const -> T;
+
+    [[nodiscard]] inline auto dirty(bool& var) -> bool
+    {
+        if (var) {
+            var = false;
+            return true;
+        }
+        return false;
+    }
 
 
     std::array<T, N> m_buffer { T {} };
@@ -78,9 +86,9 @@ private:
     bool m_mean_dirty { false };
     bool m_var_dirty { false };
     bool m_stddev_dirty { false };
-    buffered_value<T> m_mean{[this]{return priv_mean();}, [this]{if(m_mean_dirty){m_mean_dirty=false; return true;} return false;}, false};
-    buffered_value<T> m_stddev{[this]{return priv_stddev();}, [this]{if(m_stddev_dirty){m_stddev_dirty=false; return true;} return false;}, false};
-    buffered_value<T> m_variance{[this]{return priv_variance();}, [this]{if(m_var_dirty){m_var_dirty=false; return true;} return false;}, false};
+    buffered_value<T> m_mean{[this]{return private_mean();}, [this]{return dirty(m_mean_dirty);}};
+    buffered_value<T> m_stddev{[this]{return private_stddev();}, [this]{return dirty(m_stddev_dirty);}};
+    buffered_value<T> m_variance{[this]{return private_variance();}, [this]{return dirty(m_var_dirty);}};
 };
 
 template <typename T, std::size_t N>
@@ -186,7 +194,7 @@ auto histogram<T, N>::bins() const -> const std::array<bin, N>&
 // +++++++++++++++++++++++++++++++
 // class data_series
 template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::priv_mean() const -> T
+auto data_series<T, N, Sample>::private_mean() const -> T
 {
     const auto n {m_full?N:(std::max<double>(m_index, 1.0))};
     const auto end {m_full?m_buffer.end():m_buffer.begin() + m_index};
@@ -196,7 +204,7 @@ auto data_series<T, N, Sample>::priv_mean() const -> T
 }
 
 template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::priv_variance() const -> T
+auto data_series<T, N, Sample>::private_variance() const -> T
 {
     const auto n {m_full?N:(std::max<double>(m_index, 1.0))};
     const auto end {m_full?m_buffer.end():m_buffer.begin() + m_index};
@@ -210,7 +218,7 @@ auto data_series<T, N, Sample>::priv_variance() const -> T
 }
 
 template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::priv_stddev() const -> T
+auto data_series<T, N, Sample>::private_stddev() const -> T
 {
     return std::sqrt(variance());
 }

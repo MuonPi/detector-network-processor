@@ -145,7 +145,7 @@ histogram<T, N>::histogram(T width)
     , m_width { width }
 {
     T last { m_lower };
-    for (auto& [i, b] : m_bins) {
+    for (auto& b : m_bins) {
         b.lower = last;
         last += m_width;
         b.upper = last;
@@ -159,7 +159,7 @@ histogram<T, N>::histogram(T lower, T upper)
     , m_width { (upper - lower) / N }
 {
     T last { m_lower };
-    for (auto& [i, b] : m_bins) {
+    for (auto& b : m_bins) {
         b.lower = last;
         last += m_width;
         b.upper = last;

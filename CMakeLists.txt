@@ -74,6 +74,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/parameters.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/resourcetracker.cpp"
+    "${PROJECT_SRC_DIR}/utility/uppermatrix.cpp"
 
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
@@ -116,6 +117,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/configuration.h"
     "${PROJECT_HEADER_DIR}/utility/resourcetracker.h"
     "${PROJECT_HEADER_DIR}/utility/analysis.h"
+    "${PROJECT_HEADER_DIR}/utility/uppermatrix.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"

@@ -17,6 +17,8 @@ DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink
     : Sink::Threaded<DetectorInfo<Location>> { "DetectorTracker", std::chrono::milliseconds { 100 } }
     , Source::Base<DetectorSummary> { summary_sink }
     , Source::Base<Trigger::Detector> { trigger_sink }
+    , Pipeline<Event> { event_sink }
+    , Source::Base<TimeBase> { timebase_sink }
     , m_supervisor { supervisor }
 {
 }
@@ -33,7 +35,7 @@ void DetectorTracker::get(Event event)
         return;
     }
 
-        event.set_detector_info(det->location(), det->user_info());
+    event.set_detector_info(det->location(), det->user_info());
 
     if (det->is(Detector::Status::Reliable)) {
         Source::Base<Event>::put(event);

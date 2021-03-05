@@ -1,4 +1,4 @@
-#ifndef DETECTORTRACKER_H
+﻿#ifndef DETECTORTRACKER_H
 #define DETECTORTRACKER_H
 
 #include "pipeline.h"
@@ -17,7 +17,6 @@
 
 namespace MuonPi {
 
-class Event;
 class DetectorSummary;
 class StateSupervisor;
 
@@ -36,20 +35,7 @@ public:
      * @param event_sink A Sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, StateSupervisor& supervisor);
-
-    /**
-     * @brief accept Check if an event is accepted
-     * @param event The event to check
-     * @return true if the event belongs to a known detector and the detector is reliable
-     */
-    [[nodiscard]] auto accept(Event &event) -> bool;
-
-    /**
-     * @brief factor The current maximum factor
-     * @return maximum factor between all detectors
-     */
-    [[nodiscard]] auto factor() const -> double;
+    DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor);
 
     /**
      * @brief detector_status Update the status of one detector

@@ -83,10 +83,21 @@ public:
      */
     [[nodiscard]] auto factor() const -> double;
 
+    /**
+     * @brief step Gets called by the detector_tracker with a guaranteed maximum time delay. May be called more often.
+     */
     void step();
 
+    /**
+     * @brief current_log_data gets the current log data.
+     * @return
+     */
     [[nodiscard]] auto current_log_data() -> DetectorSummary;
 
+    /**
+     * @brief change_log_data gets the current log data when the detector has experienced a change in status.
+     * @return
+     */
     [[nodiscard]] auto change_log_data() -> DetectorSummary;
 
     /**

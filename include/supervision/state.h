@@ -67,6 +67,9 @@ public:
      */
     void add_thread(ThreadRunner* thread);
 
+    /**
+     * @brief stop Signals all threads to stop execution
+     */
     void stop();
 
 private:

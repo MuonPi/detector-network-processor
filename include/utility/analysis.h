@@ -9,6 +9,10 @@
 
 namespace MuonPi {
 
+/**
+ * @brief holds a value and caches it appropriately
+ * @param T the datatype of the value
+ */
 template <typename T>
 class cached_value {
 public:
@@ -55,14 +59,50 @@ private:
     mutable T m_value {};
 };
 
+/**
+ * @brief The data_series class
+ * @param T The type of data points to process
+ * @param N The maximum number of datapoints to store
+ * @param Sample whether this should behave like a sample or a complete dataset (true for sample)
+ */
 template <typename T, std::size_t N, bool Sample = false>
 class data_series {
 public:
+    /**
+     * @brief add Adds a value to the data series
+     * @param value The value to add
+     */
     void add(T value);
+
+    /**
+     * @brief mean Calculates the mean of all values. This value gets cached between data entries.
+     * @return The mean
+     */
     [[nodiscard]] auto mean() const -> T;
+
+    /**
+     * @brief mean Calculates the standard deviation of all values. This value gets cached between data entries.
+     * @return The standard deviation
+     */
     [[nodiscard]] auto stddev() const -> T;
+
+    /**
+     * @brief mean Calculates the variance of all values. This value gets cached between data entries.
+     * Depending on the template parameter given with Sample, this calculates the variance of a sample
+     * @return The variance
+     */
     [[nodiscard]] auto variance() const -> T;
+
+    /**
+     * @brief entries Get the number of entries entered into this data series
+     * @return Number of entries
+     */
     [[nodiscard]] auto entries() const -> std::size_t;
+
+    /**
+     * @brief current Gets the most recent value
+     * @return The most recent entry
+     */
     [[nodiscard]] auto current() const -> T;
 
 private:
@@ -90,6 +130,11 @@ private:
     cached_value<T> m_variance { [this] { return private_variance(); }, [this] { return dirty(m_var_dirty); } };
 };
 
+/**
+ * @brief The histogram class
+ * @param T The type of each datapoints
+ * @param N the number of bins to use
+ */
 template <typename T, std::size_t N>
 class histogram {
 public:
@@ -99,11 +144,31 @@ public:
         std::size_t count { 0 };
     };
 
+    /**
+     * @brief histogram Create a histogram with a fixed bin width. Note that the lower bound in this case will be assumed as 0.
+     * @param width The width of each bin
+     */
     explicit histogram(T width);
+
+    /**
+     * @brief histogram Create a histogram between two values.
+     * @param lower The lower bound of the histogram
+     * @param upper The upper bound
+     */
     explicit histogram(T lower, T upper);
 
+    /**
+     * @brief add Adds a value to the histogram.
+     * The value is deemed inside the histogram interval when it is >= lower and < upper.
+     * If the value is exactly on the bound between two bins, the upper one is chosen.
+     * @param value The value to add.
+     */
     void add(T value);
 
+    /**
+     * @brief bins Get all bins
+     * @return a const ref to the std::array cointaining the bins
+     */
     [[nodiscard]] auto bins() const -> const std::array<bin, N>&;
 
 private:
@@ -113,6 +178,13 @@ private:
     std::array<bin, N> m_bins {};
 };
 
+
+/**
+ * @brief The rate_measurement class
+ * @param N the number of items in the history
+ * @param T the sampletime in milliseconds
+ * @param Sample whether the statistics should be handled like a sample or a complete dataset
+ */
 template <std::size_t N, std::size_t T, bool Sample = false>
 class rate_measurement : public data_series<double, N, Sample> {
 public:

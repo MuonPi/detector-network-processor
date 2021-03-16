@@ -1,6 +1,7 @@
 #include "utility/uppermatrix.h"
 
 #include <algorithm>
+#include <cinttypes>
 
 namespace MuonPi {
 
@@ -22,15 +23,25 @@ void detector_pairs::remove_detector(std::size_t hash)
 
 void detector_pairs::increase_count(std::size_t hash_1, std::size_t hash_2)
 {
-    auto it_1 = std::find(std::begin(m_detectors), std::end(m_detectors), hash_1);
-    if (it_1 == m_detectors.end()) {
+    std::size_t first { 0 };
+    std::size_t second { 0 };
+    std::uint8_t found { 0x3 };
+    for (std::size_t i { 0 }; i < m_detectors.size(); i++) {
+        if (m_detectors[i] == hash_1) {
+            first = i;
+            found &= ~0x1U;
+        } else if (m_detectors[i] == hash_2){
+            second = i;
+            found &= ~0x2U;
+        }
+        if (found == 0) {
+            break;
+        }
+    }
+    if (found > 0) {
         return;
     }
-    auto it_2 = std::find(std::begin(m_detectors), std::end(m_detectors), hash_2);
-    if (it_2 == m_detectors.end()) {
-        return;
-    }
-    m_data.at(std::distance(m_detectors.begin(), it_1), std::distance(m_detectors.begin(), it_2)) += 1;
+    m_data.at(first, second) += 1;
 }
 
 auto detector_pairs::get_counts(std::size_t hash) -> std::unordered_map<std::size_t, std::size_t>

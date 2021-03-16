@@ -62,6 +62,9 @@ auto CoincidenceFilter::process(Event event) -> int
     std::queue<std::size_t> matches {};
     for (std::size_t i { 0 }; i < m_constructors.size(); i++) {
         auto& constructor { m_constructors[i] };
+        if (constructor.event.hash() == event.hash()) {
+            continue;
+        }
         if (m_criterion->maximum_false() < m_criterion->criterion(event, constructor.event)) {
             matches.push(i);
         }

@@ -118,6 +118,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/configuration.h"
     "${PROJECT_HEADER_DIR}/utility/resourcetracker.h"
     "${PROJECT_HEADER_DIR}/utility/rest_service.h"
+    "${PROJECT_HEADER_DIR}/utility/base64.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"

@@ -1,6 +1,8 @@
 #ifndef REST_SERVICE_H
 #define REST_SERVICE_H
 
+#include "defaults.h"
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/ssl.hpp>
@@ -18,9 +20,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-
 #include <string_view>
-#include <map>
+#include <queue>
 
 namespace MuonPi::rest {
 
@@ -33,37 +34,41 @@ using request = http::request<http::string_body>;
 using response = http::response<http::string_body>;
 using tcp = net::ip::tcp;
 
+template <http::status status>
+[[nodiscard]] inline auto http_response(request& req, std::string why) -> response
+{
+    http::response<http::string_body> res{status, req.version()};
+    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+    res.set(http::field::content_type, "text/html");
+    res.keep_alive(req.keep_alive());
+    res.body() = std::move(why);
+    res.prepare_payload();
+    return res;
+}
 
 struct handler
 {
-    const std::string path{};
-    const std::function<bool (const request& req, std::string_view username, std::string_view password)> authenticate {};
-    const std::function<response (const request& req)> handle {};
-    const std::map<std::string, handler> children {};
+    std::function<bool (std::string_view path)> matches {};
+    std::function<bool (const request& req, std::string_view username, std::string_view password)> authenticate {};
+    std::function<response (const request& req, std::queue<std::string> path)> handle {};
+    std::vector<handler> children {};
+    bool requires_auth { false };
 };
 
-class service : public std::enable_shared_from_this<service>
+class listener;
+
+class service
 {
 public:
-    service(
-            net::io_context& ioc,
-            ssl::context& ctx,
-            tcp::endpoint endpoint,
-            std::shared_ptr<std::string const> const& doc_root);
+    service(Config::Rest rest_config);
 
-    void run();
-
-    [[nodiscard]] auto handle(request req) const -> response;
-
-    void add_handler(std::string, handler han);
+    void add_handler(handler han);
 
 private:
-    void do_accept();
+    std::string m_address {};
+    std::uint16_t m_port {};
 
-    void on_accept(beast::error_code error_code, tcp::socket socket);
-
-
-    std::map<std::string, handler> m_handler {};
+    std::shared_ptr<listener> m_listener { nullptr };
 };
 
 }

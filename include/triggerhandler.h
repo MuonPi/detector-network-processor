@@ -7,19 +7,14 @@
 #include "defaults.h"
 #include "messages/trigger.h"
 
-#include <future>
-#include <restbed>
+#include "utility/rest_service.h"
 
-namespace restbed {
-typedef std::shared_ptr<Session> session_ptr;
-typedef std::function<void(const restbed::session_ptr)> callback;
-}
 
 namespace MuonPi {
 
-class TriggerHandler : public Source::Base<Trigger::Detector::Action> {
+class TriggerHandler : public Source::Base<Trigger::Detector::Action>, public rest::service_handler {
 public:
-    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Config::Rest rest_config, Config::Ldap ldap_config);
+    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config);
 
     ~TriggerHandler() override;
 
@@ -27,26 +22,14 @@ private:
     void save();
     void load();
 
-    void handle_authentication(const restbed::session_ptr session, const restbed::callback& callback);
+    [[nodiscard]] auto authenticate(std::string_view user, std::string_view pw) -> bool;
 
-    [[nodiscard]] auto authenticate(const std::string& user, const std::string& pw) -> bool;
-
-    void handle_post(const restbed::session_ptr session);
-    void handle_get(const restbed::session_ptr session);
-    void handle_delete(const restbed::session_ptr session);
-
-    std::shared_ptr<restbed::Resource> m_resource { std::make_shared<restbed::Resource>() };
-    std::shared_ptr<restbed::SSLSettings> m_ssl_settings { std::make_shared<restbed::SSLSettings>() };
-    std::shared_ptr<restbed::Settings> m_settings { std::make_shared<restbed::Settings>() };
-
-    restbed::Service m_service {};
+    [[nodiscard]] auto handle(rest::request request) -> rest::response_type;
 
     std::map<std::size_t, Trigger::Detector::Setting> m_detector_trigger {};
 
-    std::future<void> m_future;
-
-    Config::Rest m_rest { Config::rest };
     Config::Ldap m_ldap { Config::ldap };
+    Config::Trigger m_trigger { Config::trigger };
 };
 
 }

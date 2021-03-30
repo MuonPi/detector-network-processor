@@ -50,11 +50,13 @@ service::service(Config::Rest rest_config)
          fail(ec, "listen");
          return;
      }
+
+     start();
 }
 
-void service::add_handler(handler han)
+void service::add_handler(service_handler* han)
 {
-    m_handler.emplace_back(std::move(han));
+    m_handler.emplace_back(han->get_handler());
 }
 
 auto service::step() -> int
@@ -116,7 +118,7 @@ void service::session(tcp::socket &socket)
     }
 }
 
-auto service::handle(request req) const -> response
+auto service::handle(request_type req) const -> response_type
 {
     if( req.target().empty() || req.target()[0] != '/' || (req.target().find("..") != beast::string_view::npos)) {
            return http_response<http::status::bad_request>(req, "Illegal request-target");
@@ -136,7 +138,7 @@ auto service::handle(request req) const -> response
     return handle(std::move(req), std::move(path), m_handler);
 }
 
-auto service::handle(request req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response
+auto service::handle(request_type req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response_type
 {
     while (!path.empty() && path.front().empty()) {
         path.pop();
@@ -174,13 +176,13 @@ auto service::handle(request req, std::queue<std::string> path, const std::vecto
         auto username = auth.substr(0, delimiter);
         auto password = auth.substr(delimiter + 1);
 
-        if (!hand.authenticate(req, username, password)) {
+        if (!hand.authenticate(request{req}, username, password)) {
             return http_response<http::status::unauthorized>(req, "Unauthorised");
         }
     }
 
     if (hand.children.empty() || path.empty()) {
-        return hand.handle(req, std::move(path));
+        return hand.handle(request{req}, std::move(path));
     }
 
     return handle(std::move(req), std::move(path), hand.children);

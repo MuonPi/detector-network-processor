@@ -117,7 +117,7 @@ auto main(int argc, char* argv[]) -> int
         << MuonPi::Option { "ldap_host", &MuonPi::Config::ldap.server }
 
         << MuonPi::Option { "rest_port", &MuonPi::Config::rest.port }
-        << MuonPi::Option { "rest_trigger_file", &MuonPi::Config::rest.save_file }
+        << MuonPi::Option { "rest_trigger_file", &MuonPi::Config::trigger.save_file }
         << MuonPi::Option { "rest_cert", &MuonPi::Config::rest.cert }
         << MuonPi::Option { "rest_privkey", &MuonPi::Config::rest.privkey }
         << MuonPi::Option { "rest_fullchain", &MuonPi::Config::rest.fullchain }
@@ -226,7 +226,8 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::CoincidenceFilter coincidence_filter { *guard[2].event.sink, supervisor };
     MuonPi::TimeBaseSupervisor timebase_supervisor { coincidence_filter, coincidence_filter };
     MuonPi::DetectorTracker detector_tracker { *guard[2].detectorsummary.sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
-    MuonPi::TriggerHandler trigger_handler { detector_tracker, MuonPi::Config::rest, MuonPi::Config::ldap };
+    MuonPi::TriggerHandler trigger_handler { detector_tracker, MuonPi::Config::ldap, MuonPi::Config::trigger};
+    MuonPi::rest::service rest_service {MuonPi::Config::rest};
 
     MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, source_mqtt_link.subscribe("muonpi/data/#") };
     MuonPi::Source::Mqtt<MuonPi::Event> l1_source { detector_tracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
@@ -234,9 +235,12 @@ auto main(int argc, char* argv[]) -> int
 
     MuonPi::Source::Mqtt<MuonPi::DetectorLog> detectorlog_source { *detectorlog.sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
+    rest_service.add_handler(&trigger_handler);
+
     supervisor.add_thread(&detector_tracker);
     supervisor.add_thread(&sink_mqtt_link);
     supervisor.add_thread(&source_mqtt_link);
+    supervisor.add_thread(&rest_service);
     supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::Event>*>(guard[2].event.sink));
     supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::DetectorSummary>*>(guard[2].detectorsummary.sink));
     supervisor.add_thread(dynamic_cast<MuonPi::Sink::Threaded<MuonPi::ClusterLog>*>(guard[2].clusterlog.sink));

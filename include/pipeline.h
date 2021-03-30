@@ -7,8 +7,15 @@
 namespace MuonPi {
 
 template <typename T>
+/**
+ * @brief The Pipeline class Combines a Sink and source
+ */
 class Pipeline : public Sink::Base<T>, public Source::Base<T> {
 public:
+    /**
+     * @brief Pipeline
+     * @param sink The sink to connect to
+     */
     Pipeline(Sink::Base<T>& sink);
 };
 

@@ -31,7 +31,18 @@ public:
 
     ~CoincidenceFilter() override = default;
 
+    /**
+     * @brief get Get a new TimeBase message
+     * Reimplemented from Sink::Base
+     * @param timebase
+     */
     void get(TimeBase timebase) override;
+
+    /**
+     * @brief get Get a new Event
+     * Reimplemented from Sink::Base
+     * @param timebase
+     */
     void get(Event event) override;
 
 protected:

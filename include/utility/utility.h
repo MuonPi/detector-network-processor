@@ -146,10 +146,34 @@ private:
 template <typename T, std::size_t N>
 class Ringbuffer {
 public:
+    /**
+     * @brief add Adds a value to the RingBuffer
+     * @param val
+     */
     void add(T val);
+
+    /**
+     * @brief mean
+     * @return The mean value of all values in the buffer
+     */
     [[nodiscard]] auto mean() const -> T;
+
+    /**
+     * @brief stddev
+     * @return The standard deviation of all values in the buffer
+     */
     [[nodiscard]] auto stddev() const -> T;
+
+    /**
+     * @brief variance
+     * @return The variance of all values in the buffer
+     */
     [[nodiscard]] auto variance() const -> T;
+
+    /**
+     * @brief entries
+     * @return Number of entries in the buffer
+     */
     [[nodiscard]] auto entries() const -> std::size_t;
 
 private:

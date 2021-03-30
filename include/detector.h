@@ -82,10 +82,21 @@ public:
      */
     [[nodiscard]] auto factor() const -> double;
 
+    /**
+     * @brief step step function executed with every loop
+     */
     void step();
 
+    /**
+     * @brief current_log_data gets the current log data
+     * @return
+     */
     [[nodiscard]] auto current_log_data() -> DetectorSummary;
 
+    /**
+     * @brief change_log_data Gets the current log data in the event of a change
+     * @return
+     */
     [[nodiscard]] auto change_log_data() -> DetectorSummary;
 
     /**
@@ -114,6 +125,9 @@ protected:
     void set_status(Status status);
 
 private:
+    /**
+     * @brief check_reliability Checks and sets the reliability of this detector object
+     */
     void check_reliability();
 
     Status m_status { Status::Unreliable };

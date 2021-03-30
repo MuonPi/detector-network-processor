@@ -44,10 +44,25 @@ public:
      */
     void detector_status(std::size_t hash, Detector::Status status);
 
+    /**
+     * @brief get Get a new Detector Action trigger
+     * reimplemented from Source::Base
+     * @param action
+     */
     void get(Trigger::Detector::Action action) override;
 
+    /**
+     * @brief get Get a new Event
+     * reimplemented from Source::Base
+     * @param event
+     */
     void get(Event event) override;
 
+    /**
+     * @brief get Get a new Detector Info object
+     * reimplemented from Source::Base
+     * @param detector_info
+     */
     void get(DetectorInfo<Location> detector_info) override;
 
 protected:
@@ -56,9 +71,20 @@ protected:
      * @param log The log message to check
      */
     [[nodiscard]] auto process(DetectorInfo<Location> log) -> int override;
+
+    /**
+     * @brief process Called periodically
+     * @return 0 for success
+     */
     [[nodiscard]] auto process() -> int override;
 
+    /**
+     * @brief save all current detectors to a file
+     */
     void save();
+    /**
+     * @brief load Load previously saved detectors from a file
+     */
     void load();
 
 private:

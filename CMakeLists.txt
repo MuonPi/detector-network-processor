@@ -158,9 +158,11 @@ target_link_libraries(muondetector-cluster
     source-files
     pthread
     curl
-    restbed
     sasl2
     ldap
+    boost_system
+    ssl
+    crypto
     )
 else()
 target_link_libraries(muondetector-cluster
@@ -169,10 +171,12 @@ target_link_libraries(muondetector-cluster
     source-files
     pthread
     curl
-    restbed
     sasl2
     ldap
     stdc++fs
+    boost_system
+    ssl
+    crypto
     )
 endif()
 

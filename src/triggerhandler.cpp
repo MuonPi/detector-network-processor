@@ -137,9 +137,9 @@ TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Conf
     load();
 
     rest::handler handler {};
-    handler.matches = [](std::string_view path){return path == "trigger";};
-    handler.authenticate = [this] (rest::request /*request*/, std::string_view username, std::string_view password) {return authenticate(username, password);};
-    handler.handle = [this] (rest::request request, std::queue<std::string> /*path*/) {return handle(std::move(request));};
+    handler.matches = [](std::string_view path) { return path == "trigger"; };
+    handler.authenticate = [this](rest::request /*request*/, std::string_view username, std::string_view password) { return authenticate(username, password); };
+    handler.handle = [this](rest::request request, std::queue<std::string> /*path*/) { return handle(std::move(request)); };
     handler.requires_auth = true;
 
     set_handler(std::move(handler));
@@ -183,7 +183,7 @@ auto TriggerHandler::authenticate(std::string_view user, std::string_view pw) ->
     }
 
     LDAPMessage* result = nullptr;
-    code = ldap_search_ext_s(ldap, "ou=users,dc=muonpi,dc=org", LDAP_SCOPE_ONELEVEL, ("(&(objectClass=inetOrgPerson)(memberof=cn=trigger,ou=groups,dc=muonpi,dc=org)(uid=" + std::string{user} + "))").c_str(), nullptr, 0, nullptr, nullptr, nullptr, LDAP_NO_LIMIT, &result);
+    code = ldap_search_ext_s(ldap, "ou=users,dc=muonpi,dc=org", LDAP_SCOPE_ONELEVEL, ("(&(objectClass=inetOrgPerson)(memberof=cn=trigger,ou=groups,dc=muonpi,dc=org)(uid=" + std::string { user } + "))").c_str(), nullptr, 0, nullptr, nullptr, nullptr, LDAP_NO_LIMIT, &result);
 
     if (code != LDAP_SUCCESS) {
         Log::warning() << "Could not search in ldap: " + std::string { ldap_err2string(code) };
@@ -195,11 +195,11 @@ auto TriggerHandler::authenticate(std::string_view user, std::string_view pw) ->
         return false;
     }
 
-    std::string bind_dn { "uid=" + std::string{user} + ",ou=users,dc=muonpi,dc=org" };
+    std::string bind_dn { "uid=" + std::string { user } + ",ou=users,dc=muonpi,dc=org" };
 
     berval credentials {};
     credentials.bv_len = pw.size();
-    credentials.bv_val = const_cast<char*>(std::string{pw}.c_str());
+    credentials.bv_val = const_cast<char*>(std::string { pw }.c_str());
 
     code = ldap_sasl_bind_s(ldap, bind_dn.c_str(),
         nullptr, &credentials, nullptr,

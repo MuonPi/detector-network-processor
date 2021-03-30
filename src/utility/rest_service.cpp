@@ -1,10 +1,8 @@
 #include "utility/rest_service.h"
-#include "utility/log.h"
 #include "utility/base64.h"
-
+#include "utility/log.h"
 
 #include <sstream>
-
 
 namespace MuonPi::rest {
 
@@ -20,12 +18,11 @@ void service_handler::set_handler(handler h)
 
 service::service(Config::Rest rest_config)
     : ThreadRunner("REST")
-    , m_endpoint{net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
+    , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
     , m_rest_conf { std::move(rest_config) }
 {
     m_ctx.set_options(
-        boost::asio::ssl::context::default_workarounds |
-        boost::asio::ssl::context::no_sslv2);
+        boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
 
     m_ctx.use_private_key_file(m_rest_conf.privkey, ssl::context::file_format::pem);
     m_ctx.use_certificate_file(m_rest_conf.cert, ssl::context::file_format::pem);
@@ -33,35 +30,31 @@ service::service(Config::Rest rest_config)
 
     beast::error_code ec;
 
-     m_acceptor.open(m_endpoint.protocol(), ec);
-     if(ec)
-     {
-         fail(ec, "open");
-         return;
-     }
+    m_acceptor.open(m_endpoint.protocol(), ec);
+    if (ec) {
+        fail(ec, "open");
+        return;
+    }
 
-     m_acceptor.set_option(net::socket_base::reuse_address(true), ec);
-     if(ec)
-     {
-         fail(ec, "set_option");
-         return;
-     }
+    m_acceptor.set_option(net::socket_base::reuse_address(true), ec);
+    if (ec) {
+        fail(ec, "set_option");
+        return;
+    }
 
-     m_acceptor.bind(m_endpoint, ec);
-     if(ec)
-     {
-         fail(ec, "bind");
-         return;
-     }
+    m_acceptor.bind(m_endpoint, ec);
+    if (ec) {
+        fail(ec, "bind");
+        return;
+    }
 
-     m_acceptor.listen(net::socket_base::max_listen_connections, ec);
-     if(ec)
-     {
-         fail(ec, "listen");
-         return;
-     }
+    m_acceptor.listen(net::socket_base::max_listen_connections, ec);
+    if (ec) {
+        fail(ec, "listen");
+        return;
+    }
 
-     start();
+    start();
 }
 
 void service::add_handler(service_handler* han)
@@ -71,38 +64,37 @@ void service::add_handler(service_handler* han)
 
 auto service::step() -> int
 {
-    tcp::socket socket{m_ioc};
+    tcp::socket socket { m_ioc };
 
     m_acceptor.accept(socket);
 
-    auto f { std::async(std::launch::async, [&]{session(socket);}) };
+    auto f { std::async(std::launch::async, [&] { session(socket); }) };
     return 0;
 }
 
-void service::session(tcp::socket &socket)
+void service::session(tcp::socket& socket)
 {
     beast::error_code ec;
 
-    beast::ssl_stream<tcp::socket&> stream{socket, m_ctx};
+    beast::ssl_stream<tcp::socket&> stream { socket, m_ctx };
 
     stream.handshake(ssl::stream_base::server, ec);
 
-    if(ec) {
+    if (ec) {
         fail(ec, "handshake");
         return;
     }
 
     beast::flat_buffer buffer;
 
-    for (bool close { false }; !close;)
-    {
+    for (bool close { false }; !close;) {
         http::request<http::string_body> req;
         http::read(stream, buffer, req, ec);
-        if(ec == http::error::end_of_stream) {
+        if (ec == http::error::end_of_stream) {
             break;
         }
 
-        if(ec) {
+        if (ec) {
             fail(ec, "read");
             return;
         }
@@ -111,7 +103,7 @@ void service::session(tcp::socket &socket)
 
         close = res.need_eof();
 
-        http::serializer<false, http::string_body> sr{res};
+        http::serializer<false, http::string_body> sr { res };
 
         http::write(stream, sr, ec);
 
@@ -130,17 +122,17 @@ void service::session(tcp::socket &socket)
 
 auto service::handle(request_type req) const -> response_type
 {
-    if( req.target().empty() || req.target()[0] != '/' || (req.target().find("..") != beast::string_view::npos)) {
-           return http_response<http::status::bad_request>(req, "Illegal request-target");
+    if (req.target().empty() || req.target()[0] != '/' || (req.target().find("..") != beast::string_view::npos)) {
+        return http_response<http::status::bad_request>(req, "Illegal request-target");
     }
     if (m_handler.empty()) {
-       return http_response<http::status::service_unavailable>(req, "No handler installed");
+        return http_response<http::status::service_unavailable>(req, "No handler installed");
     }
 
     std::queue<std::string> path {};
     {
         std::istringstream stream { req.target().to_string() };
-        for (std::string part; std::getline(stream, part, '/'); ) {
+        for (std::string part; std::getline(stream, part, '/');) {
             path.emplace(part);
         }
     }
@@ -155,7 +147,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
     }
 
     if (path.empty()) {
-       return http_response<http::status::bad_request>(req, "Illegal request-target");
+        return http_response<http::status::bad_request>(req, "Illegal request-target");
     }
 
     auto it = handlers.begin();
@@ -165,7 +157,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
         }
     }
     if (it == handlers.end()) {
-       return http_response<http::status::bad_request>(req, "Illegal request-target");
+        return http_response<http::status::bad_request>(req, "Illegal request-target");
     }
 
     const handler& hand { *it };
@@ -186,13 +178,13 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
         auto username = auth.substr(0, delimiter);
         auto password = auth.substr(delimiter + 1);
 
-        if (!hand.authenticate(request{req}, username, password)) {
+        if (!hand.authenticate(request { req }, username, password)) {
             return http_response<http::status::unauthorized>(req, "Unauthorised");
         }
     }
 
     if (hand.children.empty() || path.empty()) {
-        return hand.handle(request{req}, std::move(path));
+        return hand.handle(request { req }, std::move(path));
     }
 
     return handle(std::move(req), std::move(path), hand.children);
@@ -200,7 +192,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
 
 void service::fail(beast::error_code ec, const std::string& what)
 {
-    if(ec == net::ssl::error::stream_truncated) {
+    if (ec == net::ssl::error::stream_truncated) {
         return;
     }
 

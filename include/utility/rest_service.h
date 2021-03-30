@@ -4,19 +4,18 @@
 #include "defaults.h"
 #include "threadrunner.h"
 
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/config.hpp>
 
-
-#include <string>
-#include <vector>
-#include <string_view>
 #include <queue>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace MuonPi::rest {
 
@@ -32,7 +31,7 @@ using tcp = net::ip::tcp;
 template <http::status status>
 [[nodiscard]] inline auto http_response(request_type& req, std::string why) -> response_type
 {
-    response_type res{status, req.version()};
+    response_type res { status, req.version() };
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
@@ -41,8 +40,7 @@ template <http::status status>
     return res;
 }
 
-struct request
-{
+struct request {
     request_type& req;
 
     template <http::status status>
@@ -52,17 +50,15 @@ struct request
     }
 };
 
-struct handler
-{
-    std::function<bool (std::string_view path)> matches {};
-    std::function<bool (request req, std::string_view username, std::string_view password)> authenticate {};
-    std::function<response_type (request req, std::queue<std::string> path)> handle {};
+struct handler {
+    std::function<bool(std::string_view path)> matches {};
+    std::function<bool(request req, std::string_view username, std::string_view password)> authenticate {};
+    std::function<response_type(request req, std::queue<std::string> path)> handle {};
     std::vector<handler> children {};
     bool requires_auth { false };
 };
 
-class service_handler
-{
+class service_handler {
 public:
     [[nodiscard]] auto get_handler() -> handler;
 
@@ -73,8 +69,7 @@ private:
     handler m_handler {};
 };
 
-class service : public ThreadRunner
-{
+class service : public ThreadRunner {
 public:
     service(Config::Rest rest_config);
 

@@ -2,6 +2,7 @@
 #define REST_SERVICE_H
 
 #include "defaults.h"
+#include "threadrunner.h"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -55,20 +56,34 @@ struct handler
     bool requires_auth { false };
 };
 
-class listener;
-
-class service
+class service : public ThreadRunner
 {
 public:
     service(Config::Rest rest_config);
 
     void add_handler(handler han);
 
-private:
-    std::string m_address {};
-    std::uint16_t m_port {};
+protected:
+    [[nodiscard]] auto step() -> int override;
 
-    std::shared_ptr<listener> m_listener { nullptr };
+private:
+    void session(tcp::socket& socket);
+
+    void send();
+
+    [[nodiscard]] auto handle(request req) const -> response;
+
+    [[nodiscard]] auto handle(request req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response;
+
+    static void fail(beast::error_code ec, const std::string& what);
+
+    std::vector<handler> m_handler {};
+
+    net::io_context m_ioc { 1 };
+    ssl::context m_ctx { ssl::context::tlsv12 };
+    tcp::acceptor m_acceptor { m_ioc };
+    tcp::endpoint m_endpoint;
+    Config::Rest m_rest_conf;
 };
 
 }

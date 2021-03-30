@@ -20,7 +20,7 @@ public:
         Running,
         Finalising
     };
-    ThreadRunner(std::string name);
+    ThreadRunner(std::string name, bool use_custom_run = false);
     /**
      * @brief ~ThreadRunner Stops the thread and waits for it to finish.
      */
@@ -76,6 +76,8 @@ protected:
      */
     [[nodiscard]] auto run() -> int;
 
+    [[nodiscard]] virtual auto custom_run() -> int;
+
     /**
      * @brief finish Tells the main loop to finish and waits for the thread to exit
      */
@@ -103,6 +105,8 @@ protected:
     bool m_quit { false };
 
 private:
+    bool m_use_custom_run { false };
+
     std::atomic<bool> m_run { true };
 
     std::future<int> m_run_future {};

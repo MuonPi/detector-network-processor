@@ -6,8 +6,9 @@
 
 namespace MuonPi {
 
-ThreadRunner::ThreadRunner(std::string name)
-    : m_name { std::move(name) }
+ThreadRunner::ThreadRunner(std::string name, bool use_custom_run)
+    : m_use_custom_run { std::move(use_custom_run) }
+    , m_name { std::move(name) }
 {
 }
 
@@ -41,6 +42,11 @@ auto ThreadRunner::pre_run() -> int
 }
 
 auto ThreadRunner::post_run() -> int
+{
+    return 0;
+}
+
+auto ThreadRunner::custom_run() -> int
 {
     return 0;
 }
@@ -83,11 +89,18 @@ auto ThreadRunner::run() -> int
     }
     try {
         m_state = State::Running;
-        while (m_run) {
-            int result { step() };
+        if (m_use_custom_run) {
+            int result { custom_run() };
             if (result != 0) {
-                Log::warning() << "Thread " + m_name + " Stopped.";
                 return result;
+            }
+        } else {
+            while (m_run) {
+                int result { step() };
+                if (result != 0) {
+                    Log::warning() << "Thread " + m_name + " Stopped.";
+                    return result;
+                }
             }
         }
     } catch (std::exception& e) {

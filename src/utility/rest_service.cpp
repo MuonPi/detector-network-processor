@@ -8,6 +8,16 @@
 
 namespace MuonPi::rest {
 
+auto service_handler::get_handler() -> handler
+{
+    return m_handler;
+}
+
+void service_handler::set_handler(handler h)
+{
+    m_handler = std::move(h);
+}
+
 service::service(Config::Rest rest_config)
     : ThreadRunner("REST")
     , m_endpoint{net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }

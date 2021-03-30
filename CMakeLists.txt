@@ -43,10 +43,11 @@ find_library(CRYPTOPP crypto++ REQUIRED)
 find_library(CURL curl REQUIRED)
 find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
-find_library(RESTBED restbed REQUIRED)
 
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
+
+find_package(Boost 1.66 COMPONENTS system REQUIRED)
 
 
 
@@ -74,6 +75,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/parameters.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/resourcetracker.cpp"
+    "${PROJECT_SRC_DIR}/utility/rest_service.cpp"
 
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
@@ -115,6 +117,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/parameters.h"
     "${PROJECT_HEADER_DIR}/utility/configuration.h"
     "${PROJECT_HEADER_DIR}/utility/resourcetracker.h"
+    "${PROJECT_HEADER_DIR}/utility/rest_service.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"

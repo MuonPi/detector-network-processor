@@ -71,13 +71,13 @@ auto thread_runner::run() -> int
     m_state = State::Initialising;
     State& state { m_state };
     bool clean { false };
-    const scope_guard state_guard{[&state, &clean]{
-            if (clean) {
-                state = State::Stopped;
-            } else {
-                state = State::Error;
-            }
-        }};
+    const scope_guard state_guard { [&state, &clean] {
+        if (clean) {
+            state = State::Stopped;
+        } else {
+            state = State::Error;
+        }
+    } };
 
     log::debug() << "Starting thread " + m_name;
     int pre_result { pre_run() };

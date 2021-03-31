@@ -74,7 +74,7 @@ auto database::send_string(const std::string& query) const -> bool
     CURL* curl { curl_easy_init() };
 
     if (curl != nullptr) {
-        scope_guard guard {[&curl]{curl_easy_cleanup(curl);}};
+        scope_guard guard { [&curl] { curl_easy_cleanup(curl); } };
 
         std::ostringstream url {};
         url

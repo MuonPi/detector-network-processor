@@ -2,9 +2,8 @@
 
 namespace muonpi {
 
-
 scope_guard::scope_guard(scope_guard&& other)
-    : m_cleanup{ other.dissolve() }
+    : m_cleanup { other.dissolve() }
 {
     other.dismiss();
 }
@@ -16,7 +15,7 @@ scope_guard::~scope_guard()
 
 void scope_guard::dismiss()
 {
-    m_cleanup = []{};
+    m_cleanup = [] {};
 }
 
 auto scope_guard::dissolve() -> std::function<void()>

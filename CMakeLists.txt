@@ -120,6 +120,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/restservice.h"
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
+    "${PROJECT_HEADER_DIR}/utility/analysis.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"

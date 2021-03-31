@@ -5,7 +5,7 @@
 #include "messages/clusterlog.h"
 #include "sink/base.h"
 #include "utility/resourcetracker.h"
-#include "utility/utility.h"
+#include "utility/analysis.h"
 
 #include "source/base.h"
 
@@ -75,10 +75,10 @@ private:
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
     std::chrono::system_clock::time_point m_startup { std::chrono::system_clock::now() };
 
-    Ringbuffer<float, 100> m_process_cpu_load {};
-    Ringbuffer<float, 100> m_system_cpu_load {};
-    RateMeasurement<100, 5000> m_incoming_rate {};
-    RateMeasurement<100, 5000> m_outgoing_rate {};
+    data_series<float, 100> m_process_cpu_load {};
+    data_series<float, 100> m_system_cpu_load {};
+    rate_measurement<100, 5000> m_incoming_rate {};
+    rate_measurement<100, 5000> m_outgoing_rate {};
 
     std::vector<thread_runner*> m_threads;
 

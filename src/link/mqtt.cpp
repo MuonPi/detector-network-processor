@@ -133,7 +133,7 @@ void mqtt::callback_connected(int result)
         log::info() << "Connected to mqtt.";
         set_status(Status::Connected);
         m_tries = 0;
-        for (auto& [topic, subscriber] : m_subscribers) {
+        for (auto& [topic, sub] : m_subscribers) {
             p_subscribe(topic);
         }
         return;
@@ -153,11 +153,11 @@ void mqtt::callback_disconnected(int result)
 void mqtt::callback_message(const mosquitto_message* message)
 {
     std::string message_topic { message->topic };
-    for (auto& [topic, subscriber] : m_subscribers) {
+    for (auto& [topic, sub] : m_subscribers) {
         bool result {};
         mosquitto_topic_matches_sub2(topic.c_str(), topic.length(), message_topic.c_str(), message_topic.length(), &result);
         if (result) {
-            subscriber->push_message({ message_topic, std::string { reinterpret_cast<char*>(message->payload) } });
+            sub->push_message({ message_topic, std::string { reinterpret_cast<char*>(message->payload) } });
         }
     }
 }

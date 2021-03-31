@@ -55,7 +55,7 @@ public:
     [[nodiscard]] auto measurement(const std::string& measurement) -> entry;
 
 private:
-    [[nodiscard]] auto send_string(const std::string& query) -> bool;
+    [[nodiscard]] auto send_string(const std::string& query) const -> bool;
 
     static constexpr short s_port { 8086 };
 

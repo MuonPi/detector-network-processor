@@ -69,7 +69,7 @@ auto database::measurement(const std::string& measurement) -> entry
     return entry { measurement, *this };
 }
 
-auto database::send_string(const std::string& query) -> bool
+auto database::send_string(const std::string& query) const -> bool
 {
     CURL* curl { curl_easy_init() };
 

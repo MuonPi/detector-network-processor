@@ -385,12 +385,12 @@ auto mqtt::publisher::get_publish_topic() const -> const std::string&
     return m_topic;
 }
 
-void mqtt::subscriber::set_callback(std::function<void(const Message&)> callback)
+void mqtt::subscriber::set_callback(std::function<void(const message_t&)> callback)
 {
     m_callback.emplace_back(std::move(callback));
 }
 
-void mqtt::subscriber::push_message(const Message& message)
+void mqtt::subscriber::push_message(const message_t& message)
 {
     for (auto& callback : m_callback) {
         callback(message);

@@ -75,7 +75,7 @@ private:
      * @brief process Processes one LogItem
      * @param msg The message to process
      */
-    void process(const link::mqtt::Message& msg);
+    void process(const link::mqtt::message_t& msg);
 
     [[nodiscard]] auto generate_hash(MessageParser& topic, MessageParser& message) -> std::size_t;
 
@@ -329,7 +329,7 @@ mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic)
     : base<T> { sink }
     , m_link { topic }
 {
-    topic.set_callback([this](const link::mqtt::Message& message) {
+    topic.set_callback([this](const link::mqtt::message_t& message) {
         process(message);
     });
 }
@@ -358,7 +358,7 @@ auto mqtt<event_t>::generate_hash(MessageParser& /*topic*/, MessageParser& messa
 }
 
 template <typename T>
-void mqtt<T>::process(const link::mqtt::Message& msg)
+void mqtt<T>::process(const link::mqtt::message_t& msg)
 {
     MessageParser topic { msg.topic, '/' };
     MessageParser content { msg.content, ' ' };
@@ -407,9 +407,9 @@ void mqtt<T>::process(const link::mqtt::Message& msg)
 }
 
 template <>
-void mqtt<link::mqtt::Message>::process(const link::mqtt::Message& msg)
+void mqtt<link::mqtt::message_t>::process(const link::mqtt::message_t& msg)
 {
-    put(link::mqtt::Message { msg });
+    put(link::mqtt::message_t { msg });
 }
 }
 

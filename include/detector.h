@@ -134,7 +134,7 @@ private:
     CurrentRateType m_current_rate {};
     MeanRateType m_mean_rate {};
 
-    detetor_summary_t::Data m_current_data;
+    detetor_summary_t::data_t m_current_data;
     std::uint16_t m_last_ublox_counter {};
 
     Ringbuffer<double, 100> m_pulselength {};

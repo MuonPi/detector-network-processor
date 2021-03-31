@@ -28,9 +28,9 @@ public:
         Connecting,
         Error
     };
-    struct Message {
-        Message() = default;
-        Message(const std::string& a_topic, const std::string& a_content)
+    struct message_t {
+        message_t() = default;
+        message_t(const std::string& a_topic, const std::string& a_content)
             : topic { a_topic }
             , content { a_content }
         {
@@ -98,7 +98,7 @@ public:
 
         subscriber() = default;
 
-        void set_callback(std::function<void(const Message&)> callback);
+        void set_callback(std::function<void(const message_t&)> callback);
 
         /**
          * @brief get_subscribe_topic Gets the topic the subscriber subscribes to
@@ -113,11 +113,11 @@ public:
          * @brief push_message Only called from within the mqtt class
          * @param message The message to push into the queue
          */
-        void push_message(const Message& message);
+        void push_message(const message_t& message);
 
         mqtt* m_link { nullptr };
         std::string m_topic {};
-        std::vector<std::function<void(const Message&)>> m_callback;
+        std::vector<std::function<void(const message_t&)>> m_callback;
     };
 
     /**

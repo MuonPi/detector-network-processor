@@ -43,15 +43,15 @@ public:
     void get(T message) override;
 
 private:
-    class Constructor {
+    class constructor {
     public:
-        Constructor(std::ostringstream stream)
+        constructor(std::ostringstream stream)
             : m_stream { std::move(stream) }
         {
         }
 
         template <typename U>
-        auto operator<<(U value) -> Constructor&
+        auto operator<<(U value) -> constructor&
         {
             m_stream << ' ' << value;
             return *this;
@@ -66,7 +66,7 @@ private:
         std::ostringstream m_stream;
     };
 
-    [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> Constructor;
+    [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> constructor;
 
     link::mqtt::publisher& m_link;
 
@@ -89,13 +89,13 @@ void mqtt<T>::set_detailed()
 }
 
 template <typename T>
-auto mqtt<T>::construct(const std::string& time, const std::string& parname) -> Constructor
+auto mqtt<T>::construct(const std::string& time, const std::string& parname) -> constructor
 {
     std::ostringstream stream {};
 
     stream << time << ' ' << parname;
 
-    return Constructor { std::move(stream) };
+    return constructor { std::move(stream) };
 }
 
 template <>
@@ -238,21 +238,21 @@ void mqtt<detector_log_t>::get(detector_log_t log)
 
     while (log.has_items()) {
         detector_log_item item { log.next_item() };
-        auto constructor { construct(stream.str(), item.name) };
+        auto constr { construct(stream.str(), item.name) };
         std::visit(overloaded {
-                       [&](std::string value) { constructor << value; },
-                       [&](std::int_fast64_t value) { constructor << value; },
-                       [&](std::size_t value) { constructor << value; },
-                       [&](std::uint8_t value) { constructor << value; },
-                       [&](std::uint16_t value) { constructor << value; },
-                       [&](std::uint32_t value) { constructor << value; },
-                       [&](bool value) { constructor << value; },
-                       [&](double value) { constructor << value; } },
+                       [&](std::string value) { constr << value; },
+                       [&](std::int_fast64_t value) { constr << value; },
+                       [&](std::size_t value) { constr << value; },
+                       [&](std::uint8_t value) { constr << value; },
+                       [&](std::uint16_t value) { constr << value; },
+                       [&](std::uint32_t value) { constr << value; },
+                       [&](bool value) { constr << value; },
+                       [&](double value) { constr << value; } },
             item.value);
         if (!item.unit.empty()) {
-            constructor << item.unit;
+            constr << item.unit;
         }
-        if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constructor.str())) {
+        if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constr.str())) {
             log::warning() << "Could not publish MQTT message.";
             return;
         }

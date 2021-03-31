@@ -45,13 +45,13 @@ auto main(int argc, char* argv[]) -> int
 
     muonpi::log::manager::singleton()->add_sink(std::make_shared<muonpi::log::syslog_sink>());
 
-    muonpi::Parameters parameters { "muondetector-custer", "Calculate coincidences for the muonpi network" };
+    muonpi::parameters parameters { "muondetector-custer", "Calculate coincidences for the muonpi network" };
 
     parameters
-        << muonpi::Parameters::Definition { "c", "config", "Specify a configuration file to use", true }
-        << muonpi::Parameters::Definition { "l", "credentials", "Specify a credentials file to use", true }
-        << muonpi::Parameters::Definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
-        << muonpi::Parameters::Definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
+        << muonpi::parameters::definition { "c", "config", "Specify a configuration file to use", true }
+        << muonpi::parameters::definition { "l", "credentials", "Specify a credentials file to use", true }
+        << muonpi::parameters::definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
+        << muonpi::parameters::definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
 
     if (!parameters.start(argc, argv)) {
         return 0;
@@ -71,22 +71,22 @@ auto main(int argc, char* argv[]) -> int
             std::cout << "No credentials location given, using default.\n";
         }
 
-        muonpi::Configuration credentials { parameters["s"].value };
+        muonpi::configuration credentials { parameters["s"].value };
         credentials
-            << muonpi::Option { "source_mqtt_user", &muonpi::Config::source_mqtt.login.username }
-            << muonpi::Option { "source_mqtt_password", &muonpi::Config::source_mqtt.login.password }
-            << muonpi::Option { "source_mqtt_station_id", &muonpi::Config::source_mqtt.login.station_id }
+            << muonpi::configuration::definition { "source_mqtt_user", &muonpi::Config::source_mqtt.login.username }
+            << muonpi::configuration::definition { "source_mqtt_password", &muonpi::Config::source_mqtt.login.password }
+            << muonpi::configuration::definition { "source_mqtt_station_id", &muonpi::Config::source_mqtt.login.station_id }
 
-            << muonpi::Option { "sink_mqtt_user", &muonpi::Config::sink_mqtt.login.username }
-            << muonpi::Option { "sink_mqtt_password", &muonpi::Config::sink_mqtt.login.password }
-            << muonpi::Option { "sink_mqtt_station_id", &muonpi::Config::sink_mqtt.login.station_id }
+            << muonpi::configuration::definition { "sink_mqtt_user", &muonpi::Config::sink_mqtt.login.username }
+            << muonpi::configuration::definition { "sink_mqtt_password", &muonpi::Config::sink_mqtt.login.password }
+            << muonpi::configuration::definition { "sink_mqtt_station_id", &muonpi::Config::sink_mqtt.login.station_id }
 
-            << muonpi::Option { "influx_user", &muonpi::Config::influx.login.username }
-            << muonpi::Option { "influx_password", &muonpi::Config::influx.login.password }
-            << muonpi::Option { "influx_database", &muonpi::Config::influx.database }
+            << muonpi::configuration::definition { "influx_user", &muonpi::Config::influx.login.username }
+            << muonpi::configuration::definition { "influx_password", &muonpi::Config::influx.login.password }
+            << muonpi::configuration::definition { "influx_database", &muonpi::Config::influx.database }
 
-            << muonpi::Option { "ldap_bind_dn", &muonpi::Config::ldap.login.bind_dn }
-            << muonpi::Option { "ldap_password", &muonpi::Config::ldap.login.password };
+            << muonpi::configuration::definition { "ldap_bind_dn", &muonpi::Config::ldap.login.bind_dn }
+            << muonpi::configuration::definition { "ldap_password", &muonpi::Config::ldap.login.password };
         if (!credentials.read()) {
             std::cout << "Could not read input file.\n";
             return 1;
@@ -103,52 +103,52 @@ auto main(int argc, char* argv[]) -> int
         return 1;
     }
 
-    muonpi::Configuration config { muonpi::Config::files.config };
+    muonpi::configuration config { muonpi::Config::files.config };
     config
-        << muonpi::Option { "source_mqtt_host", &muonpi::Config::source_mqtt.host }
-        << muonpi::Option { "source_mqtt_port", &muonpi::Config::source_mqtt.port }
+        << muonpi::configuration::definition { "source_mqtt_host", &muonpi::Config::source_mqtt.host }
+        << muonpi::configuration::definition { "source_mqtt_port", &muonpi::Config::source_mqtt.port }
 
-        << muonpi::Option { "sink_mqtt_host", &muonpi::Config::sink_mqtt.host }
-        << muonpi::Option { "sink_mqtt_port", &muonpi::Config::sink_mqtt.port }
+        << muonpi::configuration::definition { "sink_mqtt_host", &muonpi::Config::sink_mqtt.host }
+        << muonpi::configuration::definition { "sink_mqtt_port", &muonpi::Config::sink_mqtt.port }
 
-        << muonpi::Option { "influx_host", &muonpi::Config::influx.host }
-        << muonpi::Option { "influx_cluster_id", &muonpi::Config::influx.cluster_id }
+        << muonpi::configuration::definition { "influx_host", &muonpi::Config::influx.host }
+        << muonpi::configuration::definition { "influx_cluster_id", &muonpi::Config::influx.cluster_id }
 
-        << muonpi::Option { "ldap_host", &muonpi::Config::ldap.server }
+        << muonpi::configuration::definition { "ldap_host", &muonpi::Config::ldap.server }
 
-        << muonpi::Option { "rest_port", &muonpi::Config::rest.port }
-        << muonpi::Option { "rest_trigger_file", &muonpi::Config::trigger.save_file }
-        << muonpi::Option { "rest_cert", &muonpi::Config::rest.cert }
-        << muonpi::Option { "rest_privkey", &muonpi::Config::rest.privkey }
-        << muonpi::Option { "rest_fullchain", &muonpi::Config::rest.fullchain }
+        << muonpi::configuration::definition { "rest_port", &muonpi::Config::rest.port }
+        << muonpi::configuration::definition { "rest_trigger_file", &muonpi::Config::trigger.save_file }
+        << muonpi::configuration::definition { "rest_cert", &muonpi::Config::rest.cert }
+        << muonpi::configuration::definition { "rest_privkey", &muonpi::Config::rest.privkey }
+        << muonpi::configuration::definition { "rest_fullchain", &muonpi::Config::rest.fullchain }
 
-        << muonpi::Option { "run_local_cluster", &muonpi::Config::meta.local_cluster }
-        << muonpi::Option { "max_geohash_length", &muonpi::Config::meta.max_geohash_length };
+        << muonpi::configuration::definition { "run_local_cluster", &muonpi::Config::meta.local_cluster }
+        << muonpi::configuration::definition { "max_geohash_length", &muonpi::Config::meta.max_geohash_length };
     if (!parameters["l"]) {
-        config << muonpi::Option { "credentials_file", &muonpi::Config::files.credentials };
+        config << muonpi::configuration::definition { "credentials_file", &muonpi::Config::files.credentials };
     }
     if (!config.read()) {
         std::cout << "Could not read configuration file.\n";
         return 1;
     }
 
-    muonpi::Configuration credentials { muonpi::Config::files.credentials, true };
+    muonpi::configuration credentials { muonpi::Config::files.credentials, true };
 
     credentials
-        << muonpi::Option { "source_mqtt_user", &muonpi::Config::source_mqtt.login.username }
-        << muonpi::Option { "source_mqtt_password", &muonpi::Config::source_mqtt.login.password }
-        << muonpi::Option { "source_mqtt_station_id", &muonpi::Config::source_mqtt.login.station_id }
+        << muonpi::configuration::definition { "source_mqtt_user", &muonpi::Config::source_mqtt.login.username }
+        << muonpi::configuration::definition { "source_mqtt_password", &muonpi::Config::source_mqtt.login.password }
+        << muonpi::configuration::definition { "source_mqtt_station_id", &muonpi::Config::source_mqtt.login.station_id }
 
-        << muonpi::Option { "sink_mqtt_user", &muonpi::Config::sink_mqtt.login.username }
-        << muonpi::Option { "sink_mqtt_password", &muonpi::Config::sink_mqtt.login.password }
-        << muonpi::Option { "sink_mqtt_station_id", &muonpi::Config::sink_mqtt.login.station_id }
+        << muonpi::configuration::definition { "sink_mqtt_user", &muonpi::Config::sink_mqtt.login.username }
+        << muonpi::configuration::definition { "sink_mqtt_password", &muonpi::Config::sink_mqtt.login.password }
+        << muonpi::configuration::definition { "sink_mqtt_station_id", &muonpi::Config::sink_mqtt.login.station_id }
 
-        << muonpi::Option { "influx_user", &muonpi::Config::influx.login.username }
-        << muonpi::Option { "influx_password", &muonpi::Config::influx.login.password }
-        << muonpi::Option { "influx_database", &muonpi::Config::influx.database }
+        << muonpi::configuration::definition { "influx_user", &muonpi::Config::influx.login.username }
+        << muonpi::configuration::definition { "influx_password", &muonpi::Config::influx.login.password }
+        << muonpi::configuration::definition { "influx_database", &muonpi::Config::influx.database }
 
-        << muonpi::Option { "ldap_bind_dn", &muonpi::Config::ldap.login.bind_dn }
-        << muonpi::Option { "ldap_password", &muonpi::Config::ldap.login.password };
+        << muonpi::configuration::definition { "ldap_bind_dn", &muonpi::Config::ldap.login.bind_dn }
+        << muonpi::configuration::definition { "ldap_password", &muonpi::Config::ldap.login.password };
     if (!credentials.read()) {
         std::cout << "Could not read credentials file.\n";
         return 1;

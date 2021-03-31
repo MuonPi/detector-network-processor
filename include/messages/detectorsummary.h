@@ -13,7 +13,7 @@ namespace muonpi {
  */
 class detetor_summary_t {
 public:
-    struct Data {
+    struct data_t {
         double deadtime { 0.0 };
         bool active { false };
         double mean_eventrate { 0.0 };
@@ -30,7 +30,7 @@ public:
      * @param hash The hash of the detector identifier
      * @param data The data struct to be provided
      */
-    detetor_summary_t(std::size_t hash, userinfo_t user_info, Data data);
+    detetor_summary_t(std::size_t hash, userinfo_t user_info, data_t data);
 
     detetor_summary_t() noexcept;
 
@@ -56,7 +56,7 @@ public:
      * @brief data Accesses the data from the object
      * @return data struct
      */
-    [[nodiscard]] auto data() const -> Data;
+    [[nodiscard]] auto data() const -> data_t;
 
     /**
      * @brief data Accesses the user info from the object
@@ -70,7 +70,7 @@ private:
     std::size_t m_hash { 0 };
 
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
-    Data m_data {};
+    data_t m_data {};
     userinfo_t m_userinfo {};
     bool m_valid { true };
 };

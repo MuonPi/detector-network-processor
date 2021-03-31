@@ -5,9 +5,9 @@
 #include <vector>
 
 namespace muonpi {
-class Parameters {
+class parameters {
 public:
-    struct Definition {
+    struct definition {
         const std::string abbreviation {};
         const std::string full {};
         const std::string description {};
@@ -15,7 +15,7 @@ public:
         const bool required { false };
     };
 
-    struct State {
+    struct state {
         bool set { false };
         std::string value {};
 
@@ -25,22 +25,22 @@ public:
         }
     };
 
-    Parameters(std::string name, std::string description);
+    parameters(std::string name, std::string description);
 
-    [[nodiscard]] auto get(const std::string& name) const -> State;
-    [[nodiscard]] auto operator[](const std::string& name) const -> State;
+    [[nodiscard]] auto get(const std::string& name) const -> state;
+    [[nodiscard]] auto operator[](const std::string& name) const -> state;
 
-    void add(const Definition& argument);
-    auto operator<<(const Definition& argument) -> Parameters&;
+    void add(const definition& argument);
+    auto operator<<(const definition& argument) -> parameters&;
 
     auto start(int argc, char* argv[]) -> bool;
 
     void print_help() const;
 
 private:
-    struct Commandline {
-        Definition def;
-        State state;
+    struct commandline {
+        definition def;
+        state state;
     };
 
     int m_required { 0 };
@@ -48,7 +48,7 @@ private:
     std::string m_name {};
     std::string m_description {};
 
-    std::vector<Commandline> m_arguments;
+    std::vector<commandline> m_arguments;
 };
 }
 #endif // PARAMETERS_H

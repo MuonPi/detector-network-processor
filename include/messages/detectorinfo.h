@@ -8,7 +8,7 @@
 
 namespace muonpi {
 
-struct detectorType {
+struct detector_type {
     enum class GateConnection {
         NONE,
         XOR,
@@ -30,7 +30,7 @@ struct detectorType {
     [[nodiscard]] static auto id() -> std::uint8_t;
 };
 
-enum class detectorState {
+enum class detector_state {
     UNDEFINED,
     INACTIVE,
     ACTIVE
@@ -46,26 +46,26 @@ struct location_t {
     std::string geohash { "" };
     std::uint8_t max_geohash_length {};
 };
-struct Time {
+struct time_t {
     double accuracy { 0.0 };
     double dop { 0.0 };
 };
-struct VersionInfo {
+struct version_info_t {
     std::string hw_version { "" };
     std::string sw_version { "" };
     std::string ublox_hw_version { "" };
     std::string ublox_sw_version { "" };
     std::string ublox_proto_version { "" };
 };
-struct Bias {
+struct bias_t {
     double bias_voltage { 0.0 };
     double bias_current { 0.0 };
 };
-struct Thresholds {
+struct thresholds_t {
     double threshold1 { 0.0 };
     double threshold2 { 0.0 };
 };
-struct GnssParameters {
+struct gnss_parameters_t {
     double sats_received { 0. };
     double sats_used { 0. };
 };

@@ -4,7 +4,7 @@
 
 namespace muonpi {
 
-detetor_summary_t::detetor_summary_t(std::size_t hash, userinfo_t user_info, Data data)
+detetor_summary_t::detetor_summary_t(std::size_t hash, userinfo_t user_info, data_t data)
     : m_hash { hash }
     , m_data { data }
     , m_userinfo { std::move(user_info) }
@@ -17,7 +17,7 @@ detetor_summary_t::detetor_summary_t() noexcept
 {
 }
 
-auto detetor_summary_t::data() const -> Data
+auto detetor_summary_t::data() const -> data_t
 {
     return m_data;
 }

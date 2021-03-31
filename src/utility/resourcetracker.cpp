@@ -7,7 +7,7 @@
 
 namespace muonpi {
 
-auto ResourceTracker::get_data() -> Data
+auto resource_tracker::get_data() -> data_t
 {
     std::ifstream total_stream("/proc/stat", std::ios_base::in);
 
@@ -58,7 +58,7 @@ auto ResourceTracker::get_data() -> Data
     m_cpu.process_time_last = process_user + process_system;
     m_cpu.system_time_last = system_user + system_system + system_nice;
 
-    Data data;
+    data_t data;
     data.memory_usage = rss * page_size_b;
     data.process_cpu_load = 0;
     data.system_cpu_load = 0;

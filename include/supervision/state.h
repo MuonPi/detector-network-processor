@@ -85,7 +85,7 @@ private:
     cluster_log_t::data_t m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 
-    ResourceTracker m_resource_tracker {};
+    resource_tracker m_resource_tracker {};
 };
 
 }

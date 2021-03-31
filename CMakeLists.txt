@@ -43,10 +43,11 @@ find_library(CRYPTOPP crypto++ REQUIRED)
 find_library(CURL curl REQUIRED)
 find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
-find_library(RESTBED restbed REQUIRED)
 
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
+
+find_package(Boost 1.66 COMPONENTS system REQUIRED)
 
 
 
@@ -70,11 +71,12 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/threadrunner.cpp"
     "${PROJECT_SRC_DIR}/utility/log.cpp"
     "${PROJECT_SRC_DIR}/utility/utility.cpp"
-    "${PROJECT_SRC_DIR}/utility/geohash.cpp"
     "${PROJECT_SRC_DIR}/utility/parameters.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/resourcetracker.cpp"
     "${PROJECT_SRC_DIR}/utility/uppermatrix.cpp"
+    "${PROJECT_SRC_DIR}/utility/restservice.cpp"
+    "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
 
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
@@ -116,8 +118,11 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/parameters.h"
     "${PROJECT_HEADER_DIR}/utility/configuration.h"
     "${PROJECT_HEADER_DIR}/utility/resourcetracker.h"
-    "${PROJECT_HEADER_DIR}/utility/analysis.h"
     "${PROJECT_HEADER_DIR}/utility/uppermatrix.h"
+    "${PROJECT_HEADER_DIR}/utility/restservice.h"
+    "${PROJECT_HEADER_DIR}/utility/base64.h"
+    "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
+    "${PROJECT_HEADER_DIR}/utility/analysis.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"
@@ -157,9 +162,11 @@ target_link_libraries(muondetector-cluster
     source-files
     pthread
     curl
-    restbed
     sasl2
     ldap
+    boost_system
+    ssl
+    crypto
     )
 else()
 target_link_libraries(muondetector-cluster
@@ -168,10 +175,12 @@ target_link_libraries(muondetector-cluster
     source-files
     pthread
     curl
-    restbed
     sasl2
     ldap
     stdc++fs
+    boost_system
+    ssl
+    crypto
     )
 endif()
 
@@ -181,9 +190,7 @@ include(GNUInstallDirs)
 add_custom_target(changelog-cluster ALL COMMAND gzip -cn9 "${PROJECT_CONFIG_DIR}/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz")
 add_custom_target(manpage-cluster ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1" > "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1.gz")
 
-if(${CLUSTER_FORMAT})
-add_custom_target(clangformat ALL COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/main.cpp")
-endif(${CLUSTER_FORMAT})
+add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/main.cpp")
 
 install(TARGETS muondetector-cluster DESTINATION bin COMPONENT cluster)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz" DESTINATION "${CMAKE_INSTALL_DOCDIR}" COMPONENT cluster)

@@ -1,20 +1,20 @@
 #include "utility/log.h"
 
-namespace MuonPi::Log {
+namespace muonpi::log {
 
-Sink::Sink(Level level)
+sink::sink(Level level)
     : m_level { level }
 {
 }
 
-Sink::~Sink() = default;
+sink::~sink() = default;
 
-auto Sink::level() const -> Level
+auto sink::level() const -> Level
 {
     return m_level;
 }
 
-auto Sink::to_string(Level level) -> std::string
+auto sink::to_string(Level level) -> std::string
 {
     switch (level) {
     case Level::Debug:
@@ -37,93 +37,93 @@ auto Sink::to_string(Level level) -> std::string
     return {};
 }
 
-StreamSink::StreamSink(std::ostream& ostream, Level level)
-    : Sink { level }
+stream_sink::stream_sink(std::ostream& ostream, Level level)
+    : sink { level }
     , m_ostream { ostream }
 {
 }
 
-void StreamSink::sink(const Message& msg)
+void stream_sink::get(const message_t& msg)
 {
     m_ostream << to_string(msg.level) + ": " + msg.message + "\n"
               << std::flush;
 }
-std::shared_ptr<Log> Log::s_singleton { std::make_shared<Log>() };
+std::shared_ptr<manager> manager::s_singleton { std::make_shared<manager>() };
 
-void Log::add_sink(std::shared_ptr<Sink> sink)
+void manager::add_sink(std::shared_ptr<sink> sink)
 {
     m_sinks.push_back(sink);
 }
 
-SyslogSink::SyslogSink(Level level)
-    : Sink { level }
+syslog_sink::syslog_sink(Level level)
+    : sink { level }
 {
     setlogmask(LOG_UPTO(level));
     openlog(appname, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 }
 
-SyslogSink::~SyslogSink()
+syslog_sink::~syslog_sink()
 {
     closelog();
 }
 
-void SyslogSink::sink(const Message& msg)
+void syslog_sink::get(const message_t& msg)
 {
     syslog(level(), "%s", msg.message.c_str());
 }
 
-void Log::send(const Message& msg)
+void manager::send(const message_t& msg)
 {
     for (auto& sink : m_sinks) {
         if (sink->level() >= msg.level) {
-            sink->sink(msg);
+            sink->get(msg);
         }
     }
 }
 
-auto Log::singleton() -> std::shared_ptr<Log>
+auto manager::singleton() -> std::shared_ptr<manager>
 {
     return s_singleton;
 }
 
-auto debug() -> Log::Logger<Level::Debug>&
+auto debug() -> manager::logger<Level::Debug>&
 {
-    return Log::singleton()->m_debug;
+    return manager::singleton()->m_debug;
 }
 
-auto info() -> Log::Logger<Level::Info>&
+auto info() -> manager::logger<Level::Info>&
 {
-    return Log::singleton()->m_info;
+    return manager::singleton()->m_info;
 }
 
-auto notice() -> Log::Logger<Level::Notice>&
+auto notice() -> manager::logger<Level::Notice>&
 {
-    return Log::singleton()->m_notice;
+    return manager::singleton()->m_notice;
 }
 
-auto warning() -> Log::Logger<Level::Warning>&
+auto warning() -> manager::logger<Level::Warning>&
 {
-    return Log::singleton()->m_warning;
+    return manager::singleton()->m_warning;
 }
 
-auto error() -> Log::Logger<Level::Error>&
+auto error() -> manager::logger<Level::Error>&
 {
-    return Log::singleton()->m_error;
+    return manager::singleton()->m_error;
 }
 
-auto critical() -> Log::Logger<Level::Critical>&
+auto critical() -> manager::logger<Level::Critical>&
 {
-    return Log::singleton()->m_crititcal;
+    return manager::singleton()->m_crititcal;
 }
 
-auto alert() -> Log::Logger<Level::Alert>&
+auto alert() -> manager::logger<Level::Alert>&
 {
-    return Log::singleton()->m_alert;
+    return manager::singleton()->m_alert;
 }
 
-auto emergency() -> Log::Logger<Level::Emergency>&
+auto emergency() -> manager::logger<Level::Emergency>&
 {
-    return Log::singleton()->m_emergency;
+    return manager::singleton()->m_emergency;
 }
 
 }

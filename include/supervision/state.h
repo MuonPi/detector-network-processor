@@ -6,7 +6,7 @@
 #include "sink/base.h"
 #include "utility/analysis.h"
 #include "utility/resourcetracker.h"
-#include "utility/utility.h"
+#include "utility/analysis.h"
 
 #include "source/base.h"
 
@@ -16,18 +16,18 @@
 #include <map>
 #include <vector>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
- * @brief The StateSupervisor class Supervises the program and collects metadata
+ * @brief The state_supervisor class Supervises the program and collects metadata
  */
-class StateSupervisor : public Source::Base<ClusterLog> {
+class state_supervisor : public source::base<cluster_log_t> {
 public:
     /**
-     * @brief StateSupervisor
+     * @brief state_supervisor
      * @param log_sink The specific log sinks to send metadata to
      */
-    StateSupervisor(Sink::Base<ClusterLog>& log_sink);
+    state_supervisor(sink::base<cluster_log_t>& log_sink);
 
     /**
      * @brief time_status Update the current timeout used
@@ -40,7 +40,7 @@ public:
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, Detector::Status status);
+    void detector_status(std::size_t hash, detector::Status status);
 
     /**
      * @brief step Gets called from the core class.
@@ -65,7 +65,7 @@ public:
      * @brief add_thread Add a thread to supervise. If this thread quits or has an error state, the main event loop will stop.
      * @param thread Pointer to the thread to supervise
      */
-    void add_thread(ThreadRunner* thread);
+    void add_thread(thread_runner* thread);
 
     /**
      * @brief stop Signals all threads to stop execution
@@ -73,7 +73,7 @@ public:
     void stop();
 
 private:
-    std::map<std::size_t, Detector::Status> m_detectors;
+    std::map<std::size_t, detector::Status> m_detectors;
     std::chrono::milliseconds m_timeout {};
     std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
@@ -84,12 +84,12 @@ private:
     rate_measurement<100, 5000> m_incoming_rate {};
     rate_measurement<100, 5000> m_outgoing_rate {};
 
-    std::vector<ThreadRunner*> m_threads;
+    std::vector<thread_runner*> m_threads;
 
-    ClusterLog::Data m_current_data;
+    cluster_log_t::data_t m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 
-    ResourceTracker m_resource_tracker {};
+    resource_tracker m_resource_tracker {};
 };
 
 }

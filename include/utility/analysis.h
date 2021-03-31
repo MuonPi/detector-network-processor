@@ -7,7 +7,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief holds a value and caches it appropriately

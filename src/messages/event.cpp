@@ -1,55 +1,55 @@
 #include "messages/event.h"
 #include "utility/log.h"
 
-namespace MuonPi {
+namespace muonpi {
 
-Event::Event(std::size_t hash, Data data) noexcept
+event_t::event_t(std::size_t hash, data_t data) noexcept
     : m_hash { hash }
     , m_data { std::move(data) }
 {
 }
 
-Event::Event(Event event, bool /*foreign*/) noexcept
-    : Event { event.hash(), event.data() }
+event_t::event_t(event_t event, bool /*foreign*/) noexcept
+    : event_t { event.hash(), event.data() }
 {
     m_data.end = m_data.start;
 
     m_events.push_back(std::move(event));
 }
 
-Event::Event() noexcept
+event_t::event_t() noexcept
     : m_valid { false }
 {
 }
 
-Event::~Event() noexcept = default;
+event_t::~event_t() noexcept = default;
 
-auto Event::start() const noexcept -> std::int_fast64_t
+auto event_t::start() const noexcept -> std::int_fast64_t
 {
     return m_data.start;
 }
 
-auto Event::duration() const noexcept -> std::int_fast64_t
+auto event_t::duration() const noexcept -> std::int_fast64_t
 {
     return m_data.end - m_data.start;
 }
 
-auto Event::end() const noexcept -> std::int_fast64_t
+auto event_t::end() const noexcept -> std::int_fast64_t
 {
     return m_data.end;
 }
 
-auto Event::hash() const noexcept -> std::size_t
+auto event_t::hash() const noexcept -> std::size_t
 {
     return m_hash;
 }
 
-auto Event::n() const noexcept -> std::size_t
+auto event_t::n() const noexcept -> std::size_t
 {
     return m_n;
 }
 
-void Event::add_event(Event event) noexcept
+void event_t::add_event(event_t event) noexcept
 {
     if (event.n() > 1) {
         for (auto& e : event.events()) {
@@ -68,37 +68,37 @@ void Event::add_event(Event event) noexcept
     m_n++;
 }
 
-auto Event::events() const -> const std::vector<Event>&
+auto event_t::events() const -> const std::vector<event_t>&
 {
     return m_events;
 }
 
-auto Event::valid() const -> bool
+auto event_t::valid() const -> bool
 {
     return m_valid;
 }
-auto Event::data() const -> Data
+auto event_t::data() const -> data_t
 {
     return m_data;
 }
 
-void Event::set_data(const Data& data)
+void event_t::set_data(const data_t& data)
 {
     m_data = data;
 }
 
-void Event::set_detector_info(Location location, UserInfo user)
+void event_t::set_detector_info(location_t location, userinfo_t user)
 {
-    m_location = location;
-    m_user_info = user;
+    m_location = std::move(location);
+    m_user_info = std::move(user);
 }
 
-auto Event::location() const -> Location
+auto event_t::location() const -> location_t
 {
     return m_location;
 }
 
-auto Event::user_info() const -> UserInfo
+auto event_t::user_info() const -> userinfo_t
 {
     return m_user_info;
 }

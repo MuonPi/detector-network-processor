@@ -9,31 +9,31 @@
 #include <variant>
 #include <vector>
 
-namespace MuonPi::Link {
+namespace muonpi::link {
 
-namespace Influx {
+namespace influx {
 
-    struct Tag {
+    struct tag {
         std::string name;
         std::string field;
     };
-    struct Field {
+    struct field {
         std::string name;
         std::variant<std::string, bool, std::int_fast64_t, double, std::size_t, std::uint8_t, std::uint16_t, std::uint32_t> value;
     };
 }
 
 /**
- * @brief The Database class
+ * @brief The database class
  */
-class Database {
+class database {
 public:
-    class Entry {
+    class entry {
     public:
-        Entry() = delete;
+        entry() = delete;
 
-        auto operator<<(const Influx::Tag& tag) -> Entry&;
-        auto operator<<(const Influx::Field& field) -> Entry&;
+        auto operator<<(const influx::tag& tag) -> entry&;
+        auto operator<<(const influx::field& field) -> entry&;
 
         [[nodiscard]] auto commit(std::int_fast64_t timestamp) -> bool;
 
@@ -41,21 +41,21 @@ public:
         std::ostringstream m_tags {};
         std::ostringstream m_fields {};
 
-        Database& m_link;
+        database& m_link;
 
-        friend class Database;
+        friend class database;
 
-        Entry(const std::string& measurement, Database& link);
+        entry(const std::string& measurement, database& link);
     };
 
-    Database(Config::Influx config);
-    Database();
-    ~Database();
+    database(Config::Influx config);
+    database();
+    ~database();
 
-    [[nodiscard]] auto measurement(const std::string& measurement) -> Entry;
+    [[nodiscard]] auto measurement(const std::string& measurement) -> entry;
 
 private:
-    [[nodiscard]] auto send_string(const std::string& query) -> bool;
+    [[nodiscard]] auto send_string(const std::string& query) const -> bool;
 
     static constexpr short s_port { 8086 };
 

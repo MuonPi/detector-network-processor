@@ -3,17 +3,17 @@
 
 #include <cstdint>
 
-namespace MuonPi {
+namespace muonpi {
 
-class ResourceTracker {
+class resource_tracker {
 public:
-    struct Data {
+    struct data_t {
         float process_cpu_load {};
         float system_cpu_load {};
         float memory_usage {};
     };
 
-    [[nodiscard]] auto get_data() -> Data;
+    [[nodiscard]] auto get_data() -> data_t;
 
 private:
     struct {

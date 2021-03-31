@@ -7,7 +7,7 @@
 #include <syslog.h>
 #include <vector>
 
-namespace MuonPi::Log {
+namespace muonpi::log {
 
 enum Level : int {
     Debug = LOG_DEBUG,
@@ -22,105 +22,105 @@ enum Level : int {
 
 static constexpr const char* appname { "muondetector-cluster" };
 
-struct Message {
+struct message_t {
     const Level level { Level::Info };
     const std::string message {};
 };
 
-class Sink {
+class sink {
 public:
-    Sink(Level level);
+    sink(Level level);
 
-    virtual ~Sink();
+    virtual ~sink();
     [[nodiscard]] auto level() const -> Level;
 
 protected:
-    friend class Log;
+    friend class manager;
 
     [[nodiscard]] static auto to_string(Level level) -> std::string;
 
-    virtual void sink(const Message& msg) = 0;
+    virtual void get(const message_t& msg) = 0;
 
 private:
     Level m_level { Level::Info };
 };
 
-class StreamSink : public Sink {
+class stream_sink : public sink {
 public:
-    StreamSink(std::ostream& ostream, Level level = Level::Debug);
+    stream_sink(std::ostream& ostream, Level level = Level::Debug);
 
 protected:
-    void sink(const Message& msg) override;
+    void get(const message_t& msg) override;
 
 private:
     std::ostream& m_ostream;
 };
 
-class SyslogSink : public Sink {
+class syslog_sink : public sink {
 public:
-    SyslogSink(Level level = Level::Debug);
+    syslog_sink(Level level = Level::Debug);
 
-    ~SyslogSink();
+    ~syslog_sink();
 
 protected:
-    void sink(const Message& msg) override;
+    void get(const message_t& msg) override;
 };
 
-class Log {
+class manager {
 public:
     template <Level L>
-    class Logger {
+    class logger {
     public:
-        Logger(Log& log);
+        logger(manager& log);
 
-        auto operator<<(std::string message) -> Logger<L>&;
+        auto operator<<(std::string message) -> logger<L>&;
 
     private:
-        Log& m_log;
+        manager& m_log;
     };
 
-    void add_sink(std::shared_ptr<Sink> sink);
+    void add_sink(std::shared_ptr<sink> sink);
 
-    [[nodiscard]] static auto singleton() -> std::shared_ptr<Log>;
+    [[nodiscard]] static auto singleton() -> std::shared_ptr<manager>;
 
-    Logger<Level::Debug> m_debug { *this };
-    Logger<Level::Info> m_info { *this };
-    Logger<Level::Notice> m_notice { *this };
-    Logger<Level::Warning> m_warning { *this };
-    Logger<Level::Error> m_error { *this };
-    Logger<Level::Critical> m_crititcal { *this };
-    Logger<Level::Alert> m_alert { *this };
-    Logger<Level::Emergency> m_emergency { *this };
+    logger<Level::Debug> m_debug { *this };
+    logger<Level::Info> m_info { *this };
+    logger<Level::Notice> m_notice { *this };
+    logger<Level::Warning> m_warning { *this };
+    logger<Level::Error> m_error { *this };
+    logger<Level::Critical> m_crititcal { *this };
+    logger<Level::Alert> m_alert { *this };
+    logger<Level::Emergency> m_emergency { *this };
 
 private:
-    std::vector<std::shared_ptr<Sink>> m_sinks {};
+    std::vector<std::shared_ptr<sink>> m_sinks {};
 
-    void send(const Message& msg);
+    void send(const message_t& msg);
 
-    static std::shared_ptr<Log> s_singleton;
+    static std::shared_ptr<manager> s_singleton;
 };
 
 template <Level L>
-Log::Logger<L>::Logger(Log& log)
+manager::logger<L>::logger(manager& log)
     : m_log { log }
 {
 }
 
 template <Level L>
-auto Log::Logger<L>::operator<<(std::string message) -> Logger<L>&
+auto manager::logger<L>::operator<<(std::string message) -> logger<L>&
 {
-    m_log.send(Message { L, message });
+    m_log.send(message_t { L, message });
     return *this;
 }
 
-[[nodiscard]] auto debug() -> Log::Logger<Level::Debug>&;
-[[nodiscard]] auto info() -> Log::Logger<Level::Info>&;
-[[nodiscard]] auto notice() -> Log::Logger<Level::Notice>&;
-[[nodiscard]] auto warning() -> Log::Logger<Level::Warning>&;
-[[nodiscard]] auto error() -> Log::Logger<Level::Error>&;
-[[nodiscard]] auto critical() -> Log::Logger<Level::Critical>&;
-[[nodiscard]] auto alert() -> Log::Logger<Level::Alert>&;
-[[nodiscard]] auto emergency() -> Log::Logger<Level::Emergency>&;
+[[nodiscard]] auto debug() -> manager::logger<Level::Debug>&;
+[[nodiscard]] auto info() -> manager::logger<Level::Info>&;
+[[nodiscard]] auto notice() -> manager::logger<Level::Notice>&;
+[[nodiscard]] auto warning() -> manager::logger<Level::Warning>&;
+[[nodiscard]] auto error() -> manager::logger<Level::Error>&;
+[[nodiscard]] auto critical() -> manager::logger<Level::Critical>&;
+[[nodiscard]] auto alert() -> manager::logger<Level::Alert>&;
+[[nodiscard]] auto emergency() -> manager::logger<Level::Emergency>&;
 
 }
 

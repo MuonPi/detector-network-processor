@@ -4,10 +4,10 @@
 #include <cinttypes>
 #include <string>
 
-namespace MuonPi::Trigger {
+namespace muonpi::trigger {
 
-struct Detector {
-    struct Setting {
+struct detector {
+    struct setting_t {
         enum Type {
             Invalid,
             Online,
@@ -23,15 +23,15 @@ struct Detector {
 
         [[nodiscard]] auto id() const -> std::size_t;
 
-        [[nodiscard]] static auto from_string(const std::string& string) -> Setting;
+        [[nodiscard]] static auto from_string(const std::string& string) -> setting_t;
     } setting;
 
-    struct Action {
+    struct action_t {
         enum Type {
             Activate,
             Deactivate
         } type;
-        Setting setting;
+        setting_t setting;
     };
 };
 

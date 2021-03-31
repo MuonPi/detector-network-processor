@@ -2,24 +2,24 @@
 
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
-ClusterLog::ClusterLog(Data data)
+cluster_log_t::cluster_log_t(data_t data)
     : m_data { std::move(data) }
 {
 }
 
-auto ClusterLog::data() const -> Data
+auto cluster_log_t::data() const -> data_t
 {
     return m_data;
 }
 
-auto ClusterLog::time() const -> std::chrono::system_clock::time_point
+auto cluster_log_t::time() const -> std::chrono::system_clock::time_point
 {
     return m_time;
 }
 
-auto ClusterLog::user_info() const -> UserInfo
+auto cluster_log_t::user_info() const -> userinfo_t
 {
     return m_userinfo;
 }

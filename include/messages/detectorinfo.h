@@ -6,16 +6,16 @@
 #include <chrono>
 #include <string>
 
-namespace MuonPi {
+namespace muonpi {
 
-struct DetectorType {
+struct detector_type {
     enum class GateConnection {
         NONE,
         XOR,
         AND,
         SINGLE
     } detector_gate;
-    enum class DetectorCount {
+    enum class detectorCount {
         NONE,
         SINGLE,
         DOUBLE
@@ -30,13 +30,13 @@ struct DetectorType {
     [[nodiscard]] static auto id() -> std::uint8_t;
 };
 
-enum class DetectorState {
+enum class detector_state {
     UNDEFINED,
     INACTIVE,
     ACTIVE
 };
 
-struct Location {
+struct location_t {
     double lat { 0.0 };
     double lon { 0.0 };
     double h { 0.0 };
@@ -46,48 +46,48 @@ struct Location {
     std::string geohash { "" };
     std::uint8_t max_geohash_length {};
 };
-struct Time {
+struct time_t {
     double accuracy { 0.0 };
     double dop { 0.0 };
 };
-struct VersionInfo {
+struct version_info_t {
     std::string hw_version { "" };
     std::string sw_version { "" };
     std::string ublox_hw_version { "" };
     std::string ublox_sw_version { "" };
     std::string ublox_proto_version { "" };
 };
-struct Bias {
+struct bias_t {
     double bias_voltage { 0.0 };
     double bias_current { 0.0 };
 };
-struct Thresholds {
+struct thresholds_t {
     double threshold1 { 0.0 };
     double threshold2 { 0.0 };
 };
-struct GnssParameters {
+struct gnss_parameters_t {
     double sats_received { 0. };
     double sats_used { 0. };
 };
 
 /**
- * @brief The DetectorInfo class
+ * @brief The detetor_info_t class
  */
 template <typename T>
-class DetectorInfo {
+class detetor_info_t {
 public:
-    //	DetectorType type { DetectorType::GateConnection::NONE, DetectorType::DetectorCount::NONE, DetectorType::PhysicalType::UNDEFINED, 0.0 };
-    //	DetectorState state { DetectorState::UNDEFINED };
+    //	detectorType type { detectorType::GateConnection::NONE, detectorType::detectorCount::NONE, detectorType::PhysicalType::UNDEFINED, 0.0 };
+    //	detectorState state { detectorState::UNDEFINED };
 
     /**
-     * @brief DetectorInfo
+     * @brief detetor_info_t
      * @param hash The hash of the detector identifier
      * @param user_info The user info object
      * @param item The specific detector info struct
      */
-    DetectorInfo(std::size_t hash, UserInfo user_info, T item);
+    detetor_info_t(std::size_t hash, userinfo_t user_info, T item);
 
-    DetectorInfo() noexcept;
+    detetor_info_t() noexcept;
 
     /**
      * @brief hash
@@ -96,7 +96,7 @@ public:
     [[nodiscard]] auto hash() const noexcept -> std::size_t;
 
     /**
-     * @brief item The item stored in this DetectorInfo object
+     * @brief item The item stored in this detetor_info_t object
      * @return The specific detector info struct
      */
     [[nodiscard]] auto item() const -> T;
@@ -111,13 +111,13 @@ public:
 
     /**
      * @brief data Accesses the user info from the object
-     * @return the UserInfo struct
+     * @return the userinfo_t struct
      */
-    [[nodiscard]] auto user_info() const -> UserInfo;
+    [[nodiscard]] auto user_info() const -> userinfo_t;
 
     std::size_t m_hash { 0 };
     T m_item {};
-    UserInfo m_userinfo {};
+    userinfo_t m_userinfo {};
 
 private:
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
@@ -130,7 +130,7 @@ private:
 */
 
 template <typename T>
-DetectorInfo<T>::DetectorInfo(std::size_t hash, UserInfo user_info, T item)
+detetor_info_t<T>::detetor_info_t(std::size_t hash, userinfo_t user_info, T item)
     : m_hash { hash }
     , m_item { item }
     , m_userinfo { user_info }
@@ -138,37 +138,37 @@ DetectorInfo<T>::DetectorInfo(std::size_t hash, UserInfo user_info, T item)
 }
 
 template <typename T>
-DetectorInfo<T>::DetectorInfo() noexcept
+detetor_info_t<T>::detetor_info_t() noexcept
     : m_valid { false }
 {
 }
 
 template <typename T>
-auto DetectorInfo<T>::hash() const noexcept -> std::size_t
+auto detetor_info_t<T>::hash() const noexcept -> std::size_t
 {
     return m_hash;
 }
 
 template <typename T>
-auto DetectorInfo<T>::item() const -> T
+auto detetor_info_t<T>::item() const -> T
 {
     return m_item;
 }
 
 template <typename T>
-auto DetectorInfo<T>::user_info() const -> UserInfo
+auto detetor_info_t<T>::user_info() const -> userinfo_t
 {
     return m_userinfo;
 }
 
 template <typename T>
-auto DetectorInfo<T>::time() const -> std::chrono::system_clock::time_point
+auto detetor_info_t<T>::time() const -> std::chrono::system_clock::time_point
 {
     return m_time;
 }
 
 template <typename T>
-auto DetectorInfo<T>::valid() const -> bool
+auto detetor_info_t<T>::valid() const -> bool
 {
     return m_valid;
 }

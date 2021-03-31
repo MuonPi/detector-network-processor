@@ -2,9 +2,9 @@
 #include "utility/criterion.h"
 #include "utility/log.h"
 
-namespace MuonPi {
+namespace muonpi {
 
-void EventConstructor::set_timeout(std::chrono::system_clock::duration new_timeout)
+void event_constructor::set_timeout(std::chrono::system_clock::duration new_timeout)
 {
     if (new_timeout <= timeout) {
         return;
@@ -12,7 +12,7 @@ void EventConstructor::set_timeout(std::chrono::system_clock::duration new_timeo
     timeout = new_timeout;
 }
 
-auto EventConstructor::timed_out() const -> bool
+auto event_constructor::timed_out() const -> bool
 {
     return (std::chrono::system_clock::now() - m_start) >= timeout;
 }

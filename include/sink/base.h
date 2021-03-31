@@ -7,19 +7,19 @@
 #include <mutex>
 #include <queue>
 
-namespace MuonPi::Sink {
+namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The Sink class
- * Represents a canonical Sink for items of type T.
+ * @brief The sink class
+ * Represents a canonical sink for items of type T.
  */
-class Base {
+class base {
 public:
     /**
-     * @brief ~Sink The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
+     * @brief ~sink The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
      */
-    virtual ~Base();
+    virtual ~base();
 
     /**
      * @brief get pushes an item into the sink
@@ -29,22 +29,22 @@ public:
 };
 
 template <typename T>
-class Threaded : public Base<T>, public ThreadRunner {
+class threaded : public base<T>, public thread_runner {
 public:
     /**
-     * @brief Threaded
+     * @brief threaded
      * @param name The name of the thread. Useful for identification.
      * @param timeout The timeout for how long the thread should wait before calling the process method without parameter.
      */
-    Threaded(const std::string& name, std::chrono::milliseconds timeout);
+    threaded(const std::string& name, std::chrono::milliseconds timeout);
 
     /**
-     * @brief Threaded
+     * @brief threaded
      * @param name The name of the thread. Useful for identification.
      */
-    Threaded(const std::string& name);
+    threaded(const std::string& name);
 
-    virtual ~Threaded() override;
+    virtual ~threaded() override;
 
 protected:
     /**
@@ -54,7 +54,7 @@ protected:
     void internal_get(T item);
 
     /**
-     * @brief step Reimplemented from ThreadRunner.
+     * @brief step Reimplemented from thread_runner.
      * Internally this uses the timeout given in the constructor, default is 5 seconds.
      * It waits for a maximum of timeout, if there is no item available,
      * it calls the process method without parameter, if yes it calls the overloaded process method with the item as parameter.
@@ -82,53 +82,53 @@ private:
 };
 
 template <typename T, std::size_t N>
-class Collection : public Threaded<T> {
+class collection : public threaded<T> {
 public:
     /**
-     * @brief Collection A collection of multiple sinks
+     * @brief collection A collection of multiple sinks
      * @param sinks The sinks where the items should be distributed
      */
-    Collection(std::array<Base<T>*, N> sinks);
+    collection(std::array<base<T>*, N> sinks);
 
-    ~Collection() override;
+    ~collection() override;
 
     void get(T item) override;
 
 protected:
     /**
-     * @brief get Reimplemented from Threaded<T>. gets called when a new item is available
+     * @brief get Reimplemented from threaded<T>. gets called when a new item is available
      * @param item The item that is available
-     * @return the status code. @see Threaded::process
+     * @return the status code. @see threaded::process
      */
     [[nodiscard]] auto process(T item) -> int override;
 
 private:
-    std::array<Base<T>*, N> m_sinks {};
+    std::array<base<T>*, N> m_sinks {};
 };
 
 template <typename T>
-Base<T>::~Base() = default;
+base<T>::~base() = default;
 
 template <typename T>
-Threaded<T>::Threaded(const std::string& name)
-    : ThreadRunner { name }
+threaded<T>::threaded(const std::string& name)
+    : thread_runner { name }
 {
     start();
 }
 
 template <typename T>
-Threaded<T>::Threaded(const std::string& name, std::chrono::milliseconds timeout)
-    : ThreadRunner { name }
+threaded<T>::threaded(const std::string& name, std::chrono::milliseconds timeout)
+    : thread_runner { name }
     , m_timeout { timeout }
 {
     start();
 }
 
 template <typename T>
-Threaded<T>::~Threaded() = default;
+threaded<T>::~threaded() = default;
 
 template <typename T>
-void Threaded<T>::internal_get(T item)
+void threaded<T>::internal_get(T item)
 {
     std::scoped_lock<std::mutex> lock { m_mutex };
     m_items.push(item);
@@ -136,7 +136,7 @@ void Threaded<T>::internal_get(T item)
 }
 
 template <typename T>
-auto Threaded<T>::step() -> int
+auto threaded<T>::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> wait_lock { mx };
@@ -169,29 +169,29 @@ auto Threaded<T>::step() -> int
 }
 
 template <typename T>
-auto Threaded<T>::process() -> int
+auto threaded<T>::process() -> int
 {
     return 0;
 }
 
 template <typename T, std::size_t N>
-Collection<T, N>::Collection(std::array<Base<T>*, N> sinks)
-    : Threaded<T> { "SinkCollection" }
+collection<T, N>::collection(std::array<base<T>*, N> sinks)
+    : threaded<T> { "sinkcollection" }
     , m_sinks { std::move(sinks) }
 {
 }
 
 template <typename T, std::size_t N>
-Collection<T, N>::~Collection() = default;
+collection<T, N>::~collection() = default;
 
 template <typename T, std::size_t N>
-void Collection<T, N>::get(T item)
+void collection<T, N>::get(T item)
 {
-    Threaded<T>::internal_get(std::move(item));
+    threaded<T>::internal_get(std::move(item));
 }
 
 template <typename T, std::size_t N>
-auto Collection<T, N>::process(T item) -> int
+auto collection<T, N>::process(T item) -> int
 {
     for (auto* sink : m_sinks) {
         sink->get(item);

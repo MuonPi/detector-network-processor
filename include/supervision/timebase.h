@@ -8,17 +8,17 @@
 #include <chrono>
 #include <memory>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
- * @brief The TimeBaseSupervisor class
+ * @brief The timebase_supervisor class
  */
-class TimeBaseSupervisor : public Pipeline<Event>, public Pipeline<TimeBase> {
+class timebase_supervisor : public pipeline<event_t>, public pipeline<timebase_t> {
 public:
-    TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink);
+    timebase_supervisor(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink);
 
-    void get(Event event) override;
-    void get(TimeBase timebase) override;
+    void get(event_t event) override;
+    void get(timebase_t timebase) override;
 
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds { 800 } };

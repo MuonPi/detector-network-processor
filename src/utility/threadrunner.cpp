@@ -3,49 +3,56 @@
 #include <utility>
 
 #include "utility/log.h"
+#include "utility/scopeguard.h"
 
-namespace MuonPi {
+namespace muonpi {
 
-ThreadRunner::ThreadRunner(std::string name)
-    : m_name { std::move(name) }
+thread_runner::thread_runner(std::string name, bool use_custom_run)
+    : m_use_custom_run { use_custom_run }
+    , m_name { std::move(name) }
 {
 }
 
-ThreadRunner::~ThreadRunner()
+thread_runner::~thread_runner()
 {
     finish();
 }
 
-void ThreadRunner::stop()
+void thread_runner::stop()
 {
     m_run = false;
     m_quit = true;
     m_condition.notify_all();
 }
 
-void ThreadRunner::join()
+void thread_runner::join()
 {
     if (m_run_future.valid()) {
         m_run_future.wait();
     }
 }
 
-auto ThreadRunner::step() -> int
+auto thread_runner::step() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::pre_run() -> int
+auto thread_runner::pre_run() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::post_run() -> int
+auto thread_runner::post_run() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::wait() -> int
+auto thread_runner::custom_run() -> int
+{
+    return 0;
+}
+
+auto thread_runner::wait() -> int
 {
     if (!m_run_future.valid()) {
         return -1;
@@ -54,67 +61,70 @@ auto ThreadRunner::wait() -> int
     return m_run_future.get();
 }
 
-auto ThreadRunner::state() -> State
+auto thread_runner::state() -> State
 {
     return m_state;
 }
 
-auto ThreadRunner::run() -> int
+auto thread_runner::run() -> int
 {
     m_state = State::Initialising;
-    struct StateGuard {
-        State& state;
-        bool clean { false };
-
-        ~StateGuard()
-        {
-            if (clean) {
-                state = State::Stopped;
-            } else {
-                state = State::Error;
-            }
+    State& state { m_state };
+    bool clean { false };
+    const scope_guard state_guard { [&state, &clean] {
+        if (clean) {
+            state = State::Stopped;
+        } else {
+            state = State::Error;
         }
-    } guard { m_state };
+    } };
 
-    Log::debug() << "Starting thread " + m_name;
+    log::debug() << "Starting thread " + m_name;
     int pre_result { pre_run() };
     if (pre_result != 0) {
         return pre_result;
     }
     try {
         m_state = State::Running;
-        while (m_run) {
-            int result { step() };
+        if (m_use_custom_run) {
+            int result { custom_run() };
             if (result != 0) {
-                Log::warning() << "Thread " + m_name + " Stopped.";
                 return result;
+            }
+        } else {
+            while (m_run) {
+                int result { step() };
+                if (result != 0) {
+                    log::warning() << "Thread " + m_name + " Stopped.";
+                    return result;
+                }
             }
         }
     } catch (std::exception& e) {
-        Log::error() << "Thread " + m_name + "Got an uncaught exception: " + std::string { e.what() };
+        log::error() << "Thread " + m_name + "Got an uncaught exception: " + std::string { e.what() };
         return -1;
     } catch (...) {
-        Log::error() << "Thread " + m_name + "Got an uncaught exception.";
+        log::error() << "Thread " + m_name + "Got an uncaught exception.";
         return -1;
     }
     m_state = State::Finalising;
-    Log::debug() << "Stopping thread " + m_name;
-    guard.clean = true;
+    log::debug() << "Stopping thread " + m_name;
+    clean = true;
     return post_run();
 }
 
-void ThreadRunner::finish()
+void thread_runner::finish()
 {
     stop();
     join();
 }
 
-auto ThreadRunner::name() -> std::string
+auto thread_runner::name() -> std::string
 {
     return m_name;
 }
 
-auto ThreadRunner::state_string() -> std::string
+auto thread_runner::state_string() -> std::string
 {
     switch (m_state) {
     case State::Error:
@@ -133,16 +143,16 @@ auto ThreadRunner::state_string() -> std::string
     return {};
 }
 
-void ThreadRunner::start()
+void thread_runner::start()
 {
     if (m_state > State::Initial) {
-        Log::info() << "Thread " + m_name + " already running, refusing to start.";
+        log::info() << "Thread " + m_name + " already running, refusing to start.";
         return;
     }
-    m_run_future = std::async(std::launch::async, &ThreadRunner::run, this);
+    m_run_future = std::async(std::launch::async, &thread_runner::run, this);
 }
 
-void ThreadRunner::start_synchronuos()
+void thread_runner::start_synchronuos()
 {
     if (m_state > State::Initial) {
         return;

@@ -7,14 +7,14 @@
 #include <map>
 #include <string>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
- * @brief The ClusterLog class
+ * @brief The cluster_log_t class
  */
-class ClusterLog {
+class cluster_log_t {
 public:
-    struct Data {
+    struct data_t {
         std::int_fast64_t timeout { 0 }; //!< The current timeout for event constructors, in ms
         std::int_fast64_t timebase { 0 }; //!< The current timebase for event constructors, in ms
         std::int_fast64_t uptime { 0 }; //!< The current uptime for cluster, in minutes
@@ -35,21 +35,21 @@ public:
     };
 
     /**
-     * @brief ClusterLog
+     * @brief cluster_log_t
      * @param data The log data
      */
-    ClusterLog(Data data);
+    cluster_log_t(data_t data);
 
     /**
-     * @brief ClusterLog constructs an invalid object
+     * @brief cluster_log_t constructs an invalid object
      */
-    ClusterLog();
+    cluster_log_t();
 
     /**
      * @brief data Accesses the data from the object
      * @return
      */
-    [[nodiscard]] auto data() const -> Data;
+    [[nodiscard]] auto data() const -> data_t;
 
     /**
      * @brief time The time this log object was created
@@ -59,16 +59,16 @@ public:
 
     /**
      * @brief data Accesses the user info from the object
-     * @return the UserInfo struct
+     * @return the userinfo_t struct
      */
-    [[nodiscard]] auto user_info() const -> UserInfo;
+    [[nodiscard]] auto user_info() const -> userinfo_t;
 
 private:
-    Data m_data;
-    UserInfo m_userinfo {};
+    data_t m_data;
+    userinfo_t m_userinfo {};
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
 };
 
-} // namespace MuonPi
+} // namespace muonpi
 
 #endif // CLUSTERLOG_H

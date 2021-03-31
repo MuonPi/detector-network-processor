@@ -5,23 +5,23 @@
 
 #include <sstream>
 
-namespace MuonPi {
+namespace muonpi {
 
-StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
-    : Source::Base<ClusterLog> { log_sink }
+state_supervisor::state_supervisor(sink::base<cluster_log_t>& log_sink)
+    : source::base<cluster_log_t> { log_sink }
 {
 }
 
-void StateSupervisor::time_status(std::chrono::milliseconds timebase, std::chrono::milliseconds timeout)
+void state_supervisor::time_status(std::chrono::milliseconds timebase, std::chrono::milliseconds timeout)
 {
     m_timebase = timebase;
     m_timeout = timeout;
 }
 
-void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
+void state_supervisor::detector_status(std::size_t hash, detector::Status status)
 {
     m_detectors[hash] = status;
-    if (status == Detector::Status::Deleted) {
+    if (status == detector::Status::Deleted) {
         if (m_detectors.find(hash) != m_detectors.end()) {
             m_detectors.erase(hash);
         }
@@ -29,7 +29,7 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
 
     std::size_t reliable { 0 };
     for (auto& [h, detector] : m_detectors) {
-        if (detector == Detector::Status::Reliable) {
+        if (detector == detector::Status::Reliable) {
             reliable++;
         }
     }
@@ -38,13 +38,13 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
     m_current_data.reliable_detectors = reliable;
 }
 
-auto StateSupervisor::step() -> int
+auto state_supervisor::step() -> int
 {
     using namespace std::chrono;
 
     for (auto& thread : m_threads) {
-        if (thread->state() <= ThreadRunner::State::Stopped) {
-            Log::warning() << "The thread " + thread->name() + ": " + thread->state_string();
+        if (thread->state() <= thread_runner::State::Stopped) {
+            log::warning() << "The thread " + thread->name() + ": " + thread->state_string();
             return -1;
         }
     }
@@ -60,7 +60,7 @@ auto StateSupervisor::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
+        source::base<cluster_log_t>::put(cluster_log_t { m_current_data });
 
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();
@@ -78,7 +78,7 @@ auto StateSupervisor::step() -> int
     return 0;
 }
 
-void StateSupervisor::increase_event_count(bool incoming, std::size_t n)
+void state_supervisor::increase_event_count(bool incoming, std::size_t n)
 {
     if (incoming) {
         m_current_data.incoming++;
@@ -95,17 +95,17 @@ void StateSupervisor::increase_event_count(bool incoming, std::size_t n)
     }
 }
 
-void StateSupervisor::set_queue_size(std::size_t size)
+void state_supervisor::set_queue_size(std::size_t size)
 {
     m_current_data.buffer_length = size;
 }
 
-void StateSupervisor::add_thread(ThreadRunner* thread)
+void state_supervisor::add_thread(thread_runner* thread)
 {
     m_threads.push_back(thread);
 }
 
-void StateSupervisor::stop()
+void state_supervisor::stop()
 {
     for (auto& thread : m_threads) {
         thread->stop();

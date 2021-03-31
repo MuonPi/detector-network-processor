@@ -1,6 +1,7 @@
 ﻿#include "link/database.h"
 
 #include "utility/log.h"
+#include "utility/scopeguard.h"
 
 #include <type_traits>
 #include <utility>
@@ -8,14 +9,14 @@
 
 #include <curl/curl.h>
 
-namespace MuonPi::Link {
-Database::Entry::Entry(const std::string& measurement, Database& link)
+namespace muonpi::link {
+database::entry::entry(const std::string& measurement, database& link)
     : m_link { link }
 {
     m_tags << measurement;
 }
 
-auto Database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
+auto database::entry::operator<<(const influx::tag& tag) -> entry&
 {
     m_tags << ',' << tag.name << '=' << tag.field;
     return *this;
@@ -28,7 +29,7 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
+auto database::entry::operator<<(const influx::field& field) -> entry&
 {
     std::visit(overloaded {
                    [this, field](const std::string& value) { m_fields << ',' << field.name << "=\"" << value << '"'; },
@@ -43,7 +44,7 @@ auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
     return *this;
 }
 
-auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
+auto database::entry::commit(std::int_fast64_t timestamp) -> bool
 {
     if (m_fields.str().empty()) {
         return false;
@@ -54,36 +55,26 @@ auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
     return m_link.send_string(m_tags.str());
 }
 
-Database::Database(Config::Influx config)
+database::database(Config::Influx config)
     : m_config { std::move(config) }
 {
 }
 
-Database::Database() = default;
+database::database() = default;
 
-Database::~Database() = default;
+database::~database() = default;
 
-auto Database::measurement(const std::string& measurement) -> Entry
+auto database::measurement(const std::string& measurement) -> entry
 {
-    return Entry { measurement, *this };
+    return entry { measurement, *this };
 }
 
-auto Database::send_string(const std::string& query) -> bool
+auto database::send_string(const std::string& query) const -> bool
 {
     CURL* curl { curl_easy_init() };
 
     if (curl != nullptr) {
-        class CurlGuard {
-        public:
-            explicit CurlGuard(CURL* curl)
-                : m_curl { curl }
-            {
-            }
-            ~CurlGuard() { curl_easy_cleanup(m_curl); }
-
-        private:
-            CURL* m_curl { nullptr };
-        } curl_guard { curl };
+        scope_guard guard { [&curl] { curl_easy_cleanup(curl); } };
 
         std::ostringstream url {};
         url
@@ -107,15 +98,15 @@ auto Database::send_string(const std::string& query) -> bool
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
         if (res != CURLE_OK) {
-            Log::warning() << "Couldn't write to Database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
+            log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
             return false;
         }
         if ((http_code / 100) != 2) {
-            Log::warning() << "Couldn't write to Database: " + std::to_string(http_code);
+            log::warning() << "Couldn't write to database: " + std::to_string(http_code);
             return false;
         }
     }
     return true;
 }
 
-} // namespace MuonPi
+} // namespace muonpi

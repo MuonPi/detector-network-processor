@@ -14,12 +14,12 @@
 
 #include <mosquitto.h>
 
-namespace MuonPi::Link {
+namespace muonpi::link {
 
 /**
- * @brief The Mqtt class. Connects to a Mqtt server and offers publish and subscribe methods.
+ * @brief The mqtt class. Connects to a mqtt server and offers publish and subscribe methods.
  */
-class Mqtt : public ThreadRunner {
+class mqtt : public thread_runner {
 public:
     enum class Status {
         Invalid,
@@ -28,9 +28,9 @@ public:
         Connecting,
         Error
     };
-    struct Message {
-        Message() = default;
-        Message(const std::string& a_topic, const std::string& a_content)
+    struct message_t {
+        message_t() = default;
+        message_t(const std::string& a_topic, const std::string& a_content)
             : topic { a_topic }
             , content { a_content }
         {
@@ -40,11 +40,11 @@ public:
     };
 
     /**
-     * @brief The Publisher class. Only gets instantiated from within the Mqtt class.
+     * @brief The publisher class. Only gets instantiated from within the mqtt class.
      */
-    class Publisher {
+    class publisher {
     public:
-        Publisher(Mqtt* link, const std::string& topic)
+        publisher(mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {
@@ -71,34 +71,34 @@ public:
          */
         [[nodiscard]] auto get_publish_topic() const -> const std::string&;
 
-        Publisher() = default;
+        publisher() = default;
 
     private:
-        friend class Mqtt;
+        friend class mqtt;
 
-        Mqtt* m_link { nullptr };
+        mqtt* m_link { nullptr };
         std::string m_topic {};
     };
 
     /**
-     * @brief The Subscriber class. Only gets instantiated from within the Mqtt class.
+     * @brief The subscriber class. Only gets instantiated from within the mqtt class.
      */
-    class Subscriber {
+    class subscriber {
     public:
-        Subscriber(Mqtt* link, const std::string& topic)
+        subscriber(mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {
         }
 
-        ~Subscriber()
+        ~subscriber()
         {
             m_link->unsubscribe(m_topic);
         }
 
-        Subscriber() = default;
+        subscriber() = default;
 
-        void set_callback(std::function<void(const Message&)> callback);
+        void set_callback(std::function<void(const message_t&)> callback);
 
         /**
          * @brief get_subscribe_topic Gets the topic the subscriber subscribes to
@@ -107,40 +107,40 @@ public:
         [[nodiscard]] auto get_subscribe_topic() const -> const std::string&;
 
     private:
-        friend class Mqtt;
+        friend class mqtt;
 
         /**
-         * @brief push_message Only called from within the Mqtt class
+         * @brief push_message Only called from within the mqtt class
          * @param message The message to push into the queue
          */
-        void push_message(const Message& message);
+        void push_message(const message_t& message);
 
-        Mqtt* m_link { nullptr };
+        mqtt* m_link { nullptr };
         std::string m_topic {};
-        std::vector<std::function<void(const Message&)>> m_callback;
+        std::vector<std::function<void(const message_t&)>> m_callback;
     };
 
     /**
-     * @brief Mqtt
+     * @brief mqtt
      * @param config The configuration to use
      */
-    Mqtt(Config::Mqtt config);
+    mqtt(Config::Mqtt config);
 
-    Mqtt();
+    mqtt();
 
-    ~Mqtt() override;
+    ~mqtt() override;
 
     /**
-     * @brief publish Create a Publisher callback object
-     * @param topic The topic under which the Publisher sends messages
+     * @brief publish Create a publisher callback object
+     * @param topic The topic under which the publisher sends messages
      */
-    [[nodiscard]] auto publish(const std::string& topic) -> Publisher&;
+    [[nodiscard]] auto publish(const std::string& topic) -> publisher&;
 
     /**
-     * @brief subscribe Create a Subscriber callback object
+     * @brief subscribe Create a subscriber callback object
      * @param topic The topic to subscribe to. See mqtt for wildcards.
      */
-    [[nodiscard]] auto subscribe(const std::string& topic) -> Subscriber&;
+    [[nodiscard]] auto subscribe(const std::string& topic) -> subscriber&;
 
     /**
      * @brief wait_for Wait for a designated time until the status changes to the one set as the parameter
@@ -151,24 +151,24 @@ public:
 
 protected:
     /**
-     * @brief pre_run Reimplemented from ThreadRunner
+     * @brief pre_run Reimplemented from thread_runner
      * @return 0 if the thread should start
      */
     [[nodiscard]] auto pre_run() -> int override;
     /**
-     * @brief step Reimplemented from ThreadRunner
+     * @brief step Reimplemented from thread_runner
      * @return 0 if the thread should continue running
      */
     [[nodiscard]] auto step() -> int override;
     /**
-     * @brief post_run Reimplemented from ThreadRunner
+     * @brief post_run Reimplemented from thread_runner
      * @return The return value of the thread loop
      */
     [[nodiscard]] auto post_run() -> int override;
 
 private:
     /**
-     * @brief set_status Set the status for this Mqtt
+     * @brief set_status Set the status for this mqtt
      * @param status The new status
      */
     void set_status(Status status);
@@ -224,8 +224,8 @@ private:
 
     Status m_status { Status::Invalid };
 
-    std::map<std::string, std::unique_ptr<Publisher>> m_publishers {};
-    std::map<std::string, std::unique_ptr<Subscriber>> m_subscribers {};
+    std::map<std::string, std::unique_ptr<publisher>> m_publishers {};
+    std::map<std::string, std::unique_ptr<subscriber>> m_subscribers {};
 
     std::size_t m_tries { 0 };
     static constexpr std::size_t s_max_tries { 10 };

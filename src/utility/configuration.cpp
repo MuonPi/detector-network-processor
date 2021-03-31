@@ -16,39 +16,37 @@
 #include <crypto++/sha.h>
 #include <cryptopp/aes.h>
 
-namespace MuonPi {
+namespace muonpi {
 
-Option::Option(std::string name, int* value)
+configuration::definition::definition(std::string name, int* value)
     : m_option { value }
     , m_valid { true }
     , m_name { std::move(name) }
 {
 }
 
-Option::Option(std::string name, bool* value)
+configuration::definition::definition(std::string name, bool* value)
     : m_option { value }
     , m_valid { true }
     , m_name { std::move(name) }
 {
 }
 
-Option::Option(std::string name, double* value)
+configuration::definition::definition(std::string name, double* value)
     : m_option { value }
     , m_valid { true }
     , m_name { std::move(name) }
 {
 }
 
-Option::Option(std::string name, std::string* value)
+configuration::definition::definition(std::string name, std::string* value)
     : m_option { value }
     , m_valid { true }
     , m_name { std::move(name) }
 {
 }
 
-Option::Option()
-
-    = default;
+configuration::definition::definition() = default;
 
 template <class... Ts>
 struct overloaded : Ts... {
@@ -57,12 +55,12 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-auto Option::name() const -> std::string
+auto configuration::definition::name() const -> std::string
 {
     return m_name;
 }
 
-auto Option::write() -> std::string
+auto configuration::definition::write() -> std::string
 {
     std::ostringstream out {};
     std::visit(overloaded {
@@ -75,7 +73,7 @@ auto Option::write() -> std::string
     return out.str();
 }
 
-auto Option::read(const std::string& in) -> bool
+auto configuration::definition::read(const std::string& in) -> bool
 {
     if (in[1] != ':') {
         return false;
@@ -99,27 +97,27 @@ auto Option::read(const std::string& in) -> bool
     }
 }
 
-Option::operator bool() const
+configuration::definition::operator bool() const
 {
     return m_valid;
 }
 
-Configuration::Configuration(std::string filename, bool encrypted)
+configuration::configuration(std::string filename, bool encrypted)
     : m_filename { std::move(filename) }
     , m_encrypted { encrypted }
 {
 }
-void Configuration::set_encrypted(bool encrypted)
+void configuration::set_encrypted(bool encrypted)
 {
     m_encrypted = encrypted;
 }
 
-void Configuration::set_filename(const std::string& filename)
+void configuration::set_filename(const std::string& filename)
 {
     m_filename = filename;
 }
 
-auto Configuration::operator[](const std::string& name) -> Option&
+auto configuration::operator[](const std::string& name) -> definition&
 {
     if (m_options.find(name) == m_options.end()) {
         throw -1;
@@ -127,13 +125,13 @@ auto Configuration::operator[](const std::string& name) -> Option&
     return m_options[name];
 }
 
-auto Configuration::operator<<(Option argument) -> Configuration&
+auto configuration::operator<<(definition argument) -> configuration&
 {
     m_options[argument.name()] = std::move(argument);
     return *this;
 }
 
-auto Configuration::read(std::istream& in) -> bool
+auto configuration::read(std::istream& in) -> bool
 {
     std::size_t n { 0 };
     std::string line {};
@@ -175,7 +173,7 @@ auto Configuration::read(std::istream& in) -> bool
         value = value.substr(value.find_first_not_of(" \t"));
 
         if (!m_options[name].read(value)) {
-            Log::warning() << "Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
+            log::warning() << "Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
             return false;
         }
 
@@ -183,15 +181,15 @@ auto Configuration::read(std::istream& in) -> bool
         if (!m_encrypted) {
             output += "=" + value;
         }
-        Log::debug() << output;
+        log::debug() << output;
     }
     return true;
 }
 
-auto Configuration::read() -> bool
+auto configuration::read() -> bool
 {
     if (!std::filesystem::exists(m_filename)) {
-        Log::error() << "Configuration file does not exist: " + m_filename;
+        log::error() << "Configuration file does not exist: " + m_filename;
         return false;
     }
     bool result { false };
@@ -209,7 +207,7 @@ auto Configuration::read() -> bool
     return result;
 }
 
-auto Configuration::write(std::ostream& out) -> bool
+auto configuration::write(std::ostream& out) -> bool
 {
     for (auto& [name, option] : m_options) {
         out << option.write() << '\n';
@@ -217,7 +215,7 @@ auto Configuration::write(std::ostream& out) -> bool
     return true;
 }
 
-auto Configuration::write() -> bool
+auto configuration::write() -> bool
 {
     bool result { false };
     if (m_encrypted) {
@@ -236,7 +234,7 @@ auto Configuration::write() -> bool
     return result;
 }
 
-auto Configuration::decrypt(std::istream& file) -> std::string
+auto configuration::decrypt(std::istream& file) -> std::string
 {
     using namespace CryptoPP;
 
@@ -255,7 +253,7 @@ auto Configuration::decrypt(std::istream& file) -> std::string
     return decrypted;
 }
 
-void Configuration::encrypt(std::ostream& file, const std::string& content)
+void configuration::encrypt(std::ostream& file, const std::string& content)
 {
     using namespace CryptoPP;
     std::ostringstream mac_stream {};

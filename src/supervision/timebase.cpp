@@ -6,29 +6,29 @@
 
 #include <algorithm>
 
-namespace MuonPi {
+namespace muonpi {
 
-TimeBaseSupervisor::TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink)
-    : Pipeline<Event> { event_sink }
-    , Pipeline<TimeBase> { timebase_sink }
+timebase_supervisor::timebase_supervisor(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink)
+    : pipeline<event_t> { event_sink }
+    , pipeline<timebase_t> { timebase_sink }
 {
 }
 
-void TimeBaseSupervisor::get(Event event)
+void timebase_supervisor::get(event_t event)
 {
     if (event.start() < m_start) {
         m_start = event.start();
     } else if (event.start() > m_end) {
         m_end = event.start();
     }
-    Pipeline<Event>::put(event);
+    pipeline<event_t>::put(event);
 }
 
-void TimeBaseSupervisor::get(TimeBase timebase)
+void timebase_supervisor::get(timebase_t timebase)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < s_sample_time) {
         timebase.base = m_current;
-        Pipeline<TimeBase>::put(timebase);
+        pipeline<timebase_t>::put(timebase);
         return;
     }
 
@@ -38,7 +38,7 @@ void TimeBaseSupervisor::get(TimeBase timebase)
 
     timebase.base = m_current;
 
-    Pipeline<TimeBase>::put(timebase);
+    pipeline<timebase_t>::put(timebase);
 
     m_start = std::numeric_limits<std::int_fast64_t>::max();
     m_end = std::numeric_limits<std::int_fast64_t>::min();

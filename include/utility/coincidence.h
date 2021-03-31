@@ -6,22 +6,22 @@
 #include <chrono>
 #include <memory>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The Coincidence class
  * Defines the parameters for a coincidence between two events
  */
-class Coincidence : public Criterion {
+class coincidence : public criterion {
 public:
-    ~Coincidence() override;
+    ~coincidence() override;
     /**
      * @brief criterion Assigns a value of type T to a pair of events
      * @param first The first event to check
      * @param second the second event to check
      * @return true if the events have a coincidence
      */
-    [[nodiscard]] auto criterion(const Event& first, const Event& second) const -> double override;
+    [[nodiscard]] auto apply(const event_t& first, const event_t& second) const -> double override;
 
     /**
      * @brief maximum_false

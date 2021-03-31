@@ -11,21 +11,21 @@
 #include <iostream>
 #include <memory>
 
-namespace MuonPi::Sink {
+namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The AsciiSink class
+ * @brief The asciisink class
  */
-class Ascii : public Base<T> {
+class ascii : public base<T> {
 public:
     /**
-     * @brief AsciiEventSink
+     * @brief asciievent_tsink
      * @param a_ostream The stream to which the output should be written
      */
-    Ascii(std::ostream& a_ostream);
+    ascii(std::ostream& a_ostream);
 
-    ~Ascii() override;
+    ~ascii() override;
 
     void get(T message) override;
 
@@ -34,22 +34,22 @@ private:
 };
 
 template <typename T>
-Ascii<T>::Ascii(std::ostream& ostream)
+ascii<T>::ascii(std::ostream& ostream)
     : m_ostream { ostream }
 {
 }
 
 template <typename T>
-Ascii<T>::~Ascii() = default;
+ascii<T>::~ascii() = default;
 
 template <>
-void Ascii<Event>::get(Event event)
+void ascii<event_t>::get(event_t event)
 {
     if (event.n() > 1) {
         GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
         const std::int64_t cluster_coinc_time = event.end() - event.start();
         std::ostringstream out {};
-        out << "Combined Event: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
+        out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
         for (const auto& evt : event.events()) {
             const std::int64_t evt_coinc_time = evt.start() - event.start();
             out
@@ -69,28 +69,11 @@ void Ascii<Event>::get(Event event)
         out << '\n';
 
         m_ostream << out.str() << std::flush;
-        /*    } else {
-
-        std::ostringstream out {};
-        out << "Event"
-            <<std::hex
-            <<' '<<event.data().user
-            <<' '<<event.data().station_id
-            <<' '<<std::dec<<event.data().start
-            <<' '<<(event.data().end - event.data().start)
-            <<' '<<std::hex<<event.data().time_acc
-            <<' '<<event.data().ublox_counter
-            <<' '<<static_cast<std::uint16_t>(event.data().fix)
-            <<' '<<static_cast<std::uint16_t>(event.data().utc)
-            <<' '<<static_cast<std::uint16_t>(event.data().gnss_time_grid)
-            <<'\n';
-
-        m_ostream<<out.str()<<std::flush;*/
     }
 }
 
 template <>
-void Ascii<ClusterLog>::get(ClusterLog log)
+void ascii<cluster_log_t>::get(cluster_log_t log)
 {
     auto data { log.data() };
     std::ostringstream out {};
@@ -121,7 +104,7 @@ void Ascii<ClusterLog>::get(ClusterLog log)
 }
 
 template <>
-void Ascii<DetectorSummary>::get(DetectorSummary log)
+void ascii<detetor_summary_t>::get(detetor_summary_t log)
 {
     auto data { log.data() };
     std::ostringstream out {};
@@ -140,7 +123,7 @@ void Ascii<DetectorSummary>::get(DetectorSummary log)
 }
 
 template <>
-void Ascii<Trigger::Detector>::get(Trigger::Detector trigger)
+void ascii<trigger::detector>::get(trigger::detector trigger)
 {
     m_ostream << "trigger: " + trigger.setting.to_string(' ') + '\n'
               << std::flush;

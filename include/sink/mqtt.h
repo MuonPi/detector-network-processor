@@ -22,36 +22,36 @@
 #include <memory>
 #include <string>
 
-namespace MuonPi::Sink {
+namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The Mqtt class
+ * @brief The mqtt class
  */
-class Mqtt : public Base<T> {
+class mqtt : public base<T> {
 public:
     /**
-     * @brief Mqtt
+     * @brief mqtt
      * @param publisher The topic from which the messages should be published
      */
-    Mqtt(Link::Mqtt::Publisher& publisher);
+    mqtt(link::mqtt::publisher& publisher);
 
-    ~Mqtt() override;
+    ~mqtt() override;
 
     void set_detailed();
 
     void get(T message) override;
 
 private:
-    class Constructor {
+    class constructor {
     public:
-        Constructor(std::ostringstream stream)
+        constructor(std::ostringstream stream)
             : m_stream { std::move(stream) }
         {
         }
 
         template <typename U>
-        auto operator<<(U value) -> Constructor&
+        auto operator<<(U value) -> constructor&
         {
             m_stream << ' ' << value;
             return *this;
@@ -66,40 +66,40 @@ private:
         std::ostringstream m_stream;
     };
 
-    [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> Constructor;
+    [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> constructor;
 
-    Link::Mqtt::Publisher& m_link;
+    link::mqtt::publisher& m_link;
 
     bool m_detailed { false };
 };
 
 template <typename T>
-Mqtt<T>::Mqtt(Link::Mqtt::Publisher& publisher)
+mqtt<T>::mqtt(link::mqtt::publisher& publisher)
     : m_link { publisher }
 {
 }
 
 template <typename T>
-Mqtt<T>::~Mqtt() = default;
+mqtt<T>::~mqtt() = default;
 
 template <typename T>
-void Mqtt<T>::set_detailed()
+void mqtt<T>::set_detailed()
 {
     m_detailed = true;
 }
 
 template <typename T>
-auto Mqtt<T>::construct(const std::string& time, const std::string& parname) -> Constructor
+auto mqtt<T>::construct(const std::string& time, const std::string& parname) -> constructor
 {
     std::ostringstream stream {};
 
     stream << time << ' ' << parname;
 
-    return Constructor { std::move(stream) };
+    return constructor { std::move(stream) };
 }
 
 template <>
-void Mqtt<ClusterLog>::get(ClusterLog log)
+void mqtt<cluster_log_t>::get(cluster_log_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -118,7 +118,7 @@ void Mqtt<ClusterLog>::get(ClusterLog log)
             && m_link.publish((construct(stream.str(), "process_cpu_load") << log.data().process_cpu_load).str())
             && m_link.publish((construct(stream.str(), "memory_usage") << log.data().memory_usage).str())
             && m_link.publish((construct(stream.str(), "incoming") << log.data().incoming).str()))) {
-        Log::warning() << "Could not publish MQTT message.";
+        log::warning() << "Could not publish MQTT message.";
         return;
     }
     for (auto& [level, n] : log.data().outgoing) {
@@ -126,14 +126,14 @@ void Mqtt<ClusterLog>::get(ClusterLog log)
             continue;
         }
         if (!m_link.publish((construct(stream.str(), "outgoing_" + std::to_string(level)) << n).str())) {
-            Log::warning() << "Could not publish MQTT message.";
+            log::warning() << "Could not publish MQTT message.";
             return;
         }
     }
 }
 
 template <>
-void Mqtt<DetectorSummary>::get(DetectorSummary log)
+void mqtt<detetor_summary_t>::get(detetor_summary_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -148,12 +148,12 @@ void Mqtt<DetectorSummary>::get(DetectorSummary log)
             && m_link.publish((construct(stream.str(), name + " incoming") << log.data().incoming).str())
             && m_link.publish((construct(stream.str(), name + " ublox_counter_progess") << log.data().ublox_counter_progress).str())
             && m_link.publish((construct(stream.str(), name + " deadtime_factor") << log.data().deadtime).str()))) {
-        Log::warning() << "Could not publish MQTT message.";
+        log::warning() << "Could not publish MQTT message.";
     }
 }
 
 template <>
-void Mqtt<Event>::get(Event event)
+void mqtt<event_t>::get(event_t event)
 {
     if (event.n() == 1) {
         // by default, don't send out single events via MQTT
@@ -163,9 +163,9 @@ void Mqtt<Event>::get(Event event)
     const std::int64_t cluster_coinc_time = event.end() - event.start();
     GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
     for (auto& evt : event.events()) {
-        Location loc = evt.location();
+        location_t loc = evt.location();
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
-        std::string geohash = GeoHash::hashFromCoordinates(loc.lon, loc.lat, loc.max_geohash_length);
+        std::string geohash = geohash::from_coordinates(loc.lon, loc.lat, loc.max_geohash_length);
         MessageConstructor message { ' ' };
         message.add_field(guid.to_string()); // UUID for the L1Event
         message.add_field(int_to_hex(evt.hash())); // the hashed detector id
@@ -183,42 +183,42 @@ void Mqtt<Event>::get(Event event)
 
         if (m_detailed) {
             if (!m_link.publish(evt.data().user + "/" + evt.data().station_id, message.get_string())) {
-                Log::warning() << "Could not publish MQTT message.";
+                log::warning() << "Could not publish MQTT message.";
             }
         } else {
             if (!m_link.publish(message.get_string())) {
-                Log::warning() << "Could not publish MQTT message.";
+                log::warning() << "Could not publish MQTT message.";
             }
         }
     }
 }
 
 template <>
-void Mqtt<Trigger::Detector>::get(Trigger::Detector trigger)
+void mqtt<trigger::detector>::get(trigger::detector trigger)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
     stream
         << std::put_time(std::gmtime(&time), "%F_%H-%M-%S %Z");
     switch (trigger.setting.type) {
-    case Trigger::Detector::Setting::Offline:
+    case trigger::detector::setting_t::Offline:
         stream << " offline";
         break;
-    case Trigger::Detector::Setting::Online:
+    case trigger::detector::setting_t::Online:
         stream << " online";
         break;
-    case Trigger::Detector::Setting::Unreliable:
+    case trigger::detector::setting_t::Unreliable:
         stream << " unreliable";
         break;
-    case Trigger::Detector::Setting::Reliable:
+    case trigger::detector::setting_t::Reliable:
         stream << " reliable";
         break;
-    case Trigger::Detector::Setting::Invalid:
+    case trigger::detector::setting_t::Invalid:
         return;
     }
 
     if (!m_link.publish(trigger.setting.username + "/" + trigger.setting.station, stream.str())) {
-        Log::warning() << "Could not publish MQTT message.";
+        log::warning() << "Could not publish MQTT message.";
     }
 }
 
@@ -230,30 +230,30 @@ template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 template <>
 
-void Mqtt<DetectorLog>::get(DetectorLog log)
+void mqtt<detector_log_t>::get(detector_log_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
     stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
 
     while (log.has_items()) {
-        DetectorLogItem item { log.next_item() };
-        auto constructor { construct(stream.str(), item.name) };
+        detector_log_item item { log.next_item() };
+        auto constr { construct(stream.str(), item.name) };
         std::visit(overloaded {
-                       [&](std::string value) { constructor << value; },
-                       [&](std::int_fast64_t value) { constructor << value; },
-                       [&](std::size_t value) { constructor << value; },
-                       [&](std::uint8_t value) { constructor << value; },
-                       [&](std::uint16_t value) { constructor << value; },
-                       [&](std::uint32_t value) { constructor << value; },
-                       [&](bool value) { constructor << value; },
-                       [&](double value) { constructor << value; } },
+                       [&](std::string value) { constr << value; },
+                       [&](std::int_fast64_t value) { constr << value; },
+                       [&](std::size_t value) { constr << value; },
+                       [&](std::uint8_t value) { constr << value; },
+                       [&](std::uint16_t value) { constr << value; },
+                       [&](std::uint32_t value) { constr << value; },
+                       [&](bool value) { constr << value; },
+                       [&](double value) { constr << value; } },
             item.value);
         if (!item.unit.empty()) {
-            constructor << item.unit;
+            constr << item.unit;
         }
-        if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constructor.str())) {
-            Log::warning() << "Could not publish MQTT message.";
+        if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constr.str())) {
+            log::warning() << "Could not publish MQTT message.";
             return;
         }
     }

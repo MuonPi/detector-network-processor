@@ -59,6 +59,7 @@ auto application::setup(std::vector<std::string> arguments) -> bool
     if (m_parameters["d"]) {
         log::manager::singleton()->add_sink(std::make_shared<log::stream_sink>(std::cerr));
     }
+    log::info()<<"muondetector-cluster " + Version::string();
     if (m_parameters["l"]) {
         Config::files.credentials = m_parameters["l"].value;
     }

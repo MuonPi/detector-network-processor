@@ -15,7 +15,7 @@ public:
         const bool required { false };
     };
 
-    struct state {
+    struct state_t {
         bool set { false };
         std::string value {};
 
@@ -27,8 +27,8 @@ public:
 
     parameters(std::string name, std::string description);
 
-    [[nodiscard]] auto get(const std::string& name) const -> state;
-    [[nodiscard]] auto operator[](const std::string& name) const -> state;
+    [[nodiscard]] auto get(const std::string& name) const -> state_t;
+    [[nodiscard]] auto operator[](const std::string& name) const -> state_t;
 
     void add(const definition& argument);
     auto operator<<(const definition& argument) -> parameters&;
@@ -40,7 +40,7 @@ public:
 private:
     struct commandline {
         definition def;
-        state state;
+        state_t state;
     };
 
     std::size_t m_required { 0 };

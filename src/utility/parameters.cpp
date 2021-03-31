@@ -14,7 +14,7 @@ parameters::parameters(std::string name, std::string description)
     add({ "h", "help", "Print this help" });
 }
 
-auto parameters::get(const std::string& name) const -> state
+auto parameters::get(const std::string& name) const -> state_t
 {
     for (const auto& cmd : m_arguments) {
         if (name.compare(cmd.def.abbreviation) * name.compare(cmd.def.full) == 0) {
@@ -24,7 +24,7 @@ auto parameters::get(const std::string& name) const -> state
     return {};
 }
 
-auto parameters::operator[](const std::string& name) const -> state
+auto parameters::operator[](const std::string& name) const -> state_t
 {
     return get(name);
 }

@@ -27,11 +27,11 @@ struct Message {
     const std::string message {};
 };
 
-class Sink {
+class sink {
 public:
-    Sink(Level level);
+    sink(Level level);
 
-    virtual ~Sink();
+    virtual ~sink();
     [[nodiscard]] auto level() const -> Level;
 
 protected:
@@ -39,31 +39,31 @@ protected:
 
     [[nodiscard]] static auto to_string(Level level) -> std::string;
 
-    virtual void sink(const Message& msg) = 0;
+    virtual void get(const Message& msg) = 0;
 
 private:
     Level m_level { Level::Info };
 };
 
-class StreamSink : public Sink {
+class stream_sink : public sink {
 public:
-    StreamSink(std::ostream& ostream, Level level = Level::Debug);
+    stream_sink(std::ostream& ostream, Level level = Level::Debug);
 
 protected:
-    void sink(const Message& msg) override;
+    void get(const Message& msg) override;
 
 private:
     std::ostream& m_ostream;
 };
 
-class SyslogSink : public Sink {
+class syslog_sink : public sink {
 public:
-    SyslogSink(Level level = Level::Debug);
+    syslog_sink(Level level = Level::Debug);
 
-    ~SyslogSink();
+    ~syslog_sink();
 
 protected:
-    void sink(const Message& msg) override;
+    void get(const Message& msg) override;
 };
 
 class Log {
@@ -79,7 +79,7 @@ public:
         Log& m_log;
     };
 
-    void add_sink(std::shared_ptr<Sink> sink);
+    void add_sink(std::shared_ptr<sink> sink);
 
     [[nodiscard]] static auto singleton() -> std::shared_ptr<Log>;
 
@@ -93,7 +93,7 @@ public:
     Logger<Level::Emergency> m_emergency { *this };
 
 private:
-    std::vector<std::shared_ptr<Sink>> m_sinks {};
+    std::vector<std::shared_ptr<sink>> m_sinks {};
 
     void send(const Message& msg);
 

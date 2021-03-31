@@ -7,8 +7,8 @@
 
 namespace muonpi {
 
-StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
-    : Source::Base<ClusterLog> { log_sink }
+StateSupervisor::StateSupervisor(sink::base<ClusterLog>& log_sink)
+    : source::base<ClusterLog> { log_sink }
 {
 }
 
@@ -60,7 +60,7 @@ auto StateSupervisor::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        Source::Base<ClusterLog>::put(ClusterLog { m_current_data });
+        source::base<ClusterLog>::put(ClusterLog { m_current_data });
 
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();

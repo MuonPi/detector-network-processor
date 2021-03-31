@@ -16,24 +16,24 @@
 #include <memory>
 #include <sstream>
 
-namespace muonpi::Sink {
+namespace muonpi::sink {
 
 template <class T>
 /**
  * @brief The Database class
  */
-class Database : public Base<T> {
+class Database : public base<T> {
 public:
     /**
-     * @brief DatabaseLogSink
-     * @param link a Link::Database instance
+     * @brief DatabaseLogsink
+     * @param link a link::Database instance
      */
-    Database(Link::Database& link);
+    Database(link::Database& link);
 
     void get(T message) override;
 
 private:
-    Link::Database& m_link;
+    link::Database& m_link;
 };
 
 // +++++++++++++++++++++++++++++++
@@ -41,7 +41,7 @@ private:
 // +++++++++++++++++++++++++++++++
 
 template <class T>
-Database<T>::Database(Link::Database& link)
+Database<T>::Database(link::Database& link)
     : m_link { link }
 {
 }
@@ -49,22 +49,23 @@ Database<T>::Database(Link::Database& link)
 template <>
 void Database<ClusterLog>::get(ClusterLog log)
 {
+    using namespace link::Influx;
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     auto fields { std::move(m_link.measurement("cluster_summary")
-        << Link::Influx::Tag { "cluster_id", Config::influx.cluster_id }
-        << Link::Influx::Field { "timeout", log.data().timeout }
-        << Link::Influx::Field { "timebase", log.data().timebase }
-        << Link::Influx::Field { "uptime", log.data().uptime }
-        << Link::Influx::Field { "frequency_in", log.data().frequency.single_in }
-        << Link::Influx::Field { "frequency_l1_out", log.data().frequency.l1_out }
-        << Link::Influx::Field { "buffer_length", log.data().buffer_length }
-        << Link::Influx::Field { "total_detectors", log.data().total_detectors }
-        << Link::Influx::Field { "reliable_detectors", log.data().reliable_detectors }
-        << Link::Influx::Field { "max_multiplicity", log.data().maximum_n }
-        << Link::Influx::Field { "cpu_load", log.data().system_cpu_load }
-        << Link::Influx::Field { "process_cpu_load", log.data().process_cpu_load }
-        << Link::Influx::Field { "memory_usage", log.data().memory_usage }
-        << Link::Influx::Field { "incoming", log.data().incoming }) };
+        << Tag { "cluster_id", Config::influx.cluster_id }
+        << Field { "timeout", log.data().timeout }
+        << Field { "timebase", log.data().timebase }
+        << Field { "uptime", log.data().uptime }
+        << Field { "frequency_in", log.data().frequency.single_in }
+        << Field { "frequency_l1_out", log.data().frequency.l1_out }
+        << Field { "buffer_length", log.data().buffer_length }
+        << Field { "total_detectors", log.data().total_detectors }
+        << Field { "reliable_detectors", log.data().reliable_detectors }
+        << Field { "max_multiplicity", log.data().maximum_n }
+        << Field { "cpu_load", log.data().system_cpu_load }
+        << Field { "process_cpu_load", log.data().process_cpu_load }
+        << Field { "memory_usage", log.data().memory_usage }
+        << Field { "incoming", log.data().incoming }) };
 
     std::size_t total_n { 0 };
 
@@ -72,11 +73,11 @@ void Database<ClusterLog>::get(ClusterLog log)
         if (level == 1) {
             continue;
         }
-        fields << Link::Influx::Field { "outgoing" + std::to_string(level), n };
+        fields << Field { "outgoing" + std::to_string(level), n };
         total_n += n;
     }
 
-    fields << Link::Influx::Field { "outgoing", total_n };
+    fields << Field { "outgoing", total_n };
 
     if (!fields.commit(nanosecondsUTC)) {
         Log::warning() << "error writing ClusterLog item to DB";
@@ -87,7 +88,7 @@ template <>
 void Database<DetectorSummary>::get(DetectorSummary log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
-    using namespace Link::Influx;
+    using namespace link::Influx;
     auto result { std::move((m_link.measurement("detector_summary")
         << Tag { "cluster_id", Config::influx.cluster_id }
         << Tag { "user", log.user_info().username }
@@ -118,7 +119,7 @@ void Database<Event>::get(Event event)
     const std::int64_t cluster_coinc_time = event.end() - event.start();
     GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
     for (auto& evt : event.events()) {
-        using namespace Link::Influx;
+        using namespace link::Influx;
         if (!(m_link.measurement("L1Event")
                 << Tag { "user", evt.data().user }
                 << Tag { "detector", evt.data().station_id }
@@ -143,7 +144,7 @@ template <>
 void Database<DetectorLog>::get(DetectorLog log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
-    using namespace Link::Influx;
+    using namespace link::Influx;
     auto entry { m_link.measurement("detector_log") };
     entry << Tag { "user", log.user_info().username }
           << Tag { "detector", log.user_info().station_id }

@@ -1,6 +1,6 @@
 #include "utility/geohash.h"
 
-static constexpr const char* base32 { "0123456789bcdefghjkmnpqrstuvwxyz" }; // (geohash-specific) Base32 map
+static constexpr const char* base32 { "0123456789bcdefghjkmnpqrstuvwxyz" }; // (geohash-specific) base32 map
 
 namespace muonpi {
 

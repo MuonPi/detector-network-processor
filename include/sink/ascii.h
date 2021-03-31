@@ -11,16 +11,16 @@
 #include <iostream>
 #include <memory>
 
-namespace muonpi::Sink {
+namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The AsciiSink class
+ * @brief The Asciisink class
  */
-class Ascii : public Base<T> {
+class Ascii : public base<T> {
 public:
     /**
-     * @brief AsciiEventSink
+     * @brief AsciiEventsink
      * @param a_ostream The stream to which the output should be written
      */
     Ascii(std::ostream& a_ostream);

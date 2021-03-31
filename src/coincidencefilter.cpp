@@ -14,14 +14,14 @@
 
 namespace muonpi {
 
-coincidence_filter::coincidence_filter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<Event> { "coincidence_filter", std::chrono::milliseconds { 100 } }
-    , Source::Base<Event> { event_sink }
+coincidence_filter::coincidence_filter(sink::base<Event>& event_sink, StateSupervisor& supervisor)
+    : sink::threaded<Event> { "coincidence_filter", std::chrono::milliseconds { 100 } }
+    , source::base<Event> { event_sink }
     , m_supervisor { supervisor }
 {
 }
 
-void coincidence_filter::get(TimeBase timebase)
+void coincidence_filter::get(Timebase timebase)
 {
     using namespace std::chrono;
     m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
@@ -30,7 +30,7 @@ void coincidence_filter::get(TimeBase timebase)
 
 void coincidence_filter::get(Event event)
 {
-    Threaded<Event>::internal_get(event);
+    threaded<Event>::internal_get(event);
 }
 
 auto coincidence_filter::process() -> int

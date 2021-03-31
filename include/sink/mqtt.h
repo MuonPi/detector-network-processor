@@ -22,19 +22,19 @@
 #include <memory>
 #include <string>
 
-namespace muonpi::Sink {
+namespace muonpi::sink {
 
 template <typename T>
 /**
  * @brief The Mqtt class
  */
-class Mqtt : public Base<T> {
+class Mqtt : public base<T> {
 public:
     /**
      * @brief Mqtt
      * @param publisher The topic from which the messages should be published
      */
-    Mqtt(Link::Mqtt::Publisher& publisher);
+    Mqtt(link::Mqtt::Publisher& publisher);
 
     ~Mqtt() override;
 
@@ -68,13 +68,13 @@ private:
 
     [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> Constructor;
 
-    Link::Mqtt::Publisher& m_link;
+    link::Mqtt::Publisher& m_link;
 
     bool m_detailed { false };
 };
 
 template <typename T>
-Mqtt<T>::Mqtt(Link::Mqtt::Publisher& publisher)
+Mqtt<T>::Mqtt(link::Mqtt::Publisher& publisher)
     : m_link { publisher }
 {
 }

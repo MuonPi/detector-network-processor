@@ -11,14 +11,14 @@
 namespace muonpi {
 
 /**
- * @brief The TimeBaseSupervisor class
+ * @brief The TimebaseSupervisor class
  */
-class TimeBaseSupervisor : public Pipeline<Event>, public Pipeline<TimeBase> {
+class TimebaseSupervisor : public pipeline<Event>, public pipeline<Timebase> {
 public:
-    TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink);
+    TimebaseSupervisor(sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink);
 
     void get(Event event) override;
-    void get(TimeBase timebase) override;
+    void get(Timebase timebase) override;
 
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds { 800 } };

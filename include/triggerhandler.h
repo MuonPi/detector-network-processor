@@ -11,9 +11,9 @@
 
 namespace muonpi {
 
-class TriggerHandler : public Source::Base<Trigger::Detector::Action>, public rest::service_handler {
+class TriggerHandler : public source::base<Trigger::Detector::Action>, public rest::service_handler {
 public:
-    TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config);
+    TriggerHandler(sink::base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config);
 
     ~TriggerHandler() override;
 

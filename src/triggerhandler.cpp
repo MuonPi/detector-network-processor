@@ -129,8 +129,8 @@ namespace Ldap {
     }
 }
 
-TriggerHandler::TriggerHandler(Sink::Base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config)
-    : Source::Base<Trigger::Detector::Action> { sink }
+TriggerHandler::TriggerHandler(sink::base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config)
+    : source::base<Trigger::Detector::Action> { sink }
     , m_ldap { std::move(ldap_config) }
     , m_trigger { std::move(trigger_config) }
 {

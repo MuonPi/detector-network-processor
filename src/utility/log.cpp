@@ -2,19 +2,19 @@
 
 namespace muonpi::Log {
 
-Sink::Sink(Level level)
+sink::sink(Level level)
     : m_level { level }
 {
 }
 
-Sink::~Sink() = default;
+sink::~sink() = default;
 
-auto Sink::level() const -> Level
+auto sink::level() const -> Level
 {
     return m_level;
 }
 
-auto Sink::to_string(Level level) -> std::string
+auto sink::to_string(Level level) -> std::string
 {
     switch (level) {
     case Level::Debug:
@@ -37,37 +37,37 @@ auto Sink::to_string(Level level) -> std::string
     return {};
 }
 
-StreamSink::StreamSink(std::ostream& ostream, Level level)
-    : Sink { level }
+stream_sink::stream_sink(std::ostream& ostream, Level level)
+    : sink { level }
     , m_ostream { ostream }
 {
 }
 
-void StreamSink::sink(const Message& msg)
+void stream_sink::get(const Message& msg)
 {
     m_ostream << to_string(msg.level) + ": " + msg.message + "\n"
               << std::flush;
 }
 std::shared_ptr<Log> Log::s_singleton { std::make_shared<Log>() };
 
-void Log::add_sink(std::shared_ptr<Sink> sink)
+void Log::add_sink(std::shared_ptr<sink> sink)
 {
     m_sinks.push_back(sink);
 }
 
-SyslogSink::SyslogSink(Level level)
-    : Sink { level }
+syslog_sink::syslog_sink(Level level)
+    : sink { level }
 {
     setlogmask(LOG_UPTO(level));
     openlog(appname, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 }
 
-SyslogSink::~SyslogSink()
+syslog_sink::~syslog_sink()
 {
     closelog();
 }
 
-void SyslogSink::sink(const Message& msg)
+void syslog_sink::get(const Message& msg)
 {
     syslog(level(), "%s", msg.message.c_str());
 }
@@ -76,7 +76,7 @@ void Log::send(const Message& msg)
 {
     for (auto& sink : m_sinks) {
         if (sink->level() >= msg.level) {
-            sink->sink(msg);
+            sink->get(msg);
         }
     }
 }

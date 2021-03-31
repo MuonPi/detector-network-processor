@@ -9,7 +9,7 @@
 #include <variant>
 #include <vector>
 
-namespace muonpi::Link {
+namespace muonpi::link {
 
 namespace Influx {
 

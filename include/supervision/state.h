@@ -20,13 +20,13 @@ namespace muonpi {
 /**
  * @brief The StateSupervisor class Supervises the program and collects metadata
  */
-class StateSupervisor : public Source::Base<ClusterLog> {
+class StateSupervisor : public source::base<ClusterLog> {
 public:
     /**
      * @brief StateSupervisor
      * @param log_sink The specific log sinks to send metadata to
      */
-    StateSupervisor(Sink::Base<ClusterLog>& log_sink);
+    StateSupervisor(sink::base<ClusterLog>& log_sink);
 
     /**
      * @brief time_status Update the current timeout used

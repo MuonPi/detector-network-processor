@@ -21,21 +21,21 @@ class DetectorSummary;
 class StateSupervisor;
 
 class detector_tracker
-    : public Sink::Threaded<DetectorInfo<Location>>,
-      public Source::Base<DetectorSummary>,
-      public Source::Base<Trigger::Detector>,
-      public Sink::Base<Trigger::Detector::Action>,
-      public Pipeline<Event>,
-      public Source::Base<TimeBase> {
+    : public sink::threaded<DetectorInfo<Location>>,
+      public source::base<DetectorSummary>,
+      public source::base<Trigger::Detector>,
+      public sink::base<Trigger::Detector::Action>,
+      public pipeline<Event>,
+      public source::base<Timebase> {
 public:
     /**
      * @brief detector_tracker
-     * @param summary_sink A Sink to write the detector summaries to.
-     * @param trigger_sink A Sink to write the detector triggers to.
-     * @param event_sink A Sink to write the events to.
+     * @param summary_sink A sink to write the detector summaries to.
+     * @param trigger_sink A sink to write the detector triggers to.
+     * @param event_sink A sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    detector_tracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor);
+    detector_tracker(sink::base<DetectorSummary>& summary_sink, sink::base<Trigger::Detector>& trigger_sink, sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink, StateSupervisor& supervisor);
 
     /**
      * @brief detector_status Update the status of one detector

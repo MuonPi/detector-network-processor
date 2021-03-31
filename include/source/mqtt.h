@@ -16,19 +16,19 @@
 #include <memory>
 #include <string>
 
-namespace muonpi::Source {
+namespace muonpi::source {
 
 /**
- * @brief The Source::Mqtt class
+ * @brief The source::Mqtt class
  */
 template <typename T>
-class Mqtt : public Base<T> {
+class Mqtt : public base<T> {
 public:
     /**
      * @brief Mqtt
      * @param subscriber The Mqtt Topic this source should be subscribed to
      */
-    Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& topic);
+    Mqtt(sink::base<T>& sink, link::Mqtt::Subscriber& topic);
 
     ~Mqtt() override;
 
@@ -75,11 +75,11 @@ private:
      * @brief process Processes one LogItem
      * @param msg The message to process
      */
-    void process(const Link::Mqtt::Message& msg);
+    void process(const link::Mqtt::Message& msg);
 
     [[nodiscard]] auto generate_hash(MessageParser& topic, MessageParser& message) -> std::size_t;
 
-    Link::Mqtt::Subscriber& m_link;
+    link::Mqtt::Subscriber& m_link;
 
     std::map<std::size_t, ItemCollector> m_buffer {};
 };
@@ -325,11 +325,11 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
 }
 
 template <typename T>
-Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& topic)
-    : Base<T> { sink }
+Mqtt<T>::Mqtt(sink::base<T>& sink, link::Mqtt::Subscriber& topic)
+    : base<T> { sink }
     , m_link { topic }
 {
-    topic.set_callback([this](const Link::Mqtt::Message& message) {
+    topic.set_callback([this](const link::Mqtt::Message& message) {
         process(message);
     });
 }
@@ -358,7 +358,7 @@ auto Mqtt<Event>::generate_hash(MessageParser& /*topic*/, MessageParser& message
 }
 
 template <typename T>
-void Mqtt<T>::process(const Link::Mqtt::Message& msg)
+void Mqtt<T>::process(const link::Mqtt::Message& msg)
 {
     MessageParser topic { msg.topic, '/' };
     MessageParser content { msg.content, ' ' };
@@ -407,9 +407,9 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
 }
 
 template <>
-void Mqtt<Link::Mqtt::Message>::process(const Link::Mqtt::Message& msg)
+void Mqtt<link::Mqtt::Message>::process(const link::Mqtt::Message& msg)
 {
-    put(Link::Mqtt::Message { msg });
+    put(link::Mqtt::Message { msg });
 }
 }
 

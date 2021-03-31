@@ -20,18 +20,18 @@ namespace muonpi {
 /**
  * @brief The coincidence_filter class
  */
-class coincidence_filter : public Sink::Threaded<Event>, public Source::Base<Event>, public Sink::Base<TimeBase> {
+class coincidence_filter : public sink::threaded<Event>, public source::base<Event>, public sink::base<Timebase> {
 public:
     /**
      * @brief coincidence_filter
      * @param event_sink A collection of event sinks to use
      * @param supervisor A reference to a StateSupervisor, which keeps track of program metadata
      */
-    coincidence_filter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor);
+    coincidence_filter(sink::base<Event>& event_sink, StateSupervisor& supervisor);
 
     ~coincidence_filter() override = default;
 
-    void get(TimeBase timebase) override;
+    void get(Timebase timebase) override;
     void get(Event event) override;
 
 protected:

@@ -13,12 +13,12 @@
 
 namespace muonpi {
 
-detector_tracker::detector_tracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<DetectorInfo<Location>> { "detector_tracker", std::chrono::milliseconds { 100 } }
-    , Source::Base<DetectorSummary> { summary_sink }
-    , Source::Base<Trigger::Detector> { trigger_sink }
-    , Pipeline<Event> { event_sink }
-    , Source::Base<TimeBase> { timebase_sink }
+detector_tracker::detector_tracker(sink::base<DetectorSummary>& summary_sink, sink::base<Trigger::Detector>& trigger_sink, sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink, StateSupervisor& supervisor)
+    : sink::threaded<DetectorInfo<Location>> { "detector_tracker", std::chrono::milliseconds { 100 } }
+    , source::base<DetectorSummary> { summary_sink }
+    , source::base<Trigger::Detector> { trigger_sink }
+    , pipeline<Event> { event_sink }
+    , source::base<Timebase> { timebase_sink }
     , m_supervisor { supervisor }
 {
 }
@@ -38,13 +38,13 @@ void detector_tracker::get(Event event)
     event.set_detector_info(det->location(), det->user_info());
 
     if (det->is(Detector::Status::Reliable)) {
-        Source::Base<Event>::put(event);
+        source::base<Event>::put(event);
     }
 }
 
 void detector_tracker::get(DetectorInfo<Location> detector_info)
 {
-    Threaded<DetectorInfo<Location>>::internal_get(std::move(detector_info));
+    threaded<DetectorInfo<Location>>::internal_get(std::move(detector_info));
 }
 
 auto detector_tracker::process(DetectorInfo<Location> log) -> int
@@ -78,7 +78,7 @@ auto detector_tracker::process() -> int
         }
     }
 
-    Source::Base<TimeBase>::put(TimeBase { largest });
+    source::base<Timebase>::put(Timebase { largest });
 
     while (!m_delete_detectors.empty()) {
         m_detectors.erase(m_delete_detectors.front());
@@ -92,7 +92,7 @@ auto detector_tracker::process() -> int
         m_last = now;
 
         for (auto& [hash, detector] : m_detectors) {
-            Source::Base<DetectorSummary>::put(detector->current_log_data());
+            source::base<DetectorSummary>::put(detector->current_log_data());
         }
     }
     // --- push detector log messages at regular interval
@@ -120,7 +120,7 @@ void detector_tracker::detector_status(std::size_t hash, Detector::Status status
 {
     auto user_info { m_detectors[hash]->user_info() };
     if (status > Detector::Status::Deleted) {
-        Source::Base<DetectorSummary>::put(m_detectors[hash]->change_log_data());
+        source::base<DetectorSummary>::put(m_detectors[hash]->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
 
@@ -133,7 +133,7 @@ void detector_tracker::detector_status(std::size_t hash, Detector::Status status
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Offline) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Offline] });
+        source::base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Offline] });
         return;
     case Detector::Status::Created:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
@@ -142,7 +142,7 @@ void detector_tracker::detector_status(std::size_t hash, Detector::Status status
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Online) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Online] });
+        source::base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Online] });
         break;
     case Detector::Status::Reliable:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
@@ -151,7 +151,7 @@ void detector_tracker::detector_status(std::size_t hash, Detector::Status status
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Reliable) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Reliable] });
+        source::base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Reliable] });
         break;
     case Detector::Status::Unreliable:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
@@ -160,7 +160,7 @@ void detector_tracker::detector_status(std::size_t hash, Detector::Status status
         if (m_detector_triggers[hash].find(Trigger::Detector::Setting::Type::Unreliable) == m_detector_triggers[hash].end()) {
             return;
         }
-        Source::Base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Unreliable] });
+        source::base<Trigger::Detector>::put({ m_detector_triggers[hash][Trigger::Detector::Setting::Type::Unreliable] });
         break;
     }
     save();

@@ -14,7 +14,7 @@
 
 #include <mosquitto.h>
 
-namespace muonpi::Link {
+namespace muonpi::link {
 
 /**
  * @brief The Mqtt class. Connects to a Mqtt server and offers publish and subscribe methods.

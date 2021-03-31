@@ -11,7 +11,7 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
 
-namespace muonpi::Link {
+namespace muonpi::link {
 
 auto Mqtt::wait_for(Status status, std::chrono::milliseconds duration) -> bool
 {

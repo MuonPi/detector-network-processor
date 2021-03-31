@@ -14,7 +14,7 @@ namespace muonpi {
 
 class Detector;
 
-struct TimeBase {
+struct Timebase {
     double factor { 0.0 };
     std::chrono::steady_clock::duration base {};
 };

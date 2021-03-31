@@ -28,7 +28,7 @@ public:
      * @brief mqtt
      * @param subscriber The mqtt Topic this source should be subscribed to
      */
-    mqtt(sink::base<T>& sink, link::mqtt::Subscriber& topic);
+    mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic);
 
     ~mqtt() override;
 
@@ -79,7 +79,7 @@ private:
 
     [[nodiscard]] auto generate_hash(MessageParser& topic, MessageParser& message) -> std::size_t;
 
-    link::mqtt::Subscriber& m_link;
+    link::mqtt::subscriber& m_link;
 
     std::map<std::size_t, ItemCollector> m_buffer {};
 };
@@ -325,7 +325,7 @@ auto mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
 }
 
 template <typename T>
-mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::Subscriber& topic)
+mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic)
     : base<T> { sink }
     , m_link { topic }
 {

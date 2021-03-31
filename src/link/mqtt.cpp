@@ -200,7 +200,7 @@ void mqtt::unsubscribe(const std::string& topic)
     mosquitto_unsubscribe(m_mqtt, nullptr, topic.c_str());
 }
 
-auto mqtt::publish(const std::string& topic) -> Publisher&
+auto mqtt::publish(const std::string& topic) -> publisher&
 {
     if (!check_connection()) {
         throw -1;
@@ -208,7 +208,7 @@ auto mqtt::publish(const std::string& topic) -> Publisher&
     if (m_publishers.find(topic) != m_publishers.end()) {
         return { *m_publishers[topic] };
     }
-    m_publishers[topic] = std::make_unique<Publisher>(this, topic);
+    m_publishers[topic] = std::make_unique<publisher>(this, topic);
     Log::info() << "Starting to publish on topic " + topic;
     return { *m_publishers[topic] };
 }
@@ -256,7 +256,7 @@ auto mqtt::p_subscribe(const std::string& topic) -> bool
     return true;
 }
 
-auto mqtt::subscribe(const std::string& topic) -> Subscriber&
+auto mqtt::subscribe(const std::string& topic) -> subscriber&
 {
     if (!check_connection()) {
         throw -1;
@@ -271,7 +271,7 @@ auto mqtt::subscribe(const std::string& topic) -> Subscriber&
     if (!p_subscribe(topic)) {
         throw -1;
     }
-    m_subscribers[topic] = std::make_unique<Subscriber>(this, topic);
+    m_subscribers[topic] = std::make_unique<subscriber>(this, topic);
     return { *m_subscribers[topic] };
 }
 
@@ -370,34 +370,34 @@ void mqtt::set_status(Status status)
     m_status = status;
 }
 
-auto mqtt::Publisher::publish(const std::string& content) -> bool
+auto mqtt::publisher::publish(const std::string& content) -> bool
 {
     return m_link->publish(m_topic, content);
 }
 
-auto mqtt::Publisher::publish(const std::string& subtopic, const std::string& content) -> bool
+auto mqtt::publisher::publish(const std::string& subtopic, const std::string& content) -> bool
 {
     return m_link->publish(m_topic + '/' + subtopic, content);
 }
 
-auto mqtt::Publisher::get_publish_topic() const -> const std::string&
+auto mqtt::publisher::get_publish_topic() const -> const std::string&
 {
     return m_topic;
 }
 
-void mqtt::Subscriber::set_callback(std::function<void(const Message&)> callback)
+void mqtt::subscriber::set_callback(std::function<void(const Message&)> callback)
 {
     m_callback.emplace_back(std::move(callback));
 }
 
-void mqtt::Subscriber::push_message(const Message& message)
+void mqtt::subscriber::push_message(const Message& message)
 {
     for (auto& callback : m_callback) {
         callback(message);
     }
 }
 
-auto mqtt::Subscriber::get_subscribe_topic() const -> const std::string&
+auto mqtt::subscriber::get_subscribe_topic() const -> const std::string&
 {
     return m_topic;
 }

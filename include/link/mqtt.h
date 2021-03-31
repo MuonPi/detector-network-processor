@@ -40,11 +40,11 @@ public:
     };
 
     /**
-     * @brief The Publisher class. Only gets instantiated from within the mqtt class.
+     * @brief The publisher class. Only gets instantiated from within the mqtt class.
      */
-    class Publisher {
+    class publisher {
     public:
-        Publisher(mqtt* link, const std::string& topic)
+        publisher(mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {
@@ -71,7 +71,7 @@ public:
          */
         [[nodiscard]] auto get_publish_topic() const -> const std::string&;
 
-        Publisher() = default;
+        publisher() = default;
 
     private:
         friend class mqtt;
@@ -81,22 +81,22 @@ public:
     };
 
     /**
-     * @brief The Subscriber class. Only gets instantiated from within the mqtt class.
+     * @brief The subscriber class. Only gets instantiated from within the mqtt class.
      */
-    class Subscriber {
+    class subscriber {
     public:
-        Subscriber(mqtt* link, const std::string& topic)
+        subscriber(mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {
         }
 
-        ~Subscriber()
+        ~subscriber()
         {
             m_link->unsubscribe(m_topic);
         }
 
-        Subscriber() = default;
+        subscriber() = default;
 
         void set_callback(std::function<void(const Message&)> callback);
 
@@ -131,16 +131,16 @@ public:
     ~mqtt() override;
 
     /**
-     * @brief publish Create a Publisher callback object
-     * @param topic The topic under which the Publisher sends messages
+     * @brief publish Create a publisher callback object
+     * @param topic The topic under which the publisher sends messages
      */
-    [[nodiscard]] auto publish(const std::string& topic) -> Publisher&;
+    [[nodiscard]] auto publish(const std::string& topic) -> publisher&;
 
     /**
-     * @brief subscribe Create a Subscriber callback object
+     * @brief subscribe Create a subscriber callback object
      * @param topic The topic to subscribe to. See mqtt for wildcards.
      */
-    [[nodiscard]] auto subscribe(const std::string& topic) -> Subscriber&;
+    [[nodiscard]] auto subscribe(const std::string& topic) -> subscriber&;
 
     /**
      * @brief wait_for Wait for a designated time until the status changes to the one set as the parameter
@@ -224,8 +224,8 @@ private:
 
     Status m_status { Status::Invalid };
 
-    std::map<std::string, std::unique_ptr<Publisher>> m_publishers {};
-    std::map<std::string, std::unique_ptr<Subscriber>> m_subscribers {};
+    std::map<std::string, std::unique_ptr<publisher>> m_publishers {};
+    std::map<std::string, std::unique_ptr<subscriber>> m_subscribers {};
 
     std::size_t m_tries { 0 };
     static constexpr std::size_t s_max_tries { 10 };

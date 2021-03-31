@@ -34,7 +34,7 @@ public:
      * @brief mqtt
      * @param publisher The topic from which the messages should be published
      */
-    mqtt(link::mqtt::Publisher& publisher);
+    mqtt(link::mqtt::publisher& publisher);
 
     ~mqtt() override;
 
@@ -68,13 +68,13 @@ private:
 
     [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> Constructor;
 
-    link::mqtt::Publisher& m_link;
+    link::mqtt::publisher& m_link;
 
     bool m_detailed { false };
 };
 
 template <typename T>
-mqtt<T>::mqtt(link::mqtt::Publisher& publisher)
+mqtt<T>::mqtt(link::mqtt::publisher& publisher)
     : m_link { publisher }
 {
 }

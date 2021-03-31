@@ -9,13 +9,13 @@
 #include <curl/curl.h>
 
 namespace muonpi::link {
-database::Entry::Entry(const std::string& measurement, database& link)
+database::entry::entry(const std::string& measurement, database& link)
     : m_link { link }
 {
     m_tags << measurement;
 }
 
-auto database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
+auto database::entry::operator<<(const influx::tag& tag) -> entry&
 {
     m_tags << ',' << tag.name << '=' << tag.field;
     return *this;
@@ -28,7 +28,7 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-auto database::Entry::operator<<(const Influx::Field& field) -> Entry&
+auto database::entry::operator<<(const influx::field& field) -> entry&
 {
     std::visit(overloaded {
                    [this, field](const std::string& value) { m_fields << ',' << field.name << "=\"" << value << '"'; },
@@ -43,7 +43,7 @@ auto database::Entry::operator<<(const Influx::Field& field) -> Entry&
     return *this;
 }
 
-auto database::Entry::commit(std::int_fast64_t timestamp) -> bool
+auto database::entry::commit(std::int_fast64_t timestamp) -> bool
 {
     if (m_fields.str().empty()) {
         return false;
@@ -63,9 +63,9 @@ database::database() = default;
 
 database::~database() = default;
 
-auto database::measurement(const std::string& measurement) -> Entry
+auto database::measurement(const std::string& measurement) -> entry
 {
-    return Entry { measurement, *this };
+    return entry { measurement, *this };
 }
 
 auto database::send_string(const std::string& query) -> bool

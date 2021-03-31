@@ -98,14 +98,14 @@ auto application::setup(std::vector<std::string> arguments) -> bool
         cfg << configuration::definition { "credentials_file", &Config::files.credentials };
     }
     if (!cfg.read()) {
-        std::cout << "Could not read configuration file.\n";
+        log::error() << "Could not read configuration file.\n";
         return false;
     }
 
     configuration credents { credentials(Config::files.credentials, true) };
 
     if (!credents.read()) {
-        std::cout << "Could not read credentials file.\n";
+        log::error() << "Could not read credentials file.\n";
         return false;
     }
 

@@ -6,7 +6,7 @@ auto main(int argc, const char* argv[]) -> int
 {
 
     std::vector<std::string> args {};
-    for (int i { 1 }; i < argc; i++) {
+    for (int i { 0 }; i < argc; i++) {
         args.emplace_back(argv[i]);
     }
 

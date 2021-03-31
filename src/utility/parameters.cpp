@@ -59,6 +59,7 @@ auto parameters::start(std::vector<std::string> arguments) -> bool
         std::string arg { arguments[j] };
         bool found { false };
         for (auto& cmd : m_arguments) {
+
             if (arg.compare("-" + cmd.def.abbreviation) * arg.compare("--" + cmd.def.full) == 0) {
                 if (cmd.def.required) {
                     required++;

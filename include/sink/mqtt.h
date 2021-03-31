@@ -26,17 +26,17 @@ namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The Mqtt class
+ * @brief The mqtt class
  */
-class Mqtt : public base<T> {
+class mqtt : public base<T> {
 public:
     /**
-     * @brief Mqtt
+     * @brief mqtt
      * @param publisher The topic from which the messages should be published
      */
-    Mqtt(link::Mqtt::Publisher& publisher);
+    mqtt(link::mqtt::Publisher& publisher);
 
-    ~Mqtt() override;
+    ~mqtt() override;
 
     void set_detailed();
 
@@ -68,28 +68,28 @@ private:
 
     [[nodiscard]] auto construct(const std::string& time, const std::string& parname) -> Constructor;
 
-    link::Mqtt::Publisher& m_link;
+    link::mqtt::Publisher& m_link;
 
     bool m_detailed { false };
 };
 
 template <typename T>
-Mqtt<T>::Mqtt(link::Mqtt::Publisher& publisher)
+mqtt<T>::mqtt(link::mqtt::Publisher& publisher)
     : m_link { publisher }
 {
 }
 
 template <typename T>
-Mqtt<T>::~Mqtt() = default;
+mqtt<T>::~mqtt() = default;
 
 template <typename T>
-void Mqtt<T>::set_detailed()
+void mqtt<T>::set_detailed()
 {
     m_detailed = true;
 }
 
 template <typename T>
-auto Mqtt<T>::construct(const std::string& time, const std::string& parname) -> Constructor
+auto mqtt<T>::construct(const std::string& time, const std::string& parname) -> Constructor
 {
     std::ostringstream stream {};
 
@@ -99,7 +99,7 @@ auto Mqtt<T>::construct(const std::string& time, const std::string& parname) -> 
 }
 
 template <>
-void Mqtt<ClusterLog>::get(ClusterLog log)
+void mqtt<ClusterLog>::get(ClusterLog log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -133,7 +133,7 @@ void Mqtt<ClusterLog>::get(ClusterLog log)
 }
 
 template <>
-void Mqtt<DetectorSummary>::get(DetectorSummary log)
+void mqtt<DetectorSummary>::get(DetectorSummary log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -153,7 +153,7 @@ void Mqtt<DetectorSummary>::get(DetectorSummary log)
 }
 
 template <>
-void Mqtt<Event>::get(Event event)
+void mqtt<Event>::get(Event event)
 {
     if (event.n() == 1) {
         // by default, don't send out single events via MQTT
@@ -194,7 +194,7 @@ void Mqtt<Event>::get(Event event)
 }
 
 template <>
-void Mqtt<Trigger::Detector>::get(Trigger::Detector trigger)
+void mqtt<Trigger::Detector>::get(Trigger::Detector trigger)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -230,7 +230,7 @@ template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 template <>
 
-void Mqtt<DetectorLog>::get(DetectorLog log)
+void mqtt<DetectorLog>::get(DetectorLog log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};

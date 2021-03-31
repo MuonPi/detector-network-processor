@@ -9,13 +9,13 @@
 #include <curl/curl.h>
 
 namespace muonpi::link {
-Database::Entry::Entry(const std::string& measurement, Database& link)
+database::Entry::Entry(const std::string& measurement, database& link)
     : m_link { link }
 {
     m_tags << measurement;
 }
 
-auto Database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
+auto database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
 {
     m_tags << ',' << tag.name << '=' << tag.field;
     return *this;
@@ -28,7 +28,7 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
+auto database::Entry::operator<<(const Influx::Field& field) -> Entry&
 {
     std::visit(overloaded {
                    [this, field](const std::string& value) { m_fields << ',' << field.name << "=\"" << value << '"'; },
@@ -43,7 +43,7 @@ auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
     return *this;
 }
 
-auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
+auto database::Entry::commit(std::int_fast64_t timestamp) -> bool
 {
     if (m_fields.str().empty()) {
         return false;
@@ -54,21 +54,21 @@ auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
     return m_link.send_string(m_tags.str());
 }
 
-Database::Database(Config::Influx config)
+database::database(Config::Influx config)
     : m_config { std::move(config) }
 {
 }
 
-Database::Database() = default;
+database::database() = default;
 
-Database::~Database() = default;
+database::~database() = default;
 
-auto Database::measurement(const std::string& measurement) -> Entry
+auto database::measurement(const std::string& measurement) -> Entry
 {
     return Entry { measurement, *this };
 }
 
-auto Database::send_string(const std::string& query) -> bool
+auto database::send_string(const std::string& query) -> bool
 {
     CURL* curl { curl_easy_init() };
 
@@ -107,11 +107,11 @@ auto Database::send_string(const std::string& query) -> bool
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
         if (res != CURLE_OK) {
-            Log::warning() << "Couldn't write to Database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
+            Log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
             return false;
         }
         if ((http_code / 100) != 2) {
-            Log::warning() << "Couldn't write to Database: " + std::to_string(http_code);
+            Log::warning() << "Couldn't write to database: " + std::to_string(http_code);
             return false;
         }
     }

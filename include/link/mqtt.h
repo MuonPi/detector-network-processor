@@ -17,9 +17,9 @@
 namespace muonpi::link {
 
 /**
- * @brief The Mqtt class. Connects to a Mqtt server and offers publish and subscribe methods.
+ * @brief The mqtt class. Connects to a mqtt server and offers publish and subscribe methods.
  */
-class Mqtt : public ThreadRunner {
+class mqtt : public ThreadRunner {
 public:
     enum class Status {
         Invalid,
@@ -40,11 +40,11 @@ public:
     };
 
     /**
-     * @brief The Publisher class. Only gets instantiated from within the Mqtt class.
+     * @brief The Publisher class. Only gets instantiated from within the mqtt class.
      */
     class Publisher {
     public:
-        Publisher(Mqtt* link, const std::string& topic)
+        Publisher(mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {
@@ -74,18 +74,18 @@ public:
         Publisher() = default;
 
     private:
-        friend class Mqtt;
+        friend class mqtt;
 
-        Mqtt* m_link { nullptr };
+        mqtt* m_link { nullptr };
         std::string m_topic {};
     };
 
     /**
-     * @brief The Subscriber class. Only gets instantiated from within the Mqtt class.
+     * @brief The Subscriber class. Only gets instantiated from within the mqtt class.
      */
     class Subscriber {
     public:
-        Subscriber(Mqtt* link, const std::string& topic)
+        Subscriber(mqtt* link, const std::string& topic)
             : m_link { link }
             , m_topic { topic }
         {
@@ -107,28 +107,28 @@ public:
         [[nodiscard]] auto get_subscribe_topic() const -> const std::string&;
 
     private:
-        friend class Mqtt;
+        friend class mqtt;
 
         /**
-         * @brief push_message Only called from within the Mqtt class
+         * @brief push_message Only called from within the mqtt class
          * @param message The message to push into the queue
          */
         void push_message(const Message& message);
 
-        Mqtt* m_link { nullptr };
+        mqtt* m_link { nullptr };
         std::string m_topic {};
         std::vector<std::function<void(const Message&)>> m_callback;
     };
 
     /**
-     * @brief Mqtt
+     * @brief mqtt
      * @param config The configuration to use
      */
-    Mqtt(Config::Mqtt config);
+    mqtt(Config::Mqtt config);
 
-    Mqtt();
+    mqtt();
 
-    ~Mqtt() override;
+    ~mqtt() override;
 
     /**
      * @brief publish Create a Publisher callback object
@@ -168,7 +168,7 @@ protected:
 
 private:
     /**
-     * @brief set_status Set the status for this Mqtt
+     * @brief set_status Set the status for this mqtt
      * @param status The new status
      */
     void set_status(Status status);

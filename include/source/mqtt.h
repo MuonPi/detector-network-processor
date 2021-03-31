@@ -19,22 +19,22 @@
 namespace muonpi::source {
 
 /**
- * @brief The source::Mqtt class
+ * @brief The source::mqtt class
  */
 template <typename T>
-class Mqtt : public base<T> {
+class mqtt : public base<T> {
 public:
     /**
-     * @brief Mqtt
-     * @param subscriber The Mqtt Topic this source should be subscribed to
+     * @brief mqtt
+     * @param subscriber The mqtt Topic this source should be subscribed to
      */
-    Mqtt(sink::base<T>& sink, link::Mqtt::Subscriber& topic);
+    mqtt(sink::base<T>& sink, link::mqtt::Subscriber& topic);
 
-    ~Mqtt() override;
+    ~mqtt() override;
 
 private:
     /**
-    * @brief Adapter base class for the collection of several logically connected, but timely distributed MqttItems
+    * @brief Adapter base class for the collection of several logically connected, but timely distributed mqttItems
     */
     struct ItemCollector {
         enum ResultCode : std::uint8_t {
@@ -75,11 +75,11 @@ private:
      * @brief process Processes one LogItem
      * @param msg The message to process
      */
-    void process(const link::Mqtt::Message& msg);
+    void process(const link::mqtt::Message& msg);
 
     [[nodiscard]] auto generate_hash(MessageParser& topic, MessageParser& message) -> std::size_t;
 
-    link::Mqtt::Subscriber& m_link;
+    link::mqtt::Subscriber& m_link;
 
     std::map<std::size_t, ItemCollector> m_buffer {};
 };
@@ -88,35 +88,35 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-Mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
+mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
     : default_status { 0x003F }
     , status { default_status }
 {
 }
 
 template <>
-Mqtt<Event>::ItemCollector::ItemCollector()
+mqtt<Event>::ItemCollector::ItemCollector()
     : default_status { 0x0000 }
     , status { default_status }
 {
 }
 
 template <>
-Mqtt<DetectorLog>::ItemCollector::ItemCollector()
+mqtt<DetectorLog>::ItemCollector::ItemCollector()
     : default_status { 2 }
     , status { default_status }
 {
 }
 
 template <typename T>
-void Mqtt<T>::ItemCollector::reset()
+void mqtt<T>::ItemCollector::reset()
 {
     user_info = UserInfo {};
     status = default_status;
 }
 
 template <>
-auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Reset;
@@ -159,7 +159,7 @@ auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
 }
 
 template <>
-auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> ResultCode
+auto mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> ResultCode
 {
     if ((topic.size() < 4) || (content.size() < 7)) {
         return Error;
@@ -238,7 +238,7 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
 }
 
 template <>
-auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if (!item.has_items()) {
         item.set_log_id(message[0]);
@@ -325,20 +325,20 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
 }
 
 template <typename T>
-Mqtt<T>::Mqtt(sink::base<T>& sink, link::Mqtt::Subscriber& topic)
+mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::Subscriber& topic)
     : base<T> { sink }
     , m_link { topic }
 {
-    topic.set_callback([this](const link::Mqtt::Message& message) {
+    topic.set_callback([this](const link::mqtt::Message& message) {
         process(message);
     });
 }
 
 template <typename T>
-Mqtt<T>::~Mqtt() = default;
+mqtt<T>::~mqtt() = default;
 
 template <typename T>
-auto Mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) -> std::size_t
+auto mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) -> std::size_t
 {
     UserInfo userinfo {};
     userinfo.username = topic[2];
@@ -352,13 +352,13 @@ auto Mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) ->
 }
 
 template <>
-auto Mqtt<Event>::generate_hash(MessageParser& /*topic*/, MessageParser& message) -> std::size_t
+auto mqtt<Event>::generate_hash(MessageParser& /*topic*/, MessageParser& message) -> std::size_t
 {
     return std::hash<std::string> {}(message[0]);
 }
 
 template <typename T>
-void Mqtt<T>::process(const link::Mqtt::Message& msg)
+void mqtt<T>::process(const link::mqtt::Message& msg)
 {
     MessageParser topic { msg.topic, '/' };
     MessageParser content { msg.content, ' ' };
@@ -407,9 +407,9 @@ void Mqtt<T>::process(const link::Mqtt::Message& msg)
 }
 
 template <>
-void Mqtt<link::Mqtt::Message>::process(const link::Mqtt::Message& msg)
+void mqtt<link::mqtt::Message>::process(const link::mqtt::Message& msg)
 {
-    put(link::Mqtt::Message { msg });
+    put(link::mqtt::Message { msg });
 }
 }
 

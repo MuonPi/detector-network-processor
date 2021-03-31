@@ -15,17 +15,17 @@ namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The Asciisink class
+ * @brief The asciisink class
  */
-class Ascii : public base<T> {
+class ascii : public base<T> {
 public:
     /**
-     * @brief AsciiEventsink
+     * @brief asciiEventsink
      * @param a_ostream The stream to which the output should be written
      */
-    Ascii(std::ostream& a_ostream);
+    ascii(std::ostream& a_ostream);
 
-    ~Ascii() override;
+    ~ascii() override;
 
     void get(T message) override;
 
@@ -34,16 +34,16 @@ private:
 };
 
 template <typename T>
-Ascii<T>::Ascii(std::ostream& ostream)
+ascii<T>::ascii(std::ostream& ostream)
     : m_ostream { ostream }
 {
 }
 
 template <typename T>
-Ascii<T>::~Ascii() = default;
+ascii<T>::~ascii() = default;
 
 template <>
-void Ascii<Event>::get(Event event)
+void ascii<Event>::get(Event event)
 {
     if (event.n() > 1) {
         GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
@@ -90,7 +90,7 @@ void Ascii<Event>::get(Event event)
 }
 
 template <>
-void Ascii<ClusterLog>::get(ClusterLog log)
+void ascii<ClusterLog>::get(ClusterLog log)
 {
     auto data { log.data() };
     std::ostringstream out {};
@@ -121,7 +121,7 @@ void Ascii<ClusterLog>::get(ClusterLog log)
 }
 
 template <>
-void Ascii<DetectorSummary>::get(DetectorSummary log)
+void ascii<DetectorSummary>::get(DetectorSummary log)
 {
     auto data { log.data() };
     std::ostringstream out {};
@@ -140,7 +140,7 @@ void Ascii<DetectorSummary>::get(DetectorSummary log)
 }
 
 template <>
-void Ascii<Trigger::Detector>::get(Trigger::Detector trigger)
+void ascii<Trigger::Detector>::get(Trigger::Detector trigger)
 {
     m_ostream << "trigger: " + trigger.setting.to_string(' ') + '\n'
               << std::flush;

@@ -20,20 +20,20 @@ namespace muonpi::sink {
 
 template <class T>
 /**
- * @brief The Database class
+ * @brief The database class
  */
-class Database : public base<T> {
+class database : public base<T> {
 public:
     /**
-     * @brief DatabaseLogsink
-     * @param link a link::Database instance
+     * @brief databaseLogsink
+     * @param link a link::database instance
      */
-    Database(link::Database& link);
+    database(link::database& link);
 
     void get(T message) override;
 
 private:
-    link::Database& m_link;
+    link::database& m_link;
 };
 
 // +++++++++++++++++++++++++++++++
@@ -41,13 +41,13 @@ private:
 // +++++++++++++++++++++++++++++++
 
 template <class T>
-Database<T>::Database(link::Database& link)
+database<T>::database(link::database& link)
     : m_link { link }
 {
 }
 
 template <>
-void Database<ClusterLog>::get(ClusterLog log)
+void database<ClusterLog>::get(ClusterLog log)
 {
     using namespace link::Influx;
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
@@ -85,7 +85,7 @@ void Database<ClusterLog>::get(ClusterLog log)
 }
 
 template <>
-void Database<DetectorSummary>::get(DetectorSummary log)
+void database<DetectorSummary>::get(DetectorSummary log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::Influx;
@@ -109,7 +109,7 @@ void Database<DetectorSummary>::get(DetectorSummary log)
 }
 
 template <>
-void Database<Event>::get(Event event)
+void database<Event>::get(Event event)
 {
     if (event.n() == 1) {
         // by default, don't write the single events to the db
@@ -141,7 +141,7 @@ void Database<Event>::get(Event event)
 }
 
 template <>
-void Database<DetectorLog>::get(DetectorLog log)
+void database<DetectorLog>::get(DetectorLog log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::Influx;

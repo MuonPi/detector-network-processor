@@ -24,9 +24,9 @@ namespace Influx {
 }
 
 /**
- * @brief The Database class
+ * @brief The database class
  */
-class Database {
+class database {
 public:
     class Entry {
     public:
@@ -41,16 +41,16 @@ public:
         std::ostringstream m_tags {};
         std::ostringstream m_fields {};
 
-        Database& m_link;
+        database& m_link;
 
-        friend class Database;
+        friend class database;
 
-        Entry(const std::string& measurement, Database& link);
+        Entry(const std::string& measurement, database& link);
     };
 
-    Database(Config::Influx config);
-    Database();
-    ~Database();
+    database(Config::Influx config);
+    database();
+    ~database();
 
     [[nodiscard]] auto measurement(const std::string& measurement) -> Entry;
 

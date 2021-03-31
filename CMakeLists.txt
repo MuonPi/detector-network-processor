@@ -46,7 +46,7 @@ find_library(LDAP ldap REQUIRED)
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
 
-find_package(Boost 1.66 COMPONENTS system REQUIRED)
+find_package(Boost 1.71 COMPONENTS system REQUIRED)
 
 
 

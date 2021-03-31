@@ -33,7 +33,7 @@ public:
     void add(const definition& argument);
     auto operator<<(const definition& argument) -> parameters&;
 
-    auto start(int argc, const char* argv[]) -> bool;
+    auto start(std::vector<std::string> arguments) -> bool;
 
     void print_help() const;
 
@@ -43,7 +43,7 @@ private:
         state state;
     };
 
-    int m_required { 0 };
+    std::size_t m_required { 0 };
 
     std::string m_name {};
     std::string m_description {};

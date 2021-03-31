@@ -52,11 +52,11 @@ application::~application()
     delete m_db_link;
 }
 
-auto application::setup(int argc, const char* argv[]) -> bool
+auto application::setup(std::vector<std::string> arguments) -> bool
 {
     log::manager::singleton()->add_sink(std::make_shared<log::syslog_sink>());
 
-    if (!m_parameters.start(argc, argv)) {
+    if (!m_parameters.start(std::move(arguments))) {
         return false;
     }
     if (m_parameters["d"]) {

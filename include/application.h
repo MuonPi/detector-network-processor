@@ -24,7 +24,7 @@ public:
     application();
     ~application();
 
-    [[nodiscard]] auto setup(int argc, const char* argv[]) -> bool;
+    [[nodiscard]] auto setup(std::vector<std::string> arguments) -> bool;
     [[nodiscard]] auto run() -> int;
 
     void signal_handler(int signal);

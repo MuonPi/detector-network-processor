@@ -43,20 +43,20 @@ auto parameters::operator<<(const definition& argument) -> parameters&
     return *this;
 }
 
-auto parameters::start(int argc, const char* argv[]) -> bool
+auto parameters::start(std::vector<std::string> arguments) -> bool
 {
     if (m_required > 0) {
-        if (argc < (1 + m_required)) {
+        if (arguments.size() < (1 + m_required)) {
             print_help();
             return false;
         }
     }
-    if (argc <= 1) {
+    if (arguments.size() <= 1) {
         return true;
     }
-    int required { 0 };
-    for (int j { 1 }; j < argc; j++) {
-        std::string arg { argv[j] };
+    std::size_t required { 0 };
+    for (std::size_t j { 1 }; j < arguments.size(); j++) {
+        std::string arg { arguments[j] };
         bool found { false };
         for (auto& cmd : m_arguments) {
             if (arg.compare("-" + cmd.def.abbreviation) * arg.compare("--" + cmd.def.full) == 0) {
@@ -64,12 +64,12 @@ auto parameters::start(int argc, const char* argv[]) -> bool
                     required++;
                 }
                 if (cmd.def.value) {
-                    if ((++j >= argc) || (argv[j][0] == '-')) {
+                    if ((++j >= arguments.size()) || (arguments[j][0] == '-')) {
                         std::cout << "expected name after " << arg << "\n";
                         print_help();
                         return false;
                     }
-                    cmd.state.value = argv[j];
+                    cmd.state.value = arguments[j];
                 }
                 cmd.state.set = true;
                 found = true;

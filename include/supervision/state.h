@@ -4,6 +4,7 @@
 #include "detector.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
+#include "utility/analysis.h"
 #include "utility/resourcetracker.h"
 #include "utility/analysis.h"
 
@@ -66,6 +67,9 @@ public:
      */
     void add_thread(thread_runner* thread);
 
+    /**
+     * @brief stop Signals all threads to stop execution
+     */
     void stop();
 
 private:

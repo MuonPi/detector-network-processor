@@ -94,7 +94,6 @@ private:
     std::vector<std::pair<std::string::iterator, std::string::iterator>> m_fields {};
 };
 
-// class GUID
 class GUID {
 public:
     GUID(std::size_t hash, std::uint64_t time);
@@ -108,7 +107,6 @@ private:
     std::uint64_t m_first { 0 };
     std::uint64_t m_second { 0 };
 };
-// -------------------------------
 
 
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
@@ -118,5 +116,6 @@ template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
     ss << std::setfill('0') << std::setw(width) << std::hex << (val | 0);
     return ss.str();
 }
+
 }
 #endif // UTILITY_H

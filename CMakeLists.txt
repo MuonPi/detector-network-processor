@@ -10,7 +10,7 @@ set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(PROJECT_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/bin")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake")
 
 
@@ -74,6 +74,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/parameters.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/resourcetracker.cpp"
+    "${PROJECT_SRC_DIR}/utility/uppermatrix.cpp"
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
 
@@ -117,6 +118,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/parameters.h"
     "${PROJECT_HEADER_DIR}/utility/configuration.h"
     "${PROJECT_HEADER_DIR}/utility/resourcetracker.h"
+    "${PROJECT_HEADER_DIR}/utility/uppermatrix.h"
     "${PROJECT_HEADER_DIR}/utility/restservice.h"
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
@@ -218,6 +220,6 @@ set(CPACK_DEBIAN_PACKAGE_DESCRIPTION " Daemon which calculates coincidences for 
  publishes them to another mqtt topic or writes them to a database.
  It is licensed under the GNU Lesser General Public License version 3 (LGPL v3).")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "MuonPi <developer@muonpi.org>")
-set(CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../packages/")
+set(CPACK_PACKAGE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/packages/")
 
 include(CPack)

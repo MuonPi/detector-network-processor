@@ -5,7 +5,7 @@
 
 #include <sstream>
 
-namespace MuonPi {
+namespace muonpi {
 
 StateSupervisor::StateSupervisor(Sink::Base<ClusterLog>& log_sink)
     : Source::Base<ClusterLog> { log_sink }

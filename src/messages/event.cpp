@@ -1,7 +1,7 @@
 #include "messages/event.h"
 #include "utility/log.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 Event::Event(std::size_t hash, Data data) noexcept
     : m_hash { hash }

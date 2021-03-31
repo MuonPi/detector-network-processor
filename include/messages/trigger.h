@@ -4,7 +4,7 @@
 #include <cinttypes>
 #include <string>
 
-namespace MuonPi::Trigger {
+namespace muonpi::Trigger {
 
 struct Detector {
     struct Setting {

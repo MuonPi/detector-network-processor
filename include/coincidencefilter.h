@@ -15,7 +15,7 @@
 #include <queue>
 #include <vector>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The coincidence_filter class

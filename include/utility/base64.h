@@ -6,7 +6,7 @@
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 
-namespace MuonPi::base64 {
+namespace muonpi::base64 {
 
 [[nodiscard]] inline auto decode(std::string_view val) -> std::string
 {

@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
 auto DetectorType::id() -> std::uint8_t
 {

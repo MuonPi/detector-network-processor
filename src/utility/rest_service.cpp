@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-namespace MuonPi::rest {
+namespace muonpi::rest {
 
 auto service_handler::get_handler() -> handler
 {

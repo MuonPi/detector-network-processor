@@ -5,7 +5,7 @@
 
 #include <chrono>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The DetectorSummary class

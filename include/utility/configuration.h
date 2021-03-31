@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-namespace MuonPi {
+namespace muonpi {
 
 struct Option {
     Option(std::string name, int* value);

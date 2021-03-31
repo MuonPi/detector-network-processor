@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace MuonPi {
+namespace muonpi {
 
 struct UserInfo {
     std::string username {};

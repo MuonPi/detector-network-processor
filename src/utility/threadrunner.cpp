@@ -4,7 +4,7 @@
 
 #include "utility/log.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 ThreadRunner::ThreadRunner(std::string name, bool use_custom_run)
     : m_use_custom_run { std::move(use_custom_run) }

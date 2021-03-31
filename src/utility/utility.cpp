@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
 MessageConstructor::MessageConstructor(char delimiter)
     : m_delimiter { delimiter }

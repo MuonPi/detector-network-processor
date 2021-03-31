@@ -5,7 +5,7 @@
 #include <sstream>
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
 Parameters::Parameters(std::string name, std::string description)
     : m_name { std::move(name) }

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace MuonPi {
+namespace muonpi {
 
 TimeBaseSupervisor::TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink)
     : Pipeline<Event> { event_sink }

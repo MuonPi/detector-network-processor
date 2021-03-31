@@ -17,7 +17,7 @@
 #include <sasl/sasl.h>
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
 namespace Trigger {
 
@@ -118,7 +118,7 @@ namespace Ldap {
                 dflt = auth->password;
                 break;
             default:
-                MuonPi::Log::warning() << "unknown ldap parameter" + std::to_string(interact->id);
+                muonpi::Log::warning() << "unknown ldap parameter" + std::to_string(interact->id);
             }
             interact->result = ((dflt != nullptr) && (*dflt != 0)) ? dflt : "";
             interact->len = strlen(static_cast<char*>(const_cast<void*>(interact->result)));

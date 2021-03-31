@@ -6,7 +6,7 @@
 #include <chrono>
 #include <string>
 
-namespace MuonPi {
+namespace muonpi {
 
 struct DetectorType {
     enum class GateConnection {

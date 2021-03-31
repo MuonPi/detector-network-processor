@@ -2,7 +2,7 @@
 #include "utility/criterion.h"
 #include "utility/log.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 void EventConstructor::set_timeout(std::chrono::system_clock::duration new_timeout)
 {

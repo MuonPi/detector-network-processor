@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
 ClusterLog::ClusterLog(Data data)
     : m_data { std::move(data) }

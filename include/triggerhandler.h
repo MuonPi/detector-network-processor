@@ -9,7 +9,7 @@
 
 #include "utility/rest_service.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 class TriggerHandler : public Source::Base<Trigger::Detector::Action>, public rest::service_handler {
 public:

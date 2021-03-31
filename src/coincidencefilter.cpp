@@ -12,7 +12,7 @@
 
 #include <cinttypes>
 
-namespace MuonPi {
+namespace muonpi {
 
 coincidence_filter::coincidence_filter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
     : Sink::Threaded<Event> { "coincidence_filter", std::chrono::milliseconds { 100 } }

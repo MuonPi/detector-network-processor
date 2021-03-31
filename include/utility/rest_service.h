@@ -17,7 +17,7 @@
 #include <string_view>
 #include <vector>
 
-namespace MuonPi::rest {
+namespace muonpi::rest {
 
 namespace beast = boost::beast;
 namespace http = beast::http;

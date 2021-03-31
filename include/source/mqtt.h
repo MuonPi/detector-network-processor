@@ -16,7 +16,7 @@
 #include <memory>
 #include <string>
 
-namespace MuonPi::Source {
+namespace muonpi::Source {
 
 /**
  * @brief The Source::Mqtt class

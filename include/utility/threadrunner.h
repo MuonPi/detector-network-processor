@@ -4,7 +4,7 @@
 #include <atomic>
 #include <future>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The ThreadRunner class. Inherit from this to get a class which has an internal main loop.

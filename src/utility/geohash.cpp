@@ -2,7 +2,7 @@
 
 static constexpr const char* base32 { "0123456789bcdefghjkmnpqrstuvwxyz" }; // (geohash-specific) Base32 map
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * Geohash: Gustavo Niemeyer’s geocoding system.
@@ -64,4 +64,4 @@ auto GeoHash::hashFromCoordinates(double lon, double lat, std::size_t precision)
     return geohash;
 }
 
-} // namespace MuonPi
+} // namespace muonpi

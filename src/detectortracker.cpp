@@ -11,7 +11,7 @@
 
 #include "supervision/state.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 detector_tracker::detector_tracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor)
     : Sink::Threaded<DetectorInfo<Location>> { "detector_tracker", std::chrono::milliseconds { 100 } }

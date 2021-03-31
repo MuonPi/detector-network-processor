@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The ClusterLog class
@@ -69,6 +69,6 @@ private:
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
 };
 
-} // namespace MuonPi
+} // namespace muonpi
 
 #endif // CLUSTERLOG_H

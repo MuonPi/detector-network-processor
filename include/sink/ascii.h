@@ -11,7 +11,7 @@
 #include <iostream>
 #include <memory>
 
-namespace MuonPi::Sink {
+namespace muonpi::Sink {
 
 template <typename T>
 /**

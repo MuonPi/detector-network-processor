@@ -8,7 +8,7 @@
 
 #include <curl/curl.h>
 
-namespace MuonPi::Link {
+namespace muonpi::Link {
 Database::Entry::Entry(const std::string& measurement, Database& link)
     : m_link { link }
 {
@@ -118,4 +118,4 @@ auto Database::send_string(const std::string& query) -> bool
     return true;
 }
 
-} // namespace MuonPi
+} // namespace muonpi

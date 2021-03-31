@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace MuonPi {
+namespace muonpi {
 
 class ResourceTracker {
 public:

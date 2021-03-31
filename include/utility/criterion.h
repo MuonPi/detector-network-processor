@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace MuonPi {
+namespace muonpi {
 
 class Event;
 

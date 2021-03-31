@@ -7,7 +7,7 @@
 #include <mutex>
 #include <queue>
 
-namespace MuonPi::Sink {
+namespace muonpi::Sink {
 
 template <typename T>
 /**

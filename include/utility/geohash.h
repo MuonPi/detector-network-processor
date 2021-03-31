@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace MuonPi {
+namespace muonpi {
 /**
  * @brief The GeoHash class
  * a class with a static function to generate a geo hash string from given geographic ccordinates
@@ -16,6 +16,6 @@ public:
     static std::string hashFromCoordinates(double lon, double lat, std::size_t precision);
 };
 
-} // namespace MuonPi
+} // namespace muonpi
 
 #endif // GEOHASH_H

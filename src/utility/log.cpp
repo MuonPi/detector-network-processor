@@ -1,6 +1,6 @@
 #include "utility/log.h"
 
-namespace MuonPi::Log {
+namespace muonpi::Log {
 
 Sink::Sink(Level level)
     : m_level { level }

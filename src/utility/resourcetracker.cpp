@@ -5,7 +5,7 @@
 #include <string>
 #include <unistd.h>
 
-namespace MuonPi {
+namespace muonpi {
 
 auto ResourceTracker::get_data() -> Data
 {

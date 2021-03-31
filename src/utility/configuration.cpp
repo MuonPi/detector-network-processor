@@ -16,7 +16,7 @@
 #include <crypto++/sha.h>
 #include <cryptopp/aes.h>
 
-namespace MuonPi {
+namespace muonpi {
 
 Option::Option(std::string name, int* value)
     : m_option { value }

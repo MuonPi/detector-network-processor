@@ -9,7 +9,7 @@
 #include <memory>
 #include <queue>
 
-namespace MuonPi::Source {
+namespace muonpi::Source {
 
 template <typename T>
 /**

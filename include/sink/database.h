@@ -16,7 +16,7 @@
 #include <memory>
 #include <sstream>
 
-namespace MuonPi::Sink {
+namespace muonpi::Sink {
 
 template <class T>
 /**
@@ -159,5 +159,5 @@ void Database<DetectorLog>::get(DetectorLog log)
     }
 }
 
-} // namespace MuonPi
+} // namespace muonpi
 #endif // DATABASESINK_H

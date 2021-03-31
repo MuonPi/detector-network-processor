@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
 DetectorSummary::DetectorSummary(std::size_t hash, UserInfo user_info, Data data)
     : m_hash { hash }

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace MuonPi {
+namespace muonpi {
 
 class Detector;
 

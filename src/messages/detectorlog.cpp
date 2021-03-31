@@ -1,6 +1,6 @@
 #include "messages/detectorlog.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 void DetectorLog::add_item(DetectorLogItem item)
 {

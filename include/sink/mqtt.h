@@ -22,7 +22,7 @@
 #include <memory>
 #include <string>
 
-namespace MuonPi::Sink {
+namespace muonpi::Sink {
 
 template <typename T>
 /**

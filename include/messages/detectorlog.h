@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @struct DetectorLogItem

@@ -8,7 +8,7 @@
 #include <chrono>
 #include <memory>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The TimeBaseSupervisor class

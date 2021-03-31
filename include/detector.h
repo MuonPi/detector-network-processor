@@ -12,7 +12,7 @@
 #include <future>
 #include <memory>
 
-namespace MuonPi {
+namespace muonpi {
 
 // +++ forward declarations
 class Event;

@@ -6,7 +6,7 @@
 
 #include "detectortracker.h"
 
-namespace MuonPi {
+namespace muonpi {
 
 constexpr double LIGHTSPEED { 0.299 }; //< velocity of light in m/ns
 constexpr double MAX_TIMING_ERROR { 1000. }; //< max allowable timing error in nanoseconds

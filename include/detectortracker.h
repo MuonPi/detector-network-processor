@@ -15,7 +15,7 @@
 #include <memory>
 #include <queue>
 
-namespace MuonPi {
+namespace muonpi {
 
 class DetectorSummary;
 class StateSupervisor;

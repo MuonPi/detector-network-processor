@@ -7,7 +7,7 @@
 #include <syslog.h>
 #include <vector>
 
-namespace MuonPi::Log {
+namespace muonpi::Log {
 
 enum Level : int {
     Debug = LOG_DEBUG,

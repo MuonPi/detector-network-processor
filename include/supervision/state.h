@@ -15,7 +15,7 @@
 #include <map>
 #include <vector>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
  * @brief The StateSupervisor class Supervises the program and collects metadata

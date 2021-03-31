@@ -3,11 +3,12 @@
 #include <utility>
 
 #include "utility/log.h"
+#include "utility/scopeguard.h"
 
 namespace muonpi {
 
 thread_runner::thread_runner(std::string name, bool use_custom_run)
-    : m_use_custom_run { std::move(use_custom_run) }
+    : m_use_custom_run { use_custom_run }
     , m_name { std::move(name) }
 {
 }
@@ -68,19 +69,15 @@ auto thread_runner::state() -> State
 auto thread_runner::run() -> int
 {
     m_state = State::Initialising;
-    struct StateGuard {
-        State& state;
-        bool clean { false };
-
-        ~StateGuard()
-        {
+    State& state { m_state };
+    bool clean { false };
+    const scope_guard state_guard{[&state, &clean]{
             if (clean) {
                 state = State::Stopped;
             } else {
                 state = State::Error;
             }
-        }
-    } guard { m_state };
+        }};
 
     log::debug() << "Starting thread " + m_name;
     int pre_result { pre_run() };
@@ -112,7 +109,7 @@ auto thread_runner::run() -> int
     }
     m_state = State::Finalising;
     log::debug() << "Stopping thread " + m_name;
-    guard.clean = true;
+    clean = true;
     return post_run();
 }
 

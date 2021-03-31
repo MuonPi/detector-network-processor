@@ -1,4 +1,4 @@
-#include "utility/rest_service.h"
+#include "utility/restservice.h"
 #include "utility/base64.h"
 #include "utility/log.h"
 

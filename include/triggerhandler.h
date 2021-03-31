@@ -7,7 +7,7 @@
 #include "defaults.h"
 #include "messages/trigger.h"
 
-#include "utility/rest_service.h"
+#include "utility/restservice.h"
 
 namespace muonpi {
 

@@ -1,6 +1,7 @@
 ﻿#include "link/database.h"
 
 #include "utility/log.h"
+#include "utility/scopeguard.h"
 
 #include <type_traits>
 #include <utility>
@@ -73,17 +74,7 @@ auto database::send_string(const std::string& query) -> bool
     CURL* curl { curl_easy_init() };
 
     if (curl != nullptr) {
-        class CurlGuard {
-        public:
-            explicit CurlGuard(CURL* curl)
-                : m_curl { curl }
-            {
-            }
-            ~CurlGuard() { curl_easy_cleanup(m_curl); }
-
-        private:
-            CURL* m_curl { nullptr };
-        } curl_guard { curl };
+        scope_guard guard {[&curl]{curl_easy_cleanup(curl);}};
 
         std::ostringstream url {};
         url

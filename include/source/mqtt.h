@@ -36,7 +36,7 @@ private:
     /**
     * @brief Adapter base class for the collection of several logically connected, but timely distributed mqttItems
     */
-    struct ItemCollector {
+    struct item_collector {
         enum ResultCode : std::uint8_t {
             Error = 0,
             Aggregating = 1,
@@ -47,10 +47,10 @@ private:
             Reset = Abort | NewEpoch
         };
 
-        ItemCollector();
+        item_collector();
 
         /**
-        * @brief reset Resets the ItemCollector to its default state
+        * @brief reset Resets the item_collector to its default state
         */
         void reset();
 
@@ -81,42 +81,42 @@ private:
 
     link::mqtt::subscriber& m_link;
 
-    std::map<std::size_t, ItemCollector> m_buffer {};
+    std::map<std::size_t, item_collector> m_buffer {};
 };
 
 // +++++++++++++++++++++++++++++++
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
+mqtt<DetectorInfo<Location>>::item_collector::item_collector()
     : default_status { 0x003F }
     , status { default_status }
 {
 }
 
 template <>
-mqtt<Event>::ItemCollector::ItemCollector()
+mqtt<Event>::item_collector::item_collector()
     : default_status { 0x0000 }
     , status { default_status }
 {
 }
 
 template <>
-mqtt<DetectorLog>::ItemCollector::ItemCollector()
+mqtt<DetectorLog>::item_collector::item_collector()
     : default_status { 2 }
     , status { default_status }
 {
 }
 
 template <typename T>
-void mqtt<T>::ItemCollector::reset()
+void mqtt<T>::item_collector::reset()
 {
     user_info = UserInfo {};
     status = default_status;
 }
 
 template <>
-auto mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<DetectorInfo<Location>>::item_collector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Reset;
@@ -159,7 +159,7 @@ auto mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, 
 }
 
 template <>
-auto mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> ResultCode
+auto mqtt<Event>::item_collector::add(MessageParser& topic, MessageParser& content) -> ResultCode
 {
     if ((topic.size() < 4) || (content.size() < 7)) {
         return Error;
@@ -238,7 +238,7 @@ auto mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
 }
 
 template <>
-auto mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<DetectorLog>::item_collector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if (!item.has_items()) {
         item.set_log_id(message[0]);
@@ -373,17 +373,17 @@ void mqtt<T>::process(const link::mqtt::Message& msg)
     std::size_t hash { generate_hash(topic, content) };
 
     if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
-        ItemCollector& item { m_buffer[hash] };
+        item_collector& item { m_buffer[hash] };
         auto result_code { item.add(topic, content) };
-        if ((result_code & ItemCollector::Finished) != 0) {
+        if ((result_code & item_collector::Finished) != 0) {
             this->put(std::move(item.item));
             m_buffer.erase(hash);
-        } else if ((result_code & ItemCollector::Abort) != 0) {
+        } else if ((result_code & item_collector::Abort) != 0) {
             m_buffer.erase(hash);
         } else {
             return;
         }
-        if ((result_code & ItemCollector::NewEpoch) == 0) {
+        if ((result_code & item_collector::NewEpoch) == 0) {
             return;
         }
     }
@@ -396,12 +396,12 @@ void mqtt<T>::process(const link::mqtt::Message& msg)
     }
     userinfo.station_id = site;
 
-    ItemCollector item;
+    item_collector item;
     item.user_info = userinfo;
     auto value { item.add(topic, content) };
-    if ((value & ItemCollector::Finished) != 0) {
+    if ((value & item_collector::Finished) != 0) {
         this->put(std::move(item.item));
-    } else if ((value & ItemCollector::Aggregating) != 0) {
+    } else if ((value & item_collector::Aggregating) != 0) {
         m_buffer.insert({ hash, item });
     }
 }

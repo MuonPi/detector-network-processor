@@ -33,7 +33,7 @@ public:
     void add(const definition& argument);
     auto operator<<(const definition& argument) -> parameters&;
 
-    auto start(int argc, char* argv[]) -> bool;
+    auto start(int argc, const char* argv[]) -> bool;
 
     void print_help() const;
 

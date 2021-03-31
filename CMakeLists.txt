@@ -56,6 +56,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/detectortracker.cpp"
     "${PROJECT_SRC_DIR}/detector.cpp"
     "${PROJECT_SRC_DIR}/triggerhandler.cpp"
+    "${PROJECT_SRC_DIR}/application.cpp"
 
     "${PROJECT_SRC_DIR}/link/mqtt.cpp"
     "${PROJECT_SRC_DIR}/link/database.cpp"
@@ -88,6 +89,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/detector.h"
     "${PROJECT_HEADER_DIR}/triggerhandler.h"
     "${PROJECT_HEADER_DIR}/pipeline.h"
+    "${PROJECT_HEADER_DIR}/application.h"
 
     "${PROJECT_HEADER_DIR}/link/database.h"
     "${PROJECT_HEADER_DIR}/link/mqtt.h"

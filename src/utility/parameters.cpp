@@ -43,7 +43,7 @@ auto parameters::operator<<(const definition& argument) -> parameters&
     return *this;
 }
 
-auto parameters::start(int argc, char* argv[]) -> bool
+auto parameters::start(int argc, const char* argv[]) -> bool
 {
     if (m_required > 0) {
         if (argc < (1 + m_required)) {

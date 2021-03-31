@@ -81,18 +81,21 @@ private:
     std::condition_variable m_has_items {};
 };
 
-template <typename T, std::size_t N>
+template <typename T>
 class collection : public threaded<T> {
 public:
     /**
      * @brief collection A collection of multiple sinks
      * @param sinks The sinks where the items should be distributed
      */
-    collection(std::array<base<T>*, N> sinks);
+    collection(std::vector<base<T>*> sinks);
+    collection();
 
     ~collection() override;
 
     void get(T item) override;
+
+    void emplace(base<T>* sink);
 
 protected:
     /**
@@ -103,7 +106,7 @@ protected:
     [[nodiscard]] auto process(T item) -> int override;
 
 private:
-    std::array<base<T>*, N> m_sinks {};
+    std::vector<base<T>*> m_sinks {};
 };
 
 template <typename T>
@@ -174,29 +177,41 @@ auto threaded<T>::process() -> int
     return 0;
 }
 
-template <typename T, std::size_t N>
-collection<T, N>::collection(std::array<base<T>*, N> sinks)
+template <typename T>
+collection<T>::collection(std::vector<base<T>*> sinks)
     : threaded<T> { "sinkcollection" }
     , m_sinks { std::move(sinks) }
 {
 }
 
-template <typename T, std::size_t N>
-collection<T, N>::~collection() = default;
+template <typename T>
+collection<T>::collection()
+    : threaded<T> { "sinkcollection" }
+{
+}
 
-template <typename T, std::size_t N>
-void collection<T, N>::get(T item)
+template <typename T>
+collection<T>::~collection() = default;
+
+template <typename T>
+void collection<T>::get(T item)
 {
     threaded<T>::internal_get(std::move(item));
 }
 
-template <typename T, std::size_t N>
-auto collection<T, N>::process(T item) -> int
+template <typename T>
+auto collection<T>::process(T item) -> int
 {
     for (auto* sink : m_sinks) {
         sink->get(item);
     }
     return 0;
+}
+
+template <typename T>
+void collection<T>::emplace(base<T>* sink)
+{
+    m_sinks.emplace_back(sink);
 }
 
 }

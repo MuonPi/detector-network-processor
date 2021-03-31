@@ -228,8 +228,8 @@ struct overloaded : Ts... {
 };
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
-template <>
 
+template <>
 void mqtt<detector_log_t>::get(detector_log_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };

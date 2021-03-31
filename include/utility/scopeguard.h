@@ -7,8 +7,8 @@ namespace muonpi {
 
 class scope_guard {
 public:
-    template <class Func>
-    scope_guard(const Func& cleanup);
+    template <class F>
+    scope_guard(const F& cleanup);
 
     scope_guard(scope_guard&& other);
 
@@ -28,8 +28,8 @@ private:
     std::function<void()> m_cleanup;
 };
 
-template <class Func>
-scope_guard::scope_guard(const Func& cleanup)
+template <class F>
+scope_guard::scope_guard(const F& cleanup)
     : m_cleanup { cleanup }
 {
 }

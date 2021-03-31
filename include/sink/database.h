@@ -80,7 +80,7 @@ void database<cluster_log_t>::get(cluster_log_t log)
     fields << field { "outgoing", total_n };
 
     if (!fields.commit(nanosecondsUTC)) {
-        Log::warning() << "error writing cluster_log_t item to DB";
+        log::warning() << "error writing cluster_log_t item to DB";
     }
 }
 
@@ -104,7 +104,7 @@ void database<detetor_summary_t>::get(detetor_summary_t log)
                                 .commit(nanosecondsUTC)) };
 
     if (!result) {
-        Log::warning() << "error writing detetor_summary_t item to DB";
+        log::warning() << "error writing detetor_summary_t item to DB";
     }
 }
 
@@ -134,7 +134,7 @@ void database<event_t>::get(event_t event)
                 << field { "time_ref", evt.data().gnss_time_grid }
                 << field { "valid_fix", evt.data().fix })
                  .commit(evt.start())) {
-            Log::warning() << "error writing L1event_t item to DB";
+            log::warning() << "error writing L1event_t item to DB";
             return;
         }
     }
@@ -156,7 +156,7 @@ void database<detector_log_t>::get(detector_log_t log)
     }
 
     if (!entry.commit(nanosecondsUTC)) {
-        Log::warning() << "error writing DetectorLog item to DB";
+        log::warning() << "error writing DetectorLog item to DB";
     }
 }
 

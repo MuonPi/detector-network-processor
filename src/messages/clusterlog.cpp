@@ -4,12 +4,12 @@
 
 namespace muonpi {
 
-cluster_log_t::cluster_log_t(Data data)
+cluster_log_t::cluster_log_t(data_t data)
     : m_data { std::move(data) }
 {
 }
 
-auto cluster_log_t::data() const -> Data
+auto cluster_log_t::data() const -> data_t
 {
     return m_data;
 }

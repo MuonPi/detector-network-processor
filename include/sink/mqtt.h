@@ -118,7 +118,7 @@ void mqtt<cluster_log_t>::get(cluster_log_t log)
             && m_link.publish((construct(stream.str(), "process_cpu_load") << log.data().process_cpu_load).str())
             && m_link.publish((construct(stream.str(), "memory_usage") << log.data().memory_usage).str())
             && m_link.publish((construct(stream.str(), "incoming") << log.data().incoming).str()))) {
-        Log::warning() << "Could not publish MQTT message.";
+        log::warning() << "Could not publish MQTT message.";
         return;
     }
     for (auto& [level, n] : log.data().outgoing) {
@@ -126,7 +126,7 @@ void mqtt<cluster_log_t>::get(cluster_log_t log)
             continue;
         }
         if (!m_link.publish((construct(stream.str(), "outgoing_" + std::to_string(level)) << n).str())) {
-            Log::warning() << "Could not publish MQTT message.";
+            log::warning() << "Could not publish MQTT message.";
             return;
         }
     }
@@ -148,7 +148,7 @@ void mqtt<detetor_summary_t>::get(detetor_summary_t log)
             && m_link.publish((construct(stream.str(), name + " incoming") << log.data().incoming).str())
             && m_link.publish((construct(stream.str(), name + " ublox_counter_progess") << log.data().ublox_counter_progress).str())
             && m_link.publish((construct(stream.str(), name + " deadtime_factor") << log.data().deadtime).str()))) {
-        Log::warning() << "Could not publish MQTT message.";
+        log::warning() << "Could not publish MQTT message.";
     }
 }
 
@@ -183,11 +183,11 @@ void mqtt<event_t>::get(event_t event)
 
         if (m_detailed) {
             if (!m_link.publish(evt.data().user + "/" + evt.data().station_id, message.get_string())) {
-                Log::warning() << "Could not publish MQTT message.";
+                log::warning() << "Could not publish MQTT message.";
             }
         } else {
             if (!m_link.publish(message.get_string())) {
-                Log::warning() << "Could not publish MQTT message.";
+                log::warning() << "Could not publish MQTT message.";
             }
         }
     }
@@ -218,7 +218,7 @@ void mqtt<trigger::detector>::get(trigger::detector trigger)
     }
 
     if (!m_link.publish(trigger.setting.username + "/" + trigger.setting.station, stream.str())) {
-        Log::warning() << "Could not publish MQTT message.";
+        log::warning() << "Could not publish MQTT message.";
     }
 }
 
@@ -253,7 +253,7 @@ void mqtt<detector_log_t>::get(detector_log_t log)
             constructor << item.unit;
         }
         if (!m_link.publish(log.user_info().username + "/" + log.user_info().station_id, constructor.str())) {
-            Log::warning() << "Could not publish MQTT message.";
+            log::warning() << "Could not publish MQTT message.";
             return;
         }
     }

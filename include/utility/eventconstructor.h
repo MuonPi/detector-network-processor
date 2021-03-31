@@ -9,7 +9,7 @@
 namespace muonpi {
 
 class event_t;
-class Criterion;
+class criterion;
 /**
  * @brief The event_constructor class
  */

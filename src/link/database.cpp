@@ -107,11 +107,11 @@ auto database::send_string(const std::string& query) -> bool
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
         if (res != CURLE_OK) {
-            Log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
+            log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
             return false;
         }
         if ((http_code / 100) != 2) {
-            Log::warning() << "Couldn't write to database: " + std::to_string(http_code);
+            log::warning() << "Couldn't write to database: " + std::to_string(http_code);
             return false;
         }
     }

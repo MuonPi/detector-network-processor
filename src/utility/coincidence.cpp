@@ -7,9 +7,9 @@
 
 namespace muonpi {
 
-Coincidence::~Coincidence() = default;
+coincidence::~coincidence() = default;
 
-auto Coincidence::criterion(const event_t& first, const event_t& second) const -> double
+auto coincidence::apply(const event_t& first, const event_t& second) const -> double
 {
     const std::int_fast64_t t11 = first.start();
     const std::int_fast64_t t21 = second.start();
@@ -20,7 +20,7 @@ auto Coincidence::criterion(const event_t& first, const event_t& second) const -
     return compare(t11, t21) + compare(t11, t22) + compare(t12, t21) + compare(t12, t22);
 }
 
-auto Coincidence::compare(std::int_fast64_t t1, std::int_fast64_t t2) const -> double
+auto coincidence::compare(std::int_fast64_t t1, std::int_fast64_t t2) const -> double
 {
     return (std::abs(t1 - t2) <= m_time) ? 1.0 : -1.0;
 }

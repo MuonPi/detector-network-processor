@@ -171,17 +171,17 @@ void detector_tracker::load()
     std::ifstream in { Config::files.state };
 
     if (!in.is_open()) {
-        Log::warning() << "Could not load detectors.";
+        log::warning() << "Could not load detectors.";
         return;
     }
     try {
-        Log::info() << "Loading detector states.";
+        log::info() << "Loading detector states.";
         std::string line {};
         std::getline(in, line);
         std::chrono::system_clock::time_point state { std::chrono::seconds { std::stoll(line, nullptr) } };
         bool stale { false };
         if ((state + std::chrono::minutes { 3 }) > std::chrono::system_clock::now()) {
-            Log::warning() << "detector state stale, marking all detectors unreliable.";
+            log::warning() << "detector state stale, marking all detectors unreliable.";
             stale = true;
         }
         for (; std::getline(in, line);) {
@@ -193,7 +193,7 @@ void detector_tracker::load()
         }
         in.close();
     } catch (...) {
-        Log::warning() << "Could not load detectors.";
+        log::warning() << "Could not load detectors.";
         return;
     }
 }
@@ -203,7 +203,7 @@ void detector_tracker::save()
     std::ofstream out { Config::files.state };
 
     if (!out.is_open()) {
-        Log::warning() << "Could not save detectors.";
+        log::warning() << "Could not save detectors.";
         return;
     }
     out << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() << '\n';

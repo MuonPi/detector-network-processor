@@ -175,7 +175,7 @@ auto Configuration::read(std::istream& in) -> bool
         value = value.substr(value.find_first_not_of(" \t"));
 
         if (!m_options[name].read(value)) {
-            Log::warning() << "Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
+            log::warning() << "Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
             return false;
         }
 
@@ -183,7 +183,7 @@ auto Configuration::read(std::istream& in) -> bool
         if (!m_encrypted) {
             output += "=" + value;
         }
-        Log::debug() << output;
+        log::debug() << output;
     }
     return true;
 }
@@ -191,7 +191,7 @@ auto Configuration::read(std::istream& in) -> bool
 auto Configuration::read() -> bool
 {
     if (!std::filesystem::exists(m_filename)) {
-        Log::error() << "Configuration file does not exist: " + m_filename;
+        log::error() << "Configuration file does not exist: " + m_filename;
         return false;
     }
     bool result { false };

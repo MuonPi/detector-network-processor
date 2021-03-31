@@ -82,7 +82,7 @@ auto thread_runner::run() -> int
         }
     } guard { m_state };
 
-    Log::debug() << "Starting thread " + m_name;
+    log::debug() << "Starting thread " + m_name;
     int pre_result { pre_run() };
     if (pre_result != 0) {
         return pre_result;
@@ -98,20 +98,20 @@ auto thread_runner::run() -> int
             while (m_run) {
                 int result { step() };
                 if (result != 0) {
-                    Log::warning() << "Thread " + m_name + " Stopped.";
+                    log::warning() << "Thread " + m_name + " Stopped.";
                     return result;
                 }
             }
         }
     } catch (std::exception& e) {
-        Log::error() << "Thread " + m_name + "Got an uncaught exception: " + std::string { e.what() };
+        log::error() << "Thread " + m_name + "Got an uncaught exception: " + std::string { e.what() };
         return -1;
     } catch (...) {
-        Log::error() << "Thread " + m_name + "Got an uncaught exception.";
+        log::error() << "Thread " + m_name + "Got an uncaught exception.";
         return -1;
     }
     m_state = State::Finalising;
-    Log::debug() << "Stopping thread " + m_name;
+    log::debug() << "Stopping thread " + m_name;
     guard.clean = true;
     return post_run();
 }
@@ -149,7 +149,7 @@ auto thread_runner::state_string() -> std::string
 void thread_runner::start()
 {
     if (m_state > State::Initial) {
-        Log::info() << "Thread " + m_name + " already running, refusing to start.";
+        log::info() << "Thread " + m_name + " already running, refusing to start.";
         return;
     }
     m_run_future = std::async(std::launch::async, &thread_runner::run, this);

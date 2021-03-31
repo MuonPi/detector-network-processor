@@ -3,7 +3,7 @@
 
 namespace muonpi {
 
-event_t::event_t(std::size_t hash, Data data) noexcept
+event_t::event_t(std::size_t hash, data_t data) noexcept
     : m_hash { hash }
     , m_data { std::move(data) }
 {
@@ -77,12 +77,12 @@ auto event_t::valid() const -> bool
 {
     return m_valid;
 }
-auto event_t::data() const -> Data
+auto event_t::data() const -> data_t
 {
     return m_data;
 }
 
-void event_t::set_data(const Data& data)
+void event_t::set_data(const data_t& data)
 {
     m_data = data;
 }

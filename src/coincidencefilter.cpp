@@ -36,7 +36,7 @@ void coincidence_filter::get(event_t event)
 auto coincidence_filter::process() -> int
 {
     if (m_supervisor.step() != 0) {
-        Log::error() << "The Supervisor stopped.";
+        log::error() << "The Supervisor stopped.";
         return -1;
     }
 
@@ -65,7 +65,7 @@ auto coincidence_filter::process(event_t event) -> int
         if (constructor.event.hash() == event.hash()) {
             continue;
         }
-        if (m_criterion->maximum_false() < m_criterion->criterion(event, constructor.event)) {
+        if (m_criterion->maximum_false() < m_criterion->apply(event, constructor.event)) {
             matches.push(i);
         }
     }

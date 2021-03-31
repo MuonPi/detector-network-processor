@@ -43,7 +43,7 @@ struct sinkGuard {
 auto main(int argc, char* argv[]) -> int
 {
 
-    muonpi::Log::Log::singleton()->add_sink(std::make_shared<muonpi::Log::syslog_sink>());
+    muonpi::log::manager::singleton()->add_sink(std::make_shared<muonpi::log::syslog_sink>());
 
     muonpi::Parameters parameters { "muondetector-custer", "Calculate coincidences for the muonpi network" };
 
@@ -57,7 +57,7 @@ auto main(int argc, char* argv[]) -> int
         return 0;
     }
     if (parameters["d"]) {
-        muonpi::Log::Log::singleton()->add_sink(std::make_shared<muonpi::Log::stream_sink>(std::cerr));
+        muonpi::log::manager::singleton()->add_sink(std::make_shared<muonpi::log::stream_sink>(std::cerr));
     }
     if (parameters["l"]) {
         muonpi::Config::files.credentials = parameters["l"].value;
@@ -250,7 +250,7 @@ auto main(int argc, char* argv[]) -> int
             (signal == SIGINT)
             || (signal == SIGTERM)
             || (signal == SIGHUP)) {
-            muonpi::Log::notice() << "Received signal: " + std::to_string(signal) + ". Exiting.";
+            muonpi::log::notice() << "Received signal: " + std::to_string(signal) + ". Exiting.";
             supervisor.stop();
             coincidencefilter.stop();
         }

@@ -25,7 +25,7 @@ struct timebase_t {
  */
 class event_t {
 public:
-    struct Data {
+    struct data_t {
         std::string user {};
         std::string station_id {};
         std::int_fast64_t start {};
@@ -37,7 +37,7 @@ public:
         std::uint8_t gnss_time_grid {};
     };
 
-    event_t(std::size_t hash, Data data) noexcept;
+    event_t(std::size_t hash, data_t data) noexcept;
 
     event_t(event_t event, bool foreign) noexcept;
 
@@ -103,13 +103,13 @@ public:
      * @brief data get the data
      * @return The data struct of the event
      */
-    [[nodiscard]] auto data() const -> Data;
+    [[nodiscard]] auto data() const -> data_t;
 
     /**
      * @brief set_data Sets the data for the event
      * @param data The new data to use
      */
-    void set_data(const Data& data);
+    void set_data(const data_t& data);
 
 private:
     std::size_t m_n { 1 };
@@ -117,7 +117,7 @@ private:
     std::uint64_t m_hash {};
     bool m_valid { true };
 
-    Data m_data {};
+    data_t m_data {};
 
     location_t m_location {};
     userinfo_t m_user_info {};

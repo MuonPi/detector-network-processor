@@ -82,7 +82,7 @@ private:
 
     std::vector<thread_runner*> m_threads;
 
-    cluster_log_t::Data m_current_data;
+    cluster_log_t::data_t m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 
     ResourceTracker m_resource_tracker {};

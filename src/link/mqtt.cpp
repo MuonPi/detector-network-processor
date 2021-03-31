@@ -83,31 +83,31 @@ auto mqtt::step() -> int
     if (status != MOSQ_ERR_SUCCESS) {
         switch (status) {
         case MOSQ_ERR_INVAL:
-            Log::error() << "mqtt could not execute step: invalid";
+            log::error() << "mqtt could not execute step: invalid";
             return -1;
         case MOSQ_ERR_NOMEM:
-            Log::error() << "mqtt could not execute step: memory exceeded";
+            log::error() << "mqtt could not execute step: memory exceeded";
             return -1;
         case MOSQ_ERR_NO_CONN:
-            Log::error() << "mqtt could not execute step: not connected";
+            log::error() << "mqtt could not execute step: not connected";
             if (!connect()) {
                 return -1;
             }
             break;
         case MOSQ_ERR_CONN_LOST:
-            Log::error() << "mqtt could not execute step: lost connection";
+            log::error() << "mqtt could not execute step: lost connection";
             if (!reconnect()) {
                 return -1;
             }
             break;
         case MOSQ_ERR_PROTOCOL:
-            Log::error() << "mqtt could not execute step: protocol error";
+            log::error() << "mqtt could not execute step: protocol error";
             return -1;
         case MOSQ_ERR_ERRNO:
-            Log::error() << "mqtt could not execute step: system call error";
+            log::error() << "mqtt could not execute step: system call error";
             return -1;
         default:
-            Log::error() << "mqtt could not execute step:unspecified error";
+            log::error() << "mqtt could not execute step:unspecified error";
             return -1;
         }
     }
@@ -119,18 +119,18 @@ auto mqtt::step() -> int
 void mqtt::callback_connected(int result)
 {
     if (result == 1) {
-        Log::warning() << "mqtt connection failed: Wrong protocol version";
+        log::warning() << "mqtt connection failed: Wrong protocol version";
         set_status(Status::Error);
     } else if (result == 2) {
-        Log::warning() << "mqtt connection failed: Credentials rejected";
+        log::warning() << "mqtt connection failed: Credentials rejected";
         set_status(Status::Error);
     } else if (result == 3) {
-        Log::warning() << "mqtt connection failed: Broker unavailable";
+        log::warning() << "mqtt connection failed: Broker unavailable";
         set_status(Status::Error);
     } else if (result > 3) {
-        Log::warning() << "mqtt connection failed: Other reason";
+        log::warning() << "mqtt connection failed: Other reason";
     } else if (result == 0) {
-        Log::info() << "Connected to mqtt.";
+        log::info() << "Connected to mqtt.";
         set_status(Status::Connected);
         m_tries = 0;
         for (auto& [topic, subscriber] : m_subscribers) {
@@ -143,7 +143,7 @@ void mqtt::callback_connected(int result)
 void mqtt::callback_disconnected(int result)
 {
     if (result != 0) {
-        Log::warning() << "mqtt disconnected unexpectedly.";
+        log::warning() << "mqtt disconnected unexpectedly.";
         set_status(Status::Error);
     } else {
         set_status(Status::Disconnected);
@@ -187,7 +187,7 @@ auto mqtt::publish(const std::string& topic, const std::string& content) -> bool
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
-    Log::warning() << "Could not send mqtt message: " + std::to_string(result);
+    log::warning() << "Could not send mqtt message: " + std::to_string(result);
     return false;
 }
 
@@ -196,7 +196,7 @@ void mqtt::unsubscribe(const std::string& topic)
     if (!check_connection()) {
         return;
     }
-    Log::info() << "Unsubscribing from " + topic;
+    log::info() << "Unsubscribing from " + topic;
     mosquitto_unsubscribe(m_mqtt, nullptr, topic.c_str());
 }
 
@@ -209,7 +209,7 @@ auto mqtt::publish(const std::string& topic) -> publisher&
         return { *m_publishers[topic] };
     }
     m_publishers[topic] = std::make_unique<publisher>(this, topic);
-    Log::info() << "Starting to publish on topic " + topic;
+    log::info() << "Starting to publish on topic " + topic;
     return { *m_publishers[topic] };
 }
 
@@ -218,11 +218,11 @@ auto mqtt::check_connection() -> bool
     if (m_status != Status::Connected) {
         if (m_status == Status::Connecting) {
             if (!wait_for(Status::Connected)) {
-                Log::warning() << "mqtt not connected.";
+                log::warning() << "mqtt not connected.";
                 return false;
             }
         } else {
-            Log::warning() << "mqtt not connected.";
+            log::warning() << "mqtt not connected.";
             return false;
         }
     }
@@ -235,24 +235,24 @@ auto mqtt::p_subscribe(const std::string& topic) -> bool
     if (result != MOSQ_ERR_SUCCESS) {
         switch (result) {
         case MOSQ_ERR_INVAL:
-            Log::error() << "Could not subscribe to topic '" + topic + "': invalid parameters";
+            log::error() << "Could not subscribe to topic '" + topic + "': invalid parameters";
             break;
         case MOSQ_ERR_NOMEM:
-            Log::error() << "Could not subscribe to topic '" + topic + "': memory exceeded";
+            log::error() << "Could not subscribe to topic '" + topic + "': memory exceeded";
             break;
         case MOSQ_ERR_NO_CONN:
-            Log::error() << "Could not subscribe to topic '" + topic + "': Not connected";
+            log::error() << "Could not subscribe to topic '" + topic + "': Not connected";
             break;
         case MOSQ_ERR_MALFORMED_UTF8:
-            Log::error() << "Could not subscribe to topic '" + topic + "': malformed utf8";
+            log::error() << "Could not subscribe to topic '" + topic + "': malformed utf8";
             break;
         default:
-            Log::error() << "Could not subscribe to topic '" + topic + "': other reason";
+            log::error() << "Could not subscribe to topic '" + topic + "': other reason";
             break;
         }
         return false;
     }
-    Log::info() << "Subscribed to topic '" + topic + "'.";
+    log::info() << "Subscribed to topic '" + topic + "'.";
     return true;
 }
 
@@ -264,7 +264,7 @@ auto mqtt::subscribe(const std::string& topic) -> subscriber&
 
     std::string check_topic { topic };
     if (m_subscribers.find(topic) != m_subscribers.end()) {
-        Log::info() << "Topic already subscribed.";
+        log::info() << "Topic already subscribed.";
         return { *m_subscribers[topic] };
     }
 
@@ -279,24 +279,24 @@ auto mqtt::connect() -> bool
 {
     std::this_thread::sleep_for(std::chrono::seconds { 1 * m_tries });
 
-    Log::info() << "Trying to connect to MQTT.";
+    log::info() << "Trying to connect to MQTT.";
     m_tries++;
     set_status(Status::Connecting);
 
     if (m_tries > s_max_tries) {
         set_status(Status::Error);
-        Log::error() << "Giving up trying to connect to MQTT.";
+        log::error() << "Giving up trying to connect to MQTT.";
         return false;
     }
     if (mosquitto_username_pw_set(m_mqtt, m_config.login.username.c_str(), m_config.login.password.c_str()) != MOSQ_ERR_SUCCESS) {
-        Log::warning() << "Could not connect to MQTT";
+        log::warning() << "Could not connect to MQTT";
         return false;
     }
     auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, 60) };
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
-    Log::warning() << "Could not connect to MQTT: " + std::string { strerror(result) };
+    log::warning() << "Could not connect to MQTT: " + std::string { strerror(result) };
     return connect();
 }
 
@@ -308,10 +308,10 @@ auto mqtt::disconnect() -> bool
     auto result { mosquitto_disconnect(m_mqtt) };
     if (result == MOSQ_ERR_SUCCESS) {
         set_status(Status::Disconnected);
-        Log::info() << "Disconnected from MQTT.";
+        log::info() << "Disconnected from MQTT.";
         return true;
     }
-    Log::error() << "Could not disconnect from MQTT: " + std::to_string(result);
+    log::error() << "Could not disconnect from MQTT: " + std::to_string(result);
     return false;
 }
 
@@ -323,16 +323,16 @@ auto mqtt::reconnect() -> bool
     set_status(Status::Disconnected);
 
     if (m_tries > (s_max_tries - 8)) {
-        Log::error() << "Giving up trying to reconnect to MQTT.";
+        log::error() << "Giving up trying to reconnect to MQTT.";
         return reinitialise();
     }
 
-    Log::info() << "Trying to reconnect to MQTT.";
+    log::info() << "Trying to reconnect to MQTT.";
     auto result { mosquitto_reconnect(m_mqtt) };
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
-    Log::error() << "Could not reconnect to MQTT: " + std::to_string(result);
+    log::error() << "Could not reconnect to MQTT: " + std::to_string(result);
     return reconnect();
 }
 
@@ -340,11 +340,11 @@ auto mqtt::reinitialise() -> bool
 {
     if (m_tries > s_max_tries) {
         set_status(Status::Error);
-        Log::error() << "Giving up trying to reinitialise connection.";
+        log::error() << "Giving up trying to reinitialise connection.";
         return false;
     }
 
-    Log::info() << "Trying to reinitialise MQTT connection.";
+    log::info() << "Trying to reinitialise MQTT connection.";
 
     if (m_mqtt != nullptr) {
         mosquitto_destroy(m_mqtt);

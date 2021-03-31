@@ -115,7 +115,7 @@ auto GUID::get_mac() -> std::uint64_t
 
     ifaddrs* ifaddr;
     if (getifaddrs(&ifaddr) == -1) {
-        Log::error() << "Could not get MAC address.";
+        log::error() << "Could not get MAC address.";
         return {};
     }
 
@@ -132,7 +132,7 @@ auto GUID::get_mac() -> std::uint64_t
     }
     freeifaddrs(ifaddr);
     if (ifname.empty()) {
-        Log::error() << "Could not get MAC address.";
+        log::error() << "Could not get MAC address.";
         return {};
     }
 

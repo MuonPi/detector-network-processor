@@ -196,7 +196,7 @@ void service::fail(beast::error_code ec, const std::string& what)
         return;
     }
 
-    Log::warning() << what + ": " + ec.message();
+    log::warning() << what + ": " + ec.message();
 }
 
 }

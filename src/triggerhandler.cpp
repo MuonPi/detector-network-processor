@@ -118,7 +118,7 @@ namespace Ldap {
                 dflt = auth->password;
                 break;
             default:
-                muonpi::Log::warning() << "unknown ldap parameter" + std::to_string(interact->id);
+                muonpi::log::warning() << "unknown ldap parameter" + std::to_string(interact->id);
             }
             interact->result = ((dflt != nullptr) && (*dflt != 0)) ? dflt : "";
             interact->len = strlen(static_cast<char*>(const_cast<void*>(interact->result)));
@@ -155,14 +155,14 @@ auto trigger_handler::authenticate(std::string_view user, std::string_view pw) -
     LDAP* ldap { nullptr };
     auto code = ldap_initialize(&ldap, m_ldap.server.c_str());
     if (code != LDAP_SUCCESS) {
-        Log::warning() << "Could not connect to ldap: " + std::string { ldap_err2string(code) };
+        log::warning() << "Could not connect to ldap: " + std::string { ldap_err2string(code) };
         return false;
     }
 
     const int protocol { LDAP_VERSION3 };
 
     if (ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &protocol) != LDAP_OPT_SUCCESS) {
-        Log::warning() << "Could not set ldap options.";
+        log::warning() << "Could not set ldap options.";
         return false;
     }
     {
@@ -176,7 +176,7 @@ auto trigger_handler::authenticate(std::string_view user, std::string_view pw) -
             nullptr, nullptr);
 
         if (code != LDAP_SUCCESS) {
-            Log::warning() << "Could not bind to ldap: " + std::string { ldap_err2string(code) } + " " + std::to_string(code);
+            log::warning() << "Could not bind to ldap: " + std::string { ldap_err2string(code) } + " " + std::to_string(code);
             ldap_unbind_ext_s(ldap, nullptr, nullptr);
             return false;
         }
@@ -186,12 +186,12 @@ auto trigger_handler::authenticate(std::string_view user, std::string_view pw) -
     code = ldap_search_ext_s(ldap, "ou=users,dc=muonpi,dc=org", LDAP_SCOPE_ONELEVEL, ("(&(objectClass=inetOrgPerson)(memberof=cn=trigger,ou=groups,dc=muonpi,dc=org)(uid=" + std::string { user } + "))").c_str(), nullptr, 0, nullptr, nullptr, nullptr, LDAP_NO_LIMIT, &result);
 
     if (code != LDAP_SUCCESS) {
-        Log::warning() << "Could not search in ldap: " + std::string { ldap_err2string(code) };
+        log::warning() << "Could not search in ldap: " + std::string { ldap_err2string(code) };
         return false;
     }
 
     if (ldap_count_entries(ldap, result) < 1) {
-        Log::warning() << "No search results.";
+        log::warning() << "No search results.";
         return false;
     }
 
@@ -206,7 +206,7 @@ auto trigger_handler::authenticate(std::string_view user, std::string_view pw) -
         nullptr, nullptr);
 
     if (code != LDAP_SUCCESS) {
-        Log::warning() << "Could not bind to ldap: " + std::string { ldap_err2string(code) } + " " + std::to_string(code);
+        log::warning() << "Could not bind to ldap: " + std::string { ldap_err2string(code) } + " " + std::to_string(code);
         ldap_unbind_ext_s(ldap, nullptr, nullptr);
         return false;
     }
@@ -270,7 +270,7 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
         m_detector_trigger[hash] = trigger;
         put(trigger::detector::action_t { trigger::detector::action_t::Activate, trigger });
 
-        Log::debug() << "Setting up new trigger: '" + trigger.to_string() + "'";
+        log::debug() << "Setting up new trigger: '" + trigger.to_string() + "'";
         save();
 
         return request.response<rest::http::status::created>("trigger created");
@@ -291,7 +291,7 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
 
         put(trigger::detector::action_t { trigger::detector::action_t::Deactivate, trigger });
 
-        Log::debug() << "Removing trigger: '" + body + "'";
+        log::debug() << "Removing trigger: '" + body + "'";
         save();
         return request.response<rest::http::status::ok>("");
     }
@@ -302,10 +302,10 @@ void trigger_handler::save()
 {
     std::ofstream out { m_trigger.save_file };
     if (!out.is_open()) {
-        Log::warning() << "Could not save trigger.";
+        log::warning() << "Could not save trigger.";
         return;
     }
-    Log::info() << "Saving trigger.";
+    log::info() << "Saving trigger.";
     for (auto& [hash, trigger] : m_detector_trigger) {
         out << trigger.to_string(' ') << '\n';
     }
@@ -316,10 +316,10 @@ void trigger_handler::load()
 {
     std::ifstream in { m_trigger.save_file };
     if (!in.is_open()) {
-        Log::warning() << "Could not load trigger.";
+        log::warning() << "Could not load trigger.";
         return;
     }
-    Log::info() << "Loading trigger.";
+    log::info() << "Loading trigger.";
     for (std::string line; std::getline(in, line);) {
 
         auto trigger { trigger::detector::setting_t::from_string(line) };

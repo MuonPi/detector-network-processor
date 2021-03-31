@@ -108,7 +108,6 @@ private:
     std::uint64_t m_second { 0 };
 };
 
-
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
 [[nodiscard]] static inline auto int_to_hex(T val, std::size_t width = sizeof(T) * 2) -> std::string
 {

@@ -30,7 +30,7 @@ void detector_pairs::increase_count(std::size_t hash_1, std::size_t hash_2)
         if (m_detectors[i] == hash_1) {
             first = i;
             found &= ~0x1U;
-        } else if (m_detectors[i] == hash_2){
+        } else if (m_detectors[i] == hash_2) {
             second = i;
             found &= ~0x2U;
         }
@@ -50,11 +50,11 @@ auto detector_pairs::get_counts(std::size_t hash) -> std::unordered_map<std::siz
     if (it == m_detectors.end()) {
         return {};
     }
-    std::size_t index {static_cast<std::size_t>(std::distance(m_detectors.begin(), it))};
+    std::size_t index { static_cast<std::size_t>(std::distance(m_detectors.begin(), it)) };
 
     std::unordered_map<std::size_t, std::size_t> counts {};
     for (std::size_t i { 0 }; i < m_detectors.size(); i++) {
-        auto detector {m_detectors.at(i)};
+        auto detector { m_detectors.at(i) };
         if (detector == hash) {
             continue;
         }

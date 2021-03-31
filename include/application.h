@@ -12,14 +12,12 @@
 
 #include "supervision/state.h"
 
-
 #include <csignal>
 #include <functional>
 
 namespace muonpi {
 
-class application
-{
+class application {
 public:
     application();
     ~application();
@@ -35,7 +33,6 @@ private:
     [[nodiscard]] static auto parameter() -> parameters;
 
     parameters m_parameters { parameter() };
-
 
     link::database* m_db_link { nullptr };
 

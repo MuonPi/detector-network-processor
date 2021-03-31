@@ -1,15 +1,14 @@
 #ifndef UPPERMATRIX_H
 #define UPPERMATRIX_H
 
-#include <vector>
-#include <unordered_map>
 #include <map>
+#include <unordered_map>
+#include <vector>
 
 namespace MuonPi {
 
 template <typename T>
-class upper_matrix
-{
+class upper_matrix {
 public:
     /**
      * @brief upper_matrix Constructs an upper triangle matrix with a dimension of n x n
@@ -54,7 +53,7 @@ private:
      */
     [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
     {
-        return 1/2 * (x*x - x) + y;
+        return 1 / 2 * (x * x - x) + y;
     }
 
     /**
@@ -72,8 +71,7 @@ private:
     std::vector<T> m_elements;
 };
 
-class detector_pairs
-{
+class detector_pairs {
 public:
     void add_detector(std::size_t hash);
     void remove_detector(std::size_t hash);
@@ -83,13 +81,13 @@ public:
 
 private:
     std::vector<std::size_t> m_detectors {};
-    upper_matrix<std::size_t> m_data {0};
+    upper_matrix<std::size_t> m_data { 0 };
 };
 
 template <typename T>
 upper_matrix<T>::upper_matrix(std::size_t n)
     : m_columns { n }
-    , m_elements { std::vector<T>{position(n, 0)} }
+    , m_elements { std::vector<T> { position(n, 0) } }
 {
 }
 
@@ -139,18 +137,17 @@ void upper_matrix<T>::swap_last(std::size_t first)
     }
 
     for (std::size_t y { 0 }; y < first; y++) {
-        T temp {at(first, y)};
+        T temp { at(first, y) };
         at(first, y) = at(m_columns - 1, y);
         at(m_columns - 1, y) = temp;
     }
 
-    for (std::size_t x { first + 1}; x < m_columns; x++) {
-        T temp {at(x, first)};
+    for (std::size_t x { first + 1 }; x < m_columns; x++) {
+        T temp { at(x, first) };
         at(x, first) = at(m_columns - 1, x - 1);
         at(m_columns - 1, x - 1) = temp;
     }
 }
-
 
 }
 #endif // UPPERMATRIX_H

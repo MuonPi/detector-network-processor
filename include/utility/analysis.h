@@ -178,7 +178,6 @@ private:
     std::array<bin, N> m_bins {};
 };
 
-
 /**
  * @brief The rate_measurement class
  * @param N the number of items in the history

@@ -5,23 +5,21 @@
 #include "utility/log.h"
 #include "utility/restservice.h"
 
-
+#include "coincidencefilter.h"
 #include "detectortracker.h"
 #include "triggerhandler.h"
-#include "coincidencefilter.h"
 
 #include "link/mqtt.h"
 
 #include "source/mqtt.h"
 
-#include "sink/mqtt.h"
-#include "sink/database.h"
 #include "sink/ascii.h"
+#include "sink/database.h"
+#include "sink/mqtt.h"
 
 #include <memory>
 
 namespace muonpi {
-
 
 std::function<void(int)> application::s_shutdown_handler;
 
@@ -29,7 +27,6 @@ void wrapper_signal_handler(int signal)
 {
     application::s_shutdown_handler(signal);
 }
-
 
 application::application() = default;
 
@@ -109,32 +106,30 @@ auto application::setup(std::vector<std::string> arguments) -> bool
         return false;
     }
 
-
     return true;
 }
 
 auto application::run() -> int
 {
-    link::mqtt source_mqtt_link{ Config::source_mqtt };
+    link::mqtt source_mqtt_link { Config::source_mqtt };
 
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
 
-    link::mqtt sink_mqtt_link{ Config::sink_mqtt };
+    link::mqtt sink_mqtt_link { Config::sink_mqtt };
     if (!sink_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
 
-    sink::mqtt<trigger::detector> trigger_sink{ sink_mqtt_link.publish("muonpi/trigger") };
-
+    sink::mqtt<trigger::detector> trigger_sink { sink_mqtt_link.publish("muonpi/trigger") };
 
     sink::collection<event_t> collection_event_sink {};
     sink::collection<cluster_log_t> collection_clusterlog_sink {};
     sink::collection<detetor_summary_t> collection_detectorsummary_sink {};
 
     if (!Config::meta.local_cluster) {
-        m_db_link = new link::database{ Config::influx };
+        m_db_link = new link::database { Config::influx };
 
         m_event_sink = new sink::database<event_t> { *m_db_link };
         m_clusterlog_sink = new sink::database<cluster_log_t> { *m_db_link };
@@ -169,8 +164,8 @@ auto application::run() -> int
         collection_detectorsummary_sink.emplace(m_ascii_detectorsummary_sink);
     }
 
-    m_supervisor = new state_supervisor{ collection_clusterlog_sink };
-    coincidence_filter coincidencefilter{ collection_event_sink, *m_supervisor };
+    m_supervisor = new state_supervisor { collection_clusterlog_sink };
+    coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
     timebase_supervisor timebasesupervisor { coincidencefilter, coincidencefilter };
     detector_tracker detectortracker { collection_detectorsummary_sink, trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
 
@@ -194,7 +189,7 @@ auto application::run() -> int
     m_supervisor->add_thread(&collection_detectorsummary_sink);
     m_supervisor->add_thread(&collection_clusterlog_sink);
 
-    s_shutdown_handler = [this](int signal){signal_handler(signal);};
+    s_shutdown_handler = [this](int signal) { signal_handler(signal); };
 
     std::signal(SIGINT, wrapper_signal_handler);
     std::signal(SIGTERM, wrapper_signal_handler);

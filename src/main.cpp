@@ -222,10 +222,10 @@ auto main(int argc, char* argv[]) -> int
         guard[2].detectorsummary.sink = new muonpi::sink::collection<muonpi::DetectorSummary, 1> { { guard[0].detectorsummary.sink } };
     }
 
-    muonpi::StateSupervisor supervisor { *guard[2].clusterlog.sink };
+    muonpi::state_supervisor supervisor { *guard[2].clusterlog.sink };
     muonpi::coincidence_filter coincidencefilter { *guard[2].event.sink, supervisor };
-    muonpi::TimebaseSupervisor timebase_supervisor { coincidencefilter, coincidencefilter };
-    muonpi::detector_tracker detectortracker { *guard[2].detectorsummary.sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
+    muonpi::timebase_supervisor timebasesupervisor { coincidencefilter, coincidencefilter };
+    muonpi::detector_tracker detectortracker { *guard[2].detectorsummary.sink, trigger_sink, timebasesupervisor, timebasesupervisor, supervisor };
     muonpi::trigger_handler triggerhandler { detectortracker, muonpi::Config::ldap, muonpi::Config::trigger };
     muonpi::rest::service rest_service { muonpi::Config::rest };
 

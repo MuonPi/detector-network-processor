@@ -11,11 +11,11 @@
 namespace muonpi {
 
 /**
- * @brief The TimebaseSupervisor class
+ * @brief The timebase_supervisor class
  */
-class TimebaseSupervisor : public pipeline<Event>, public pipeline<Timebase> {
+class timebase_supervisor : public pipeline<Event>, public pipeline<Timebase> {
 public:
-    TimebaseSupervisor(sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink);
+    timebase_supervisor(sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink);
 
     void get(Event event) override;
     void get(Timebase timebase) override;

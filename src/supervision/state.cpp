@@ -7,18 +7,18 @@
 
 namespace muonpi {
 
-StateSupervisor::StateSupervisor(sink::base<ClusterLog>& log_sink)
+state_supervisor::state_supervisor(sink::base<ClusterLog>& log_sink)
     : source::base<ClusterLog> { log_sink }
 {
 }
 
-void StateSupervisor::time_status(std::chrono::milliseconds timebase, std::chrono::milliseconds timeout)
+void state_supervisor::time_status(std::chrono::milliseconds timebase, std::chrono::milliseconds timeout)
 {
     m_timebase = timebase;
     m_timeout = timeout;
 }
 
-void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
+void state_supervisor::detector_status(std::size_t hash, Detector::Status status)
 {
     m_detectors[hash] = status;
     if (status == Detector::Status::Deleted) {
@@ -38,7 +38,7 @@ void StateSupervisor::detector_status(std::size_t hash, Detector::Status status)
     m_current_data.reliable_detectors = reliable;
 }
 
-auto StateSupervisor::step() -> int
+auto state_supervisor::step() -> int
 {
     using namespace std::chrono;
 
@@ -78,7 +78,7 @@ auto StateSupervisor::step() -> int
     return 0;
 }
 
-void StateSupervisor::increase_event_count(bool incoming, std::size_t n)
+void state_supervisor::increase_event_count(bool incoming, std::size_t n)
 {
     if (incoming) {
         m_current_data.incoming++;
@@ -95,17 +95,17 @@ void StateSupervisor::increase_event_count(bool incoming, std::size_t n)
     }
 }
 
-void StateSupervisor::set_queue_size(std::size_t size)
+void state_supervisor::set_queue_size(std::size_t size)
 {
     m_current_data.buffer_length = size;
 }
 
-void StateSupervisor::add_thread(ThreadRunner* thread)
+void state_supervisor::add_thread(ThreadRunner* thread)
 {
     m_threads.push_back(thread);
 }
 
-void StateSupervisor::stop()
+void state_supervisor::stop()
 {
     for (auto& thread : m_threads) {
         thread->stop();

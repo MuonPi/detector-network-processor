@@ -18,7 +18,7 @@
 namespace muonpi {
 
 class DetectorSummary;
-class StateSupervisor;
+class state_supervisor;
 
 class detector_tracker
     : public sink::threaded<DetectorInfo<Location>>,
@@ -35,7 +35,7 @@ public:
      * @param event_sink A sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    detector_tracker(sink::base<DetectorSummary>& summary_sink, sink::base<Trigger::Detector>& trigger_sink, sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink, StateSupervisor& supervisor);
+    detector_tracker(sink::base<DetectorSummary>& summary_sink, sink::base<Trigger::Detector>& trigger_sink, sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink, state_supervisor& supervisor);
 
     /**
      * @brief detector_status Update the status of one detector
@@ -62,7 +62,7 @@ protected:
     void load();
 
 private:
-    StateSupervisor& m_supervisor;
+    state_supervisor& m_supervisor;
 
     std::map<std::size_t, std::unique_ptr<Detector>> m_detectors {};
 

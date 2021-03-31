@@ -8,13 +8,13 @@
 
 namespace muonpi {
 
-TimebaseSupervisor::TimebaseSupervisor(sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink)
+timebase_supervisor::timebase_supervisor(sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink)
     : pipeline<Event> { event_sink }
     , pipeline<Timebase> { timebase_sink }
 {
 }
 
-void TimebaseSupervisor::get(Event event)
+void timebase_supervisor::get(Event event)
 {
     if (event.start() < m_start) {
         m_start = event.start();
@@ -24,7 +24,7 @@ void TimebaseSupervisor::get(Event event)
     pipeline<Event>::put(event);
 }
 
-void TimebaseSupervisor::get(Timebase timebase)
+void timebase_supervisor::get(Timebase timebase)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < s_sample_time) {
         timebase.base = m_current;

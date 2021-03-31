@@ -25,9 +25,9 @@ public:
     /**
      * @brief coincidence_filter
      * @param event_sink A collection of event sinks to use
-     * @param supervisor A reference to a StateSupervisor, which keeps track of program metadata
+     * @param supervisor A reference to a state_supervisor, which keeps track of program metadata
      */
-    coincidence_filter(sink::base<Event>& event_sink, StateSupervisor& supervisor);
+    coincidence_filter(sink::base<Event>& event_sink, state_supervisor& supervisor);
 
     ~coincidence_filter() override = default;
 
@@ -49,7 +49,7 @@ private:
 
     std::chrono::system_clock::duration m_timeout { std::chrono::seconds { 10 } };
 
-    StateSupervisor& m_supervisor;
+    state_supervisor& m_supervisor;
 };
 
 }

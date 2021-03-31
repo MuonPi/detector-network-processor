@@ -14,7 +14,7 @@
 
 namespace muonpi {
 
-coincidence_filter::coincidence_filter(sink::base<Event>& event_sink, StateSupervisor& supervisor)
+coincidence_filter::coincidence_filter(sink::base<Event>& event_sink, state_supervisor& supervisor)
     : sink::threaded<Event> { "coincidence_filter", std::chrono::milliseconds { 100 } }
     , source::base<Event> { event_sink }
     , m_supervisor { supervisor }

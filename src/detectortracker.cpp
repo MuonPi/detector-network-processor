@@ -13,7 +13,7 @@
 
 namespace muonpi {
 
-detector_tracker::detector_tracker(sink::base<DetectorSummary>& summary_sink, sink::base<Trigger::Detector>& trigger_sink, sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink, StateSupervisor& supervisor)
+detector_tracker::detector_tracker(sink::base<DetectorSummary>& summary_sink, sink::base<Trigger::Detector>& trigger_sink, sink::base<Event>& event_sink, sink::base<Timebase>& timebase_sink, state_supervisor& supervisor)
     : sink::threaded<DetectorInfo<Location>> { "detector_tracker", std::chrono::milliseconds { 100 } }
     , source::base<DetectorSummary> { summary_sink }
     , source::base<Trigger::Detector> { trigger_sink }

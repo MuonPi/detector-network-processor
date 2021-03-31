@@ -46,6 +46,8 @@ application::~application()
     delete m_ascii_clusterlog_sink;
     delete m_ascii_detectorsummary_sink;
 
+    delete m_trigger_sink;
+
     delete m_db_link;
 }
 
@@ -123,37 +125,11 @@ auto application::run() -> int
         return -1;
     }
 
-    sink::mqtt<trigger::detector> trigger_sink { sink_mqtt_link.publish("muonpi/trigger") };
 
     sink::collection<event_t> collection_event_sink {};
     sink::collection<cluster_log_t> collection_clusterlog_sink {};
     sink::collection<detetor_summary_t> collection_detectorsummary_sink {};
-
-    if (!Config::meta.local_cluster) {
-        m_db_link = new link::database { Config::influx };
-
-        m_event_sink = new sink::database<event_t> { *m_db_link };
-        m_clusterlog_sink = new sink::database<cluster_log_t> { *m_db_link };
-        m_detectorsummary_sink = new sink::database<detetor_summary_t> { *m_db_link };
-
-        m_broadcast_event_sink = new sink::mqtt<event_t> { sink_mqtt_link.publish("muonpi/events") };
-
-        m_detectorlog_sink = new sink::database<detector_log_t> { *m_db_link };
-
-        collection_event_sink.emplace(m_broadcast_event_sink);
-
-    } else {
-        m_event_sink = new sink::mqtt<event_t> { sink_mqtt_link.publish("muonpi/l1data") };
-        m_clusterlog_sink = new sink::mqtt<cluster_log_t> { sink_mqtt_link.publish("muonpi/cluster") };
-        m_detectorsummary_sink = new sink::mqtt<detetor_summary_t> { sink_mqtt_link.publish("muonpi/cluster") };
-        m_detectorlog_sink = new sink::mqtt<detector_log_t> { sink_mqtt_link.publish("muonpi/log/") };
-
-        reinterpret_cast<sink::mqtt<event_t>*>(m_event_sink)->set_detailed();
-    }
-
-    collection_event_sink.emplace(m_event_sink);
-    collection_clusterlog_sink.emplace(m_clusterlog_sink);
-    collection_detectorsummary_sink.emplace(m_detectorsummary_sink);
+    sink::collection<trigger::detector> collection_trigger_sink {};
 
     if (m_parameters["d"]) {
         m_ascii_event_sink = new sink::ascii<event_t> { std::cout };
@@ -163,15 +139,45 @@ auto application::run() -> int
         collection_event_sink.emplace(m_ascii_event_sink);
         collection_clusterlog_sink.emplace(m_ascii_clusterlog_sink);
         collection_detectorsummary_sink.emplace(m_ascii_detectorsummary_sink);
+    } else {
+        m_trigger_sink = new sink::mqtt<trigger::detector>{ sink_mqtt_link.publish("muonpi/trigger") };
+        collection_trigger_sink.emplace(m_trigger_sink);
+
+        if (!Config::meta.local_cluster) {
+            m_db_link = new link::database { Config::influx };
+
+            m_event_sink = new sink::database<event_t> { *m_db_link };
+            m_clusterlog_sink = new sink::database<cluster_log_t> { *m_db_link };
+            m_detectorsummary_sink = new sink::database<detetor_summary_t> { *m_db_link };
+
+            m_broadcast_event_sink = new sink::mqtt<event_t> { sink_mqtt_link.publish("muonpi/events") };
+
+            m_detectorlog_sink = new sink::database<detector_log_t> { *m_db_link };
+
+            collection_event_sink.emplace(m_broadcast_event_sink);
+
+        } else {
+            m_event_sink = new sink::mqtt<event_t> { sink_mqtt_link.publish("muonpi/l1data") };
+            m_clusterlog_sink = new sink::mqtt<cluster_log_t> { sink_mqtt_link.publish("muonpi/cluster") };
+            m_detectorsummary_sink = new sink::mqtt<detetor_summary_t> { sink_mqtt_link.publish("muonpi/cluster") };
+            m_detectorlog_sink = new sink::mqtt<detector_log_t> { sink_mqtt_link.publish("muonpi/log/") };
+
+            reinterpret_cast<sink::mqtt<event_t>*>(m_event_sink)->set_detailed();
+        }
+        collection_event_sink.emplace(m_event_sink);
+        collection_clusterlog_sink.emplace(m_clusterlog_sink);
+        collection_detectorsummary_sink.emplace(m_detectorsummary_sink);
     }
 
     m_supervisor = new state_supervisor { collection_clusterlog_sink };
     coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
     timebase_supervisor timebasesupervisor { coincidencefilter, coincidencefilter };
-    detector_tracker detectortracker { collection_detectorsummary_sink, trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
+    detector_tracker detectortracker { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
 
     trigger_handler triggerhandler { detectortracker, Config::ldap, Config::trigger };
     rest::service rest_service { Config::rest };
+    rest_service.add_handler(&triggerhandler);
+    m_supervisor->add_thread(&rest_service);
 
     source::mqtt<event_t> event_source { detectortracker, source_mqtt_link.subscribe("muonpi/data/#") };
     source::mqtt<event_t> l1_source { detectortracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
@@ -179,13 +185,11 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { *m_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    rest_service.add_handler(&triggerhandler);
 
     m_supervisor->add_thread(&detectortracker);
     m_supervisor->add_thread(&coincidencefilter);
     m_supervisor->add_thread(&sink_mqtt_link);
     m_supervisor->add_thread(&source_mqtt_link);
-    m_supervisor->add_thread(&rest_service);
     m_supervisor->add_thread(&collection_event_sink);
     m_supervisor->add_thread(&collection_detectorsummary_sink);
     m_supervisor->add_thread(&collection_clusterlog_sink);

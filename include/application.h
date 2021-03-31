@@ -12,6 +12,8 @@
 
 #include "supervision/state.h"
 
+#include "messages/trigger.h"
+
 #include <csignal>
 #include <functional>
 
@@ -36,17 +38,19 @@ private:
 
     link::database* m_db_link { nullptr };
 
-    muonpi::sink::base<event_t>* m_event_sink { nullptr };
-    muonpi::sink::base<cluster_log_t>* m_clusterlog_sink { nullptr };
-    muonpi::sink::base<detetor_summary_t>* m_detectorsummary_sink { nullptr };
+    sink::base<trigger::detector>* m_trigger_sink { nullptr };
 
-    muonpi::sink::base<event_t>* m_broadcast_event_sink { nullptr };
+    sink::base<event_t>* m_event_sink { nullptr };
+    sink::base<cluster_log_t>* m_clusterlog_sink { nullptr };
+    sink::base<detetor_summary_t>* m_detectorsummary_sink { nullptr };
 
-    muonpi::sink::base<detector_log_t>* m_detectorlog_sink { nullptr };
+    sink::base<event_t>* m_broadcast_event_sink { nullptr };
 
-    muonpi::sink::base<event_t>* m_ascii_event_sink { nullptr };
-    muonpi::sink::base<cluster_log_t>* m_ascii_clusterlog_sink { nullptr };
-    muonpi::sink::base<detetor_summary_t>* m_ascii_detectorsummary_sink { nullptr };
+    sink::base<detector_log_t>* m_detectorlog_sink { nullptr };
+
+    sink::base<event_t>* m_ascii_event_sink { nullptr };
+    sink::base<cluster_log_t>* m_ascii_clusterlog_sink { nullptr };
+    sink::base<detetor_summary_t>* m_ascii_detectorsummary_sink { nullptr };
 
     state_supervisor* m_supervisor { nullptr };
 

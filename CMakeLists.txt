@@ -71,7 +71,6 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/threadrunner.cpp"
     "${PROJECT_SRC_DIR}/utility/log.cpp"
     "${PROJECT_SRC_DIR}/utility/utility.cpp"
-    "${PROJECT_SRC_DIR}/utility/geohash.cpp"
     "${PROJECT_SRC_DIR}/utility/parameters.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/resourcetracker.cpp"

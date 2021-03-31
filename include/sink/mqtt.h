@@ -161,13 +161,13 @@ void mqtt<event_t>::get(event_t event)
     }
 
     const std::int64_t cluster_coinc_time = event.end() - event.start();
-    GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
+    guid uuid { event.hash(), static_cast<std::uint64_t>(event.start()) };
     for (auto& evt : event.events()) {
         location_t loc = evt.location();
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
         std::string geohash = geohash::from_coordinates(loc.lon, loc.lat, loc.max_geohash_length);
-        MessageConstructor message { ' ' };
-        message.add_field(guid.to_string()); // UUID for the L1Event
+        message_constructor message { ' ' };
+        message.add_field(uuid.to_string()); // UUID for the L1Event
         message.add_field(int_to_hex(evt.hash())); // the hashed detector id
         message.add_field(geohash); // the geohash of the detector's location
         message.add_field(std::to_string(evt.data().time_acc)); // station's time accuracy

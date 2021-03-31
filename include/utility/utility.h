@@ -14,13 +14,13 @@
 
 namespace muonpi {
 
-class MessageConstructor {
+class message_constructor {
 public:
     /**
      * @brief MessageConstructor
      * @param delimiter The delimiter which separates the fields
      */
-    MessageConstructor(char delimiter);
+    message_constructor(char delimiter);
 
     /**
      * @brief add_field Adds a field to the complete message
@@ -39,14 +39,14 @@ private:
     char m_delimiter;
 };
 
-class MessageParser {
+class message_parser {
 public:
     /**
      * @brief MessageParser
      * @param message The message to parse
      * @param delimiter The delimiter separating the fields in the message
      */
-    MessageParser(std::string message, char delimiter);
+    message_parser(std::string message, char delimiter);
 
     /**
      * @brief size
@@ -94,9 +94,9 @@ private:
     std::vector<std::pair<std::string::iterator, std::string::iterator>> m_fields {};
 };
 
-class GUID {
+class guid {
 public:
-    GUID(std::size_t hash, std::uint64_t time);
+    guid(std::size_t hash, std::uint64_t time);
 
     [[nodiscard]] auto to_string() const -> std::string;
     [[nodiscard]] static auto get_mac() -> std::uint64_t;

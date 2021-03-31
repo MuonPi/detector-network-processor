@@ -56,7 +56,7 @@ namespace trigger {
 
     auto detector::setting_t::from_string(const std::string& string) -> setting_t
     {
-        MessageParser parser { string, ' ' };
+        message_parser parser { string, ' ' };
 
         if (parser.size() != 3) {
             return setting_t {};
@@ -222,7 +222,7 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
     std::string body { request.req.body() };
 
     if (request.req.method() == rest::http::verb::get) {
-        MessageParser parser { body, ' ' };
+        message_parser parser { body, ' ' };
 
         std::ostringstream stream {};
         std::size_t n { 0 };

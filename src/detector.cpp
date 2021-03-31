@@ -29,7 +29,7 @@ detector::detector(const detetor_info_t<location_t>& initial_log, detector_track
 detector::detector(const std::string& serialised, detector_tracker& tracker, bool stale)
     : m_detectortracker { tracker }
 {
-    MessageParser in { serialised, ' ' };
+    message_parser in { serialised, ' ' };
     if (in.size() < 10) {
         m_status = Status::Deleted;
         return;

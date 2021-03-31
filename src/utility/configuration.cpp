@@ -239,7 +239,7 @@ auto configuration::decrypt(std::istream& file) -> std::string
     using namespace CryptoPP;
 
     std::ostringstream mac_stream {};
-    mac_stream << std::hex << std::setfill('0') << std::setw(16) << GUID::get_mac();
+    mac_stream << std::hex << std::setfill('0') << std::setw(16) << guid::get_mac();
     std::string mac { mac_stream.str() };
 
     SecByteBlock aes_key(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
@@ -257,7 +257,7 @@ void configuration::encrypt(std::ostream& file, const std::string& content)
 {
     using namespace CryptoPP;
     std::ostringstream mac_stream {};
-    mac_stream << std::hex << std::setfill('0') << std::setw(16) << GUID::get_mac();
+    mac_stream << std::hex << std::setfill('0') << std::setw(16) << guid::get_mac();
     std::string mac { mac_stream.str() };
 
     SecByteBlock aes_key(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));

@@ -7,7 +7,18 @@
 #include <utility>
 #include <variant>
 
-#include <curl/curl.h>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/error.hpp>
+#include <boost/asio/ssl/stream.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
 
 namespace muonpi::link {
 database::entry::entry(const std::string& measurement, database& link)
@@ -71,40 +82,56 @@ auto database::measurement(const std::string& measurement) -> entry
 
 auto database::send_string(const std::string& query) const -> bool
 {
-    CURL* curl { curl_easy_init() };
+    namespace beast = boost::beast;
+    namespace http = beast::http;
+    namespace net = boost::asio;
+    namespace ssl = net::ssl;
+    using tcp = net::ip::tcp;
 
-    if (curl != nullptr) {
-        scope_guard guard { [&curl] { curl_easy_cleanup(curl); } };
+    std::ostringstream target {};
+    target
+        << "/write?db="
+        << m_config.database
+        << "&u=" << m_config.login.username
+        << "&p=" << m_config.login.password
+        << "&epoch=ms";
 
-        std::ostringstream url {};
-        url
-            << m_config.host
-            << "/write?db="
-            << m_config.database
-            << "&u=" << m_config.login.username
-            << "&p=" << m_config.login.password
-            << "&epoch=ms";
+    auto const host { m_config.host.c_str() };
+    auto const port { std::to_string(s_port) };
+    const int version { 11 };
 
-        curl_easy_setopt(curl, CURLOPT_URL, url.str().c_str());
-        curl_easy_setopt(curl, CURLOPT_PORT, s_port);
-
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, query.c_str());
-
-        CURLcode res { curl_easy_perform(curl) };
-
-        long http_code { 0 };
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-        if (res != CURLE_OK) {
-            log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
-            return false;
-        }
-        if ((http_code / 100) != 2) {
-            log::warning() << "Couldn't write to database: " + std::to_string(http_code);
-            return false;
-        }
+    net::io_context ioc;
+    ssl::context ctx(ssl::context::tlsv12_client);
+    ctx.set_verify_mode(ssl::verify_none);
+    tcp::resolver resolver(ioc);
+    beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
+    if(! SSL_set_tlsext_host_name(stream.native_handle(), host))
+    {
+        beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
+        log::warning()<<"Could not write to database: " + ec.message();
+        return false;
+    }
+    auto const results = resolver.resolve(host, port);
+    beast::get_lowest_layer(stream).connect(results);
+    stream.handshake(ssl::stream_base::client);
+    http::request<http::string_body> req{http::verb::post, target.str(), version};
+    req.set(http::field::host, host);
+    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    req.set(http::field::body, query);
+    http::write(stream, req);
+    beast::flat_buffer buffer;
+    http::response<http::string_body> res;
+    http::read(stream, buffer, res);
+    unsigned http_code { static_cast<unsigned>(res.result()) };
+    if ((http_code / 100) != 2) {
+        log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + res.body();
+        return false;
+    }
+    beast::error_code ec;
+    stream.shutdown(ec);
+    if (ec && (ec != net::error::eof)) { // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+        log::warning()<<"Could not write to database: " + ec.message();
+        return false;
     }
     return true;
 }

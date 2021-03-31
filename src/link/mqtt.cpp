@@ -262,7 +262,6 @@ auto mqtt::subscribe(const std::string& topic) -> subscriber&
         throw -1;
     }
 
-    std::string check_topic { topic };
     if (m_subscribers.find(topic) != m_subscribers.end()) {
         log::info() << "Topic already subscribed.";
         return { *m_subscribers[topic] };

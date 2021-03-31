@@ -32,16 +32,34 @@ auto resource_tracker::get_data() -> data_t
 
     std::ifstream stat_stream("/proc/self/stat", std::ios_base::in);
 
-    std::string pid, comm, state, ppid, pgrp, session, tty_nr;
-    std::string tpgid, flags, minflt, cminflt, majflt, cmajflt;
-    std::string utime, stime, cutime, cstime, priority, nice;
-    std::string O, itrealvalue, starttime;
+    std::string pid;
+    std::string comm;
+    std::string state;
+    std::string ppid;
+    std::string pgrp;
+    std::string session;
+    std::string tty_nr;
+    std::string tpgid;
+    std::string flags;
+    std::string minflt;
+    std::string cminflt;
+    std::string majflt;
+    std::string cmajflt;
+    std::string utime;
+    std::string stime;
+    std::string cutime;
+    std::string cstime;
+    std::string priority;
+    std::string nice;
+    std::string O;
+    std::string itrealvalue;
+    std::string starttime;
 
-    std::size_t process_user;
-    std::size_t process_system;
+    std::size_t process_user { 0 };
+    std::size_t process_system { 0 };
 
-    std::size_t vsize;
-    std::size_t rss;
+    std::size_t vsize { 0 };
+    std::size_t rss { 0 };
 
     stat_stream >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr
         >> tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt
@@ -64,8 +82,8 @@ auto resource_tracker::get_data() -> data_t
     data.system_cpu_load = 0;
 
     if (!m_first) {
-        data.process_cpu_load = 100.0 * process / std::max(total, 1.0f);
-        data.system_cpu_load = 100.0 * system / std::max(total, 1.0f);
+        data.process_cpu_load = 100.0 * process / std::max(total, 1.0F);
+        data.system_cpu_load = 100.0 * system / std::max(total, 1.0F);
     } else {
         m_first = false;
     }

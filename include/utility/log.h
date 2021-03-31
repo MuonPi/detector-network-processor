@@ -79,7 +79,7 @@ public:
         manager& m_log;
     };
 
-    void add_sink(std::shared_ptr<sink> sink);
+    void add_sink(const std::shared_ptr<sink>& sink);
 
     [[nodiscard]] static auto singleton() -> std::shared_ptr<manager>;
 

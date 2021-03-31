@@ -113,7 +113,7 @@ auto guid::get_mac() -> std::uint64_t
         return addr;
     }
 
-    ifaddrs* ifaddr;
+    ifaddrs* ifaddr { nullptr };
     if (getifaddrs(&ifaddr) == -1) {
         log::error() << "Could not get MAC address.";
         return {};

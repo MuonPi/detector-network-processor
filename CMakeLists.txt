@@ -40,7 +40,6 @@ add_compile_options(
 
 find_library(MOSQUITTO mosquitto REQUIRED)
 find_library(CRYPTOPP crypto++ REQUIRED)
-find_library(CURL curl REQUIRED)
 find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
 
@@ -163,7 +162,6 @@ target_link_libraries(muondetector-cluster
     mosquitto
     source-files
     pthread
-    curl
     sasl2
     ldap
     boost_system
@@ -176,7 +174,6 @@ target_link_libraries(muondetector-cluster
     mosquitto
     source-files
     pthread
-    curl
     sasl2
     ldap
     stdc++fs

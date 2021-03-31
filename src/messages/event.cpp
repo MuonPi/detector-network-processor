@@ -52,7 +52,7 @@ auto event_t::n() const noexcept -> std::size_t
 void event_t::add_event(event_t event) noexcept
 {
     if (event.n() > 1) {
-        for (auto& e : event.events()) {
+        for (const auto& e : event.events()) {
             add_event(e);
         }
         return;

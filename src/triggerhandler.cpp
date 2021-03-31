@@ -139,7 +139,7 @@ trigger_handler::trigger_handler(sink::base<trigger::detector::action_t>& sink, 
     rest::handler handler {};
     handler.matches = [](std::string_view path) { return path == "trigger"; };
     handler.authenticate = [this](rest::request /*request*/, std::string_view username, std::string_view password) { return authenticate(username, password); };
-    handler.handle = [this](rest::request request, std::queue<std::string> /*path*/) { return handle(std::move(request)); };
+    handler.handle = [this](rest::request request, const std::queue<std::string>& /*path*/) { return handle(request); };
     handler.requires_auth = true;
 
     set_handler(std::move(handler));

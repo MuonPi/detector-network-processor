@@ -1,5 +1,7 @@
 #include "messages/detectorlog.h"
 
+#include <utility>
+
 namespace muonpi {
 
 void detector_log_t::add_item(detector_log_item item)
@@ -32,7 +34,7 @@ auto detector_log_t::log_id() const -> const std::string&
 
 void detector_log_t::set_userinfo(userinfo_t user_info)
 {
-    m_userinfo = user_info;
+    m_userinfo = std::move(user_info);
 }
 
 void detector_log_t::set_log_id(const std::string& log_id)

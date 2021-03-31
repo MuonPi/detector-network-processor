@@ -10,7 +10,7 @@ public:
     template <class F>
     scope_guard(const F& cleanup);
 
-    scope_guard(scope_guard&& other);
+    scope_guard(scope_guard&& other) noexcept;
 
     scope_guard() = delete;
     scope_guard(const scope_guard&) = delete;

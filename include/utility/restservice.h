@@ -53,7 +53,7 @@ struct request {
 struct handler {
     std::function<bool(std::string_view path)> matches {};
     std::function<bool(request req, std::string_view username, std::string_view password)> authenticate {};
-    std::function<response_type(request req, std::queue<std::string> path)> handle {};
+    std::function<response_type(request req, const std::queue<std::string>& path)> handle {};
     std::vector<handler> children {};
     bool requires_auth { false };
 };

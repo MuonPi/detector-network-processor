@@ -184,7 +184,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
     }
 
     if (hand.children.empty() || path.empty()) {
-        return hand.handle(request { req }, std::move(path));
+        return hand.handle(request { req }, path);
     }
 
     return handle(std::move(req), std::move(path), hand.children);

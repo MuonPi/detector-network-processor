@@ -2,7 +2,7 @@
 
 namespace muonpi {
 
-scope_guard::scope_guard(scope_guard&& other)
+scope_guard::scope_guard(scope_guard&& other) noexcept
     : m_cleanup { other.dissolve() }
 {
     other.dismiss();

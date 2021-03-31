@@ -50,7 +50,7 @@ void stream_sink::get(const message_t& msg)
 }
 std::shared_ptr<manager> manager::s_singleton { std::make_shared<manager>() };
 
-void manager::add_sink(std::shared_ptr<sink> sink)
+void manager::add_sink(const std::shared_ptr<sink>& sink)
 {
     m_sinks.push_back(sink);
 }

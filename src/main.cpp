@@ -223,8 +223,8 @@ auto main(int argc, char* argv[]) -> int
     }
 
     MuonPi::StateSupervisor supervisor { *guard[2].clusterlog.sink };
-    MuonPi::CoincidenceFilter coincidence_filter { *guard[2].event.sink, supervisor };
-    MuonPi::TimeBaseSupervisor timebase_supervisor { coincidence_filter, coincidence_filter };
+    MuonPi::coincidence_filter coincidencefilter { *guard[2].event.sink, supervisor };
+    MuonPi::TimeBaseSupervisor timebase_supervisor { coincidencefilter, coincidencefilter };
     MuonPi::DetectorTracker detector_tracker { *guard[2].detectorsummary.sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
     MuonPi::TriggerHandler trigger_handler { detector_tracker, MuonPi::Config::ldap, MuonPi::Config::trigger };
     MuonPi::rest::service rest_service { MuonPi::Config::rest };
@@ -252,7 +252,7 @@ auto main(int argc, char* argv[]) -> int
             || (signal == SIGHUP)) {
             MuonPi::Log::notice() << "Received signal: " + std::to_string(signal) + ". Exiting.";
             supervisor.stop();
-            coincidence_filter.stop();
+            coincidencefilter.stop();
         }
     };
 
@@ -260,7 +260,7 @@ auto main(int argc, char* argv[]) -> int
     std::signal(SIGTERM, signal_handler);
     std::signal(SIGHUP, signal_handler);
 
-    coincidence_filter.start_synchronuos();
+    coincidencefilter.start_synchronuos();
 
-    return coincidence_filter.wait();
+    return coincidencefilter.wait();
 }

@@ -14,26 +14,26 @@
 
 namespace MuonPi {
 
-CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<Event> { "CoincidenceFilter", std::chrono::milliseconds { 100 } }
+coincidence_filter::coincidence_filter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
+    : Sink::Threaded<Event> { "coincidence_filter", std::chrono::milliseconds { 100 } }
     , Source::Base<Event> { event_sink }
     , m_supervisor { supervisor }
 {
 }
 
-void CoincidenceFilter::get(TimeBase timebase)
+void coincidence_filter::get(TimeBase timebase)
 {
     using namespace std::chrono;
     m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
     m_supervisor.time_status(duration_cast<milliseconds>(timebase.base), duration_cast<milliseconds>(m_timeout));
 }
 
-void CoincidenceFilter::get(Event event)
+void coincidence_filter::get(Event event)
 {
     Threaded<Event>::internal_get(event);
 }
 
-auto CoincidenceFilter::process() -> int
+auto coincidence_filter::process() -> int
 {
     if (m_supervisor.step() != 0) {
         Log::error() << "The Supervisor stopped.";
@@ -55,7 +55,7 @@ auto CoincidenceFilter::process() -> int
     return 0;
 }
 
-auto CoincidenceFilter::process(Event event) -> int
+auto coincidence_filter::process(Event event) -> int
 {
     m_supervisor.increase_event_count(true);
 

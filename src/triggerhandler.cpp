@@ -129,7 +129,7 @@ namespace Ldap {
     }
 }
 
-TriggerHandler::TriggerHandler(sink::base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config)
+trigger_handler::trigger_handler(sink::base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config)
     : source::base<Trigger::Detector::Action> { sink }
     , m_ldap { std::move(ldap_config) }
     , m_trigger { std::move(trigger_config) }
@@ -145,12 +145,12 @@ TriggerHandler::TriggerHandler(sink::base<Trigger::Detector::Action>& sink, Conf
     set_handler(std::move(handler));
 }
 
-TriggerHandler::~TriggerHandler()
+trigger_handler::~trigger_handler()
 {
     save();
 }
 
-auto TriggerHandler::authenticate(std::string_view user, std::string_view pw) -> bool
+auto trigger_handler::authenticate(std::string_view user, std::string_view pw) -> bool
 {
     LDAP* ldap { nullptr };
     auto code = ldap_initialize(&ldap, m_ldap.server.c_str());
@@ -217,7 +217,7 @@ auto TriggerHandler::authenticate(std::string_view user, std::string_view pw) ->
     return true;
 }
 
-auto TriggerHandler::handle(rest::request request) -> rest::response_type
+auto trigger_handler::handle(rest::request request) -> rest::response_type
 {
     std::string body { request.req.body() };
 
@@ -298,7 +298,7 @@ auto TriggerHandler::handle(rest::request request) -> rest::response_type
     return request.response<rest::http::status::not_implemented>("Method not implemented");
 }
 
-void TriggerHandler::save()
+void trigger_handler::save()
 {
     std::ofstream out { m_trigger.save_file };
     if (!out.is_open()) {
@@ -312,7 +312,7 @@ void TriggerHandler::save()
     out.close();
 }
 
-void TriggerHandler::load()
+void trigger_handler::load()
 {
     std::ifstream in { m_trigger.save_file };
     if (!in.is_open()) {

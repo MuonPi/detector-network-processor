@@ -226,7 +226,7 @@ auto main(int argc, char* argv[]) -> int
     muonpi::coincidence_filter coincidencefilter { *guard[2].event.sink, supervisor };
     muonpi::TimebaseSupervisor timebase_supervisor { coincidencefilter, coincidencefilter };
     muonpi::detector_tracker detectortracker { *guard[2].detectorsummary.sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
-    muonpi::TriggerHandler trigger_handler { detectortracker, muonpi::Config::ldap, muonpi::Config::trigger };
+    muonpi::trigger_handler triggerhandler { detectortracker, muonpi::Config::ldap, muonpi::Config::trigger };
     muonpi::rest::service rest_service { muonpi::Config::rest };
 
     muonpi::source::Mqtt<muonpi::Event> event_source { detectortracker, source_mqtt_link.subscribe("muonpi/data/#") };
@@ -235,7 +235,7 @@ auto main(int argc, char* argv[]) -> int
 
     muonpi::source::Mqtt<muonpi::DetectorLog> detectorlog_source { *detectorlog.sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    rest_service.add_handler(&trigger_handler);
+    rest_service.add_handler(&triggerhandler);
 
     supervisor.add_thread(&detectortracker);
     supervisor.add_thread(&sink_mqtt_link);

@@ -21,7 +21,7 @@ public:
      * @param second the second event to check
      * @return true if the events have a coincidence
      */
-    [[nodiscard]] auto criterion(const Event& first, const Event& second) const -> double override;
+    [[nodiscard]] auto criterion(const event_t& first, const event_t& second) const -> double override;
 
     /**
      * @brief maximum_false

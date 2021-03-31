@@ -7,8 +7,8 @@
 
 namespace muonpi {
 
-state_supervisor::state_supervisor(sink::base<ClusterLog>& log_sink)
-    : source::base<ClusterLog> { log_sink }
+state_supervisor::state_supervisor(sink::base<cluster_log_t>& log_sink)
+    : source::base<cluster_log_t> { log_sink }
 {
 }
 
@@ -18,10 +18,10 @@ void state_supervisor::time_status(std::chrono::milliseconds timebase, std::chro
     m_timeout = timeout;
 }
 
-void state_supervisor::detector_status(std::size_t hash, Detector::Status status)
+void state_supervisor::detector_status(std::size_t hash, detector::Status status)
 {
     m_detectors[hash] = status;
-    if (status == Detector::Status::Deleted) {
+    if (status == detector::Status::Deleted) {
         if (m_detectors.find(hash) != m_detectors.end()) {
             m_detectors.erase(hash);
         }
@@ -29,7 +29,7 @@ void state_supervisor::detector_status(std::size_t hash, Detector::Status status
 
     std::size_t reliable { 0 };
     for (auto& [h, detector] : m_detectors) {
-        if (detector == Detector::Status::Reliable) {
+        if (detector == detector::Status::Reliable) {
             reliable++;
         }
     }
@@ -60,7 +60,7 @@ auto state_supervisor::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        source::base<ClusterLog>::put(ClusterLog { m_current_data });
+        source::base<cluster_log_t>::put(cluster_log_t { m_current_data });
 
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();

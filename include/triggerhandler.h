@@ -11,9 +11,9 @@
 
 namespace muonpi {
 
-class trigger_handler : public source::base<Trigger::Detector::Action>, public rest::service_handler {
+class trigger_handler : public source::base<trigger::detector::action_t>, public rest::service_handler {
 public:
-    trigger_handler(sink::base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config);
+    trigger_handler(sink::base<trigger::detector::action_t>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config);
 
     ~trigger_handler() override;
 
@@ -25,7 +25,7 @@ private:
 
     [[nodiscard]] auto handle(rest::request request) -> rest::response_type;
 
-    std::map<std::size_t, Trigger::Detector::Setting> m_detector_trigger {};
+    std::map<std::size_t, trigger::detector::setting_t> m_detector_trigger {};
 
     Config::Ldap m_ldap { Config::ldap };
     Config::Trigger m_trigger { Config::trigger };

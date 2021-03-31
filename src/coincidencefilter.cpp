@@ -14,23 +14,23 @@
 
 namespace muonpi {
 
-coincidence_filter::coincidence_filter(sink::base<Event>& event_sink, state_supervisor& supervisor)
-    : sink::threaded<Event> { "coincidence_filter", std::chrono::milliseconds { 100 } }
-    , source::base<Event> { event_sink }
+coincidence_filter::coincidence_filter(sink::base<event_t>& event_sink, state_supervisor& supervisor)
+    : sink::threaded<event_t> { "coincidence_filter", std::chrono::milliseconds { 100 } }
+    , source::base<event_t> { event_sink }
     , m_supervisor { supervisor }
 {
 }
 
-void coincidence_filter::get(Timebase timebase)
+void coincidence_filter::get(timebase_t timebase)
 {
     using namespace std::chrono;
     m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
     m_supervisor.time_status(duration_cast<milliseconds>(timebase.base), duration_cast<milliseconds>(m_timeout));
 }
 
-void coincidence_filter::get(Event event)
+void coincidence_filter::get(event_t event)
 {
-    threaded<Event>::internal_get(event);
+    threaded<event_t>::internal_get(event);
 }
 
 auto coincidence_filter::process() -> int
@@ -55,7 +55,7 @@ auto coincidence_filter::process() -> int
     return 0;
 }
 
-auto coincidence_filter::process(Event event) -> int
+auto coincidence_filter::process(event_t event) -> int
 {
     m_supervisor.increase_event_count(true);
 
@@ -73,11 +73,11 @@ auto coincidence_filter::process(Event event) -> int
 
     // +++ Event matches exactly one existing constructor
     if (matches.size() == 1) {
-        EventConstructor& constructor { m_constructors[matches.front()] };
+        event_constructor& constructor { m_constructors[matches.front()] };
         matches.pop();
         if (constructor.event.n() == 1) {
-            Event e { constructor.event };
-            constructor.event = Event { e, true };
+            event_t e { constructor.event };
+            constructor.event = event_t { e, true };
         }
         constructor.event.add_event(event);
         return 0;
@@ -86,17 +86,17 @@ auto coincidence_filter::process(Event event) -> int
 
     // +++ Event matches either no, or more than one constructor
     if (matches.empty()) {
-        EventConstructor constructor {};
+        event_constructor constructor {};
         constructor.event = event;
         constructor.timeout = m_timeout;
         m_constructors.push_back(std::move(constructor));
         return 0;
     }
-    EventConstructor& constructor { m_constructors[matches.front()] };
+    event_constructor& constructor { m_constructors[matches.front()] };
     matches.pop();
     if (constructor.event.n() == 1) {
-        Event e { constructor.event };
-        constructor.event = Event { e, true };
+        event_t e { constructor.event };
+        constructor.event = event_t { e, true };
     }
     constructor.event.add_event(event);
     // +++ Event matches more than one constructor

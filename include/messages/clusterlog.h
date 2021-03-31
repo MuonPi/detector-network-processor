@@ -10,9 +10,9 @@
 namespace muonpi {
 
 /**
- * @brief The ClusterLog class
+ * @brief The cluster_log_t class
  */
-class ClusterLog {
+class cluster_log_t {
 public:
     struct Data {
         std::int_fast64_t timeout { 0 }; //!< The current timeout for event constructors, in ms
@@ -35,15 +35,15 @@ public:
     };
 
     /**
-     * @brief ClusterLog
+     * @brief cluster_log_t
      * @param data The log data
      */
-    ClusterLog(Data data);
+    cluster_log_t(Data data);
 
     /**
-     * @brief ClusterLog constructs an invalid object
+     * @brief cluster_log_t constructs an invalid object
      */
-    ClusterLog();
+    cluster_log_t();
 
     /**
      * @brief data Accesses the data from the object
@@ -59,13 +59,13 @@ public:
 
     /**
      * @brief data Accesses the user info from the object
-     * @return the UserInfo struct
+     * @return the userinfo_t struct
      */
-    [[nodiscard]] auto user_info() const -> UserInfo;
+    [[nodiscard]] auto user_info() const -> userinfo_t;
 
 private:
     Data m_data;
-    UserInfo m_userinfo {};
+    userinfo_t m_userinfo {};
     std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
 };
 

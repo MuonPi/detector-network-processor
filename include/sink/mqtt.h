@@ -99,7 +99,7 @@ auto mqtt<T>::construct(const std::string& time, const std::string& parname) -> 
 }
 
 template <>
-void mqtt<ClusterLog>::get(ClusterLog log)
+void mqtt<cluster_log_t>::get(cluster_log_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -133,7 +133,7 @@ void mqtt<ClusterLog>::get(ClusterLog log)
 }
 
 template <>
-void mqtt<DetectorSummary>::get(DetectorSummary log)
+void mqtt<detetor_summary_t>::get(detetor_summary_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
@@ -153,7 +153,7 @@ void mqtt<DetectorSummary>::get(DetectorSummary log)
 }
 
 template <>
-void mqtt<Event>::get(Event event)
+void mqtt<event_t>::get(event_t event)
 {
     if (event.n() == 1) {
         // by default, don't send out single events via MQTT
@@ -163,7 +163,7 @@ void mqtt<Event>::get(Event event)
     const std::int64_t cluster_coinc_time = event.end() - event.start();
     GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
     for (auto& evt : event.events()) {
-        Location loc = evt.location();
+        location_t loc = evt.location();
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
         std::string geohash = geohash::from_coordinates(loc.lon, loc.lat, loc.max_geohash_length);
         MessageConstructor message { ' ' };
@@ -194,26 +194,26 @@ void mqtt<Event>::get(Event event)
 }
 
 template <>
-void mqtt<Trigger::Detector>::get(Trigger::Detector trigger)
+void mqtt<trigger::detector>::get(trigger::detector trigger)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
     stream
         << std::put_time(std::gmtime(&time), "%F_%H-%M-%S %Z");
     switch (trigger.setting.type) {
-    case Trigger::Detector::Setting::Offline:
+    case trigger::detector::setting_t::Offline:
         stream << " offline";
         break;
-    case Trigger::Detector::Setting::Online:
+    case trigger::detector::setting_t::Online:
         stream << " online";
         break;
-    case Trigger::Detector::Setting::Unreliable:
+    case trigger::detector::setting_t::Unreliable:
         stream << " unreliable";
         break;
-    case Trigger::Detector::Setting::Reliable:
+    case trigger::detector::setting_t::Reliable:
         stream << " reliable";
         break;
-    case Trigger::Detector::Setting::Invalid:
+    case trigger::detector::setting_t::Invalid:
         return;
     }
 
@@ -230,14 +230,14 @@ template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 template <>
 
-void mqtt<DetectorLog>::get(DetectorLog log)
+void mqtt<detector_log_t>::get(detector_log_t log)
 {
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
     stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
 
     while (log.has_items()) {
-        DetectorLogItem item { log.next_item() };
+        detector_log_item item { log.next_item() };
         auto constructor { construct(stream.str(), item.name) };
         std::visit(overloaded {
                        [&](std::string value) { constructor << value; },

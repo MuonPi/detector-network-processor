@@ -61,7 +61,7 @@ private:
         */
         [[nodiscard]] auto add(MessageParser& topic, MessageParser& message) -> ResultCode;
 
-        UserInfo user_info {};
+        userinfo_t user_info {};
 
         const std::chrono::system_clock::time_point m_first_message { std::chrono::system_clock::now() };
 
@@ -88,21 +88,21 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-mqtt<DetectorInfo<Location>>::item_collector::item_collector()
+mqtt<detetor_info_t<location_t>>::item_collector::item_collector()
     : default_status { 0x003F }
     , status { default_status }
 {
 }
 
 template <>
-mqtt<Event>::item_collector::item_collector()
+mqtt<event_t>::item_collector::item_collector()
     : default_status { 0x0000 }
     , status { default_status }
 {
 }
 
 template <>
-mqtt<DetectorLog>::item_collector::item_collector()
+mqtt<detector_log_t>::item_collector::item_collector()
     : default_status { 2 }
     , status { default_status }
 {
@@ -111,12 +111,12 @@ mqtt<DetectorLog>::item_collector::item_collector()
 template <typename T>
 void mqtt<T>::item_collector::reset()
 {
-    user_info = UserInfo {};
+    user_info = userinfo_t {};
     status = default_status;
 }
 
 template <>
-auto mqtt<DetectorInfo<Location>>::item_collector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<detetor_info_t<location_t>>::item_collector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Reset;
@@ -159,7 +159,7 @@ auto mqtt<DetectorInfo<Location>>::item_collector::add(MessageParser& /*topic*/,
 }
 
 template <>
-auto mqtt<Event>::item_collector::add(MessageParser& topic, MessageParser& content) -> ResultCode
+auto mqtt<event_t>::item_collector::add(MessageParser& topic, MessageParser& content) -> ResultCode
 {
     if ((topic.size() < 4) || (content.size() < 7)) {
         return Error;
@@ -169,7 +169,7 @@ auto mqtt<Event>::item_collector::add(MessageParser& topic, MessageParser& conte
             return Error;
         }
 
-        Event::Data data;
+        event_t::Data data;
 
         std::size_t hash { 0 };
         std::size_t n { 0 };
@@ -190,11 +190,11 @@ auto mqtt<Event>::item_collector::add(MessageParser& topic, MessageParser& conte
             return Error;
         }
         if (status == 0) {
-            item = Event { hash, data };
+            item = event_t { hash, data };
             status = n - 1;
             return Aggregating;
         }
-        item.add_event(Event { hash, data });
+        item.add_event(event_t { hash, data });
         status--;
         if (status == 0) {
             return Finished;
@@ -202,7 +202,7 @@ auto mqtt<Event>::item_collector::add(MessageParser& topic, MessageParser& conte
             return Aggregating;
         }
     }
-    Event::Data data;
+    event_t::Data data;
 
     try {
 
@@ -232,13 +232,13 @@ auto mqtt<Event>::item_collector::add(MessageParser& topic, MessageParser& conte
     if (data.start > data.end) {
         return Error;
     }
-    item = Event { user_info.hash(), data };
+    item = event_t { user_info.hash(), data };
     status = 0;
     return Finished;
 }
 
 template <>
-auto mqtt<DetectorLog>::item_collector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<detector_log_t>::item_collector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
 {
     if (!item.has_items()) {
         item.set_log_id(message[0]);
@@ -340,7 +340,7 @@ mqtt<T>::~mqtt() = default;
 template <typename T>
 auto mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) -> std::size_t
 {
-    UserInfo userinfo {};
+    userinfo_t userinfo {};
     userinfo.username = topic[2];
     std::string site { topic[3] };
     for (std::size_t i = 4; i < topic.size(); i++) {
@@ -352,7 +352,7 @@ auto mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) ->
 }
 
 template <>
-auto mqtt<Event>::generate_hash(MessageParser& /*topic*/, MessageParser& message) -> std::size_t
+auto mqtt<event_t>::generate_hash(MessageParser& /*topic*/, MessageParser& message) -> std::size_t
 {
     return std::hash<std::string> {}(message[0]);
 }
@@ -388,7 +388,7 @@ void mqtt<T>::process(const link::mqtt::Message& msg)
         }
     }
 
-    UserInfo userinfo {};
+    userinfo_t userinfo {};
     userinfo.username = topic[2];
     std::string site { topic[3] };
     for (std::size_t i = 4; i < topic.size(); i++) {

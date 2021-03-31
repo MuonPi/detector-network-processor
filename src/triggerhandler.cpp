@@ -19,9 +19,9 @@
 
 namespace muonpi {
 
-namespace Trigger {
+namespace trigger {
 
-    auto Detector::Setting::to_string(char delimiter) const -> std::string
+    auto detector::setting_t::to_string(char delimiter) const -> std::string
     {
         std::ostringstream stream;
         if (delimiter == 0) {
@@ -30,51 +30,51 @@ namespace Trigger {
             stream << username << delimiter << station << delimiter;
         }
         switch (type) {
-        case Trigger::Detector::Setting::Offline:
+        case trigger::detector::setting_t::Offline:
             stream << "offline";
             break;
-        case Trigger::Detector::Setting::Online:
+        case trigger::detector::setting_t::Online:
             stream << "online";
             break;
-        case Trigger::Detector::Setting::Unreliable:
+        case trigger::detector::setting_t::Unreliable:
             stream << "unreliable";
             break;
-        case Trigger::Detector::Setting::Reliable:
+        case trigger::detector::setting_t::Reliable:
             stream << "reliable";
             break;
-        case Trigger::Detector::Setting::Invalid:
+        case trigger::detector::setting_t::Invalid:
             stream << "invalid";
             break;
         }
         return stream.str();
     }
 
-    auto Detector::Setting::id() const -> std::size_t
+    auto detector::setting_t::id() const -> std::size_t
     {
         return std::hash<std::string> {}(to_string());
     }
 
-    auto Detector::Setting::from_string(const std::string& string) -> Setting
+    auto detector::setting_t::from_string(const std::string& string) -> setting_t
     {
         MessageParser parser { string, ' ' };
 
         if (parser.size() != 3) {
-            return Setting {};
+            return setting_t {};
         }
 
-        Setting trigger;
+        setting_t trigger;
         trigger.username = parser[0];
         trigger.station = parser[1];
         if (parser[2] == "offline") {
-            trigger.type = Trigger::Detector::Setting::Offline;
+            trigger.type = trigger::detector::setting_t::Offline;
         } else if (parser[2] == "online") {
-            trigger.type = Trigger::Detector::Setting::Online;
+            trigger.type = trigger::detector::setting_t::Online;
         } else if (parser[2] == "unreliable") {
-            trigger.type = Trigger::Detector::Setting::Unreliable;
+            trigger.type = trigger::detector::setting_t::Unreliable;
         } else if (parser[2] == "reliable") {
-            trigger.type = Trigger::Detector::Setting::Reliable;
+            trigger.type = trigger::detector::setting_t::Reliable;
         } else {
-            return Setting {};
+            return setting_t {};
         }
         return trigger;
     }
@@ -129,8 +129,8 @@ namespace Ldap {
     }
 }
 
-trigger_handler::trigger_handler(sink::base<Trigger::Detector::Action>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config)
-    : source::base<Trigger::Detector::Action> { sink }
+trigger_handler::trigger_handler(sink::base<trigger::detector::action_t>& sink, Config::Ldap ldap_config, Config::Trigger trigger_config)
+    : source::base<trigger::detector::action_t> { sink }
     , m_ldap { std::move(ldap_config) }
     , m_trigger { std::move(trigger_config) }
 {
@@ -255,29 +255,29 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
         return request.response<rest::http::status::ok>(stream.str());
 
     } else if (request.req.method() == rest::http::verb::post) {
-        auto trigger { Trigger::Detector::Setting::from_string(body) };
+        auto trigger { trigger::detector::setting_t::from_string(body) };
 
-        if (trigger.type == Trigger::Detector::Setting::Invalid) {
+        if (trigger.type == trigger::detector::setting_t::Invalid) {
             return request.response<rest::http::status::bad_request>("Invalid trigger");
         }
 
         std::size_t hash = trigger.id();
 
         if (m_detector_trigger.find(hash) != m_detector_trigger.end()) {
-            return request.response<rest::http::status::already_reported>("Trigger already set");
+            return request.response<rest::http::status::already_reported>("trigger already set");
         }
 
         m_detector_trigger[hash] = trigger;
-        put(Trigger::Detector::Action { Trigger::Detector::Action::Activate, trigger });
+        put(trigger::detector::action_t { trigger::detector::action_t::Activate, trigger });
 
         Log::debug() << "Setting up new trigger: '" + trigger.to_string() + "'";
         save();
 
-        return request.response<rest::http::status::created>("Trigger created");
+        return request.response<rest::http::status::created>("trigger created");
     } else if (request.req.method() == rest::http::verb::delete_) {
-        auto trigger { Trigger::Detector::Setting::from_string(body) };
+        auto trigger { trigger::detector::setting_t::from_string(body) };
 
-        if (trigger.type == Trigger::Detector::Setting::Invalid) {
+        if (trigger.type == trigger::detector::setting_t::Invalid) {
             return request.response<rest::http::status::bad_request>("Invalid trigger");
         }
 
@@ -289,7 +289,7 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
 
         m_detector_trigger.erase(hash);
 
-        put(Trigger::Detector::Action { Trigger::Detector::Action::Deactivate, trigger });
+        put(trigger::detector::action_t { trigger::detector::action_t::Deactivate, trigger });
 
         Log::debug() << "Removing trigger: '" + body + "'";
         save();
@@ -322,9 +322,9 @@ void trigger_handler::load()
     Log::info() << "Loading trigger.";
     for (std::string line; std::getline(in, line);) {
 
-        auto trigger { Trigger::Detector::Setting::from_string(line) };
+        auto trigger { trigger::detector::setting_t::from_string(line) };
 
-        if (trigger.type == Trigger::Detector::Setting::Invalid) {
+        if (trigger.type == trigger::detector::setting_t::Invalid) {
             continue;
         }
 
@@ -336,7 +336,7 @@ void trigger_handler::load()
 
         m_detector_trigger[hash] = trigger;
 
-        put(Trigger::Detector::Action { Trigger::Detector::Action::Activate, trigger });
+        put(trigger::detector::action_t { trigger::detector::action_t::Activate, trigger });
     }
 }
 

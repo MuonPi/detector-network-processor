@@ -12,18 +12,18 @@
 
 namespace muonpi {
 
-class Detector;
+class detector;
 
-struct Timebase {
+struct timebase_t {
     double factor { 0.0 };
     std::chrono::steady_clock::duration base {};
 };
 
 /**
- * @brief The Event class
+ * @brief The event_t class
  *  class, which is used as an interface for single events and combined events
  */
-class Event {
+class event_t {
 public:
     struct Data {
         std::string user {};
@@ -37,19 +37,19 @@ public:
         std::uint8_t gnss_time_grid {};
     };
 
-    Event(std::size_t hash, Data data) noexcept;
+    event_t(std::size_t hash, Data data) noexcept;
 
-    Event(Event event, bool foreign) noexcept;
+    event_t(event_t event, bool foreign) noexcept;
 
-    Event() noexcept;
+    event_t() noexcept;
 
-    virtual ~Event() noexcept;
+    virtual ~event_t() noexcept;
 
-    void set_detector_info(Location location, /*Time time,*/ UserInfo user);
+    void set_detector_info(location_t location, userinfo_t user);
 
-    auto location() const -> Location;
+    auto location() const -> location_t;
 
-    auto user_info() const -> UserInfo;
+    auto user_info() const -> userinfo_t;
 
     /**
      * @brief start
@@ -85,13 +85,13 @@ public:
       * @brief Get the list of events.
       * @return The list of events contained in this combined event
       */
-    [[nodiscard]] auto events() const -> const std::vector<Event>&;
+    [[nodiscard]] auto events() const -> const std::vector<event_t>&;
 
     /**
-     * @brief add_event Adds an event to the CombinedEvent.
+     * @brief add_event Adds an event to the Combinedevent_t.
      * @param event The event to add. In the case that the abstract event is a combined event, the child events will be added instead of their combination.
      */
-    void add_event(Event event) noexcept;
+    void add_event(event_t event) noexcept;
 
     /**
      * @brief valid
@@ -113,14 +113,14 @@ public:
 
 private:
     std::size_t m_n { 1 };
-    std::vector<Event> m_events {};
+    std::vector<event_t> m_events {};
     std::uint64_t m_hash {};
     bool m_valid { true };
 
     Data m_data {};
 
-    Location m_location {};
-    UserInfo m_user_info {};
+    location_t m_location {};
+    userinfo_t m_user_info {};
 };
 }
 

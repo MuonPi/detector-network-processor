@@ -2,45 +2,45 @@
 
 namespace muonpi {
 
-void DetectorLog::add_item(DetectorLogItem item)
+void detector_log_t::add_item(detector_log_item item)
 {
-    if (item == DetectorLogItem {}) {
+    if (item == detector_log_item {}) {
         return;
     }
     m_items.emplace(item);
 }
 
-auto DetectorLog::has_items() const -> bool
+auto detector_log_t::has_items() const -> bool
 {
     return (!m_items.empty());
 }
 
-auto DetectorLog::next_item() -> DetectorLogItem
+auto detector_log_t::next_item() -> detector_log_item
 {
     if (!has_items()) {
-        return DetectorLogItem {};
+        return detector_log_item {};
     }
-    DetectorLogItem item { m_items.front() };
+    detector_log_item item { m_items.front() };
     m_items.pop();
     return item;
 }
 
-auto DetectorLog::log_id() const -> const std::string&
+auto detector_log_t::log_id() const -> const std::string&
 {
     return m_log_id;
 }
 
-void DetectorLog::set_userinfo(UserInfo user_info)
+void detector_log_t::set_userinfo(userinfo_t user_info)
 {
     m_userinfo = user_info;
 }
 
-void DetectorLog::set_log_id(const std::string& log_id)
+void detector_log_t::set_log_id(const std::string& log_id)
 {
     m_log_id = log_id;
 }
 
-auto DetectorLog::user_info() const -> UserInfo
+auto detector_log_t::user_info() const -> userinfo_t
 {
     return m_userinfo;
 }

@@ -4,7 +4,7 @@
 
 namespace muonpi {
 
-auto DetectorType::id() -> std::uint8_t
+auto detectorType::id() -> std::uint8_t
 {
     return 0;
 }

@@ -20,13 +20,13 @@ namespace muonpi {
 /**
  * @brief The state_supervisor class Supervises the program and collects metadata
  */
-class state_supervisor : public source::base<ClusterLog> {
+class state_supervisor : public source::base<cluster_log_t> {
 public:
     /**
      * @brief state_supervisor
      * @param log_sink The specific log sinks to send metadata to
      */
-    state_supervisor(sink::base<ClusterLog>& log_sink);
+    state_supervisor(sink::base<cluster_log_t>& log_sink);
 
     /**
      * @brief time_status Update the current timeout used
@@ -39,7 +39,7 @@ public:
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, Detector::Status status);
+    void detector_status(std::size_t hash, detector::Status status);
 
     /**
      * @brief step Gets called from the core class.
@@ -69,7 +69,7 @@ public:
     void stop();
 
 private:
-    std::map<std::size_t, Detector::Status> m_detectors;
+    std::map<std::size_t, detector::Status> m_detectors;
     std::chrono::milliseconds m_timeout {};
     std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
@@ -82,7 +82,7 @@ private:
 
     std::vector<thread_runner*> m_threads;
 
-    ClusterLog::Data m_current_data;
+    cluster_log_t::Data m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 
     ResourceTracker m_resource_tracker {};

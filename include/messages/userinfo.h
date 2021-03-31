@@ -5,7 +5,7 @@
 
 namespace muonpi {
 
-struct UserInfo {
+struct userinfo_t {
     std::string username {};
     std::string station_id {};
 

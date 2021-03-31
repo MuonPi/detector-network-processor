@@ -47,7 +47,7 @@ database<T>::database(link::database& link)
 }
 
 template <>
-void database<ClusterLog>::get(ClusterLog log)
+void database<cluster_log_t>::get(cluster_log_t log)
 {
     using namespace link::influx;
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
@@ -80,12 +80,12 @@ void database<ClusterLog>::get(ClusterLog log)
     fields << field { "outgoing", total_n };
 
     if (!fields.commit(nanosecondsUTC)) {
-        Log::warning() << "error writing ClusterLog item to DB";
+        Log::warning() << "error writing cluster_log_t item to DB";
     }
 }
 
 template <>
-void database<DetectorSummary>::get(DetectorSummary log)
+void database<detetor_summary_t>::get(detetor_summary_t log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::influx;
@@ -104,12 +104,12 @@ void database<DetectorSummary>::get(DetectorSummary log)
                                 .commit(nanosecondsUTC)) };
 
     if (!result) {
-        Log::warning() << "error writing DetectorSummary item to DB";
+        Log::warning() << "error writing detetor_summary_t item to DB";
     }
 }
 
 template <>
-void database<Event>::get(Event event)
+void database<event_t>::get(event_t event)
 {
     if (event.n() == 1) {
         // by default, don't write the single events to the db
@@ -134,14 +134,14 @@ void database<Event>::get(Event event)
                 << field { "time_ref", evt.data().gnss_time_grid }
                 << field { "valid_fix", evt.data().fix })
                  .commit(evt.start())) {
-            Log::warning() << "error writing L1Event item to DB";
+            Log::warning() << "error writing L1event_t item to DB";
             return;
         }
     }
 }
 
 template <>
-void database<DetectorLog>::get(DetectorLog log)
+void database<detector_log_t>::get(detector_log_t log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::influx;
@@ -151,7 +151,7 @@ void database<DetectorLog>::get(DetectorLog log)
           << tag { "site_id", log.user_info().site_id() };
 
     while (log.has_items()) {
-        DetectorLogItem item { log.next_item() };
+        detector_log_item item { log.next_item() };
         entry << field { item.name, item.value };
     }
 

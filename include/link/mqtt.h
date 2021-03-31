@@ -19,7 +19,7 @@ namespace muonpi::link {
 /**
  * @brief The mqtt class. Connects to a mqtt server and offers publish and subscribe methods.
  */
-class mqtt : public ThreadRunner {
+class mqtt : public thread_runner {
 public:
     enum class Status {
         Invalid,
@@ -151,17 +151,17 @@ public:
 
 protected:
     /**
-     * @brief pre_run Reimplemented from ThreadRunner
+     * @brief pre_run Reimplemented from thread_runner
      * @return 0 if the thread should start
      */
     [[nodiscard]] auto pre_run() -> int override;
     /**
-     * @brief step Reimplemented from ThreadRunner
+     * @brief step Reimplemented from thread_runner
      * @return 0 if the thread should continue running
      */
     [[nodiscard]] auto step() -> int override;
     /**
-     * @brief post_run Reimplemented from ThreadRunner
+     * @brief post_run Reimplemented from thread_runner
      * @return The return value of the thread loop
      */
     [[nodiscard]] auto post_run() -> int override;

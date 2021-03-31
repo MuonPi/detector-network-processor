@@ -69,7 +69,7 @@ private:
     handler m_handler {};
 };
 
-class service : public ThreadRunner {
+class service : public thread_runner {
 public:
     service(Config::Rest rest_config);
 

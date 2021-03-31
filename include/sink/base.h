@@ -29,7 +29,7 @@ public:
 };
 
 template <typename T>
-class threaded : public base<T>, public ThreadRunner {
+class threaded : public base<T>, public thread_runner {
 public:
     /**
      * @brief threaded
@@ -54,7 +54,7 @@ protected:
     void internal_get(T item);
 
     /**
-     * @brief step Reimplemented from ThreadRunner.
+     * @brief step Reimplemented from thread_runner.
      * Internally this uses the timeout given in the constructor, default is 5 seconds.
      * It waits for a maximum of timeout, if there is no item available,
      * it calls the process method without parameter, if yes it calls the overloaded process method with the item as parameter.
@@ -111,14 +111,14 @@ base<T>::~base() = default;
 
 template <typename T>
 threaded<T>::threaded(const std::string& name)
-    : ThreadRunner { name }
+    : thread_runner { name }
 {
     start();
 }
 
 template <typename T>
 threaded<T>::threaded(const std::string& name, std::chrono::milliseconds timeout)
-    : ThreadRunner { name }
+    : thread_runner { name }
     , m_timeout { timeout }
 {
     start();

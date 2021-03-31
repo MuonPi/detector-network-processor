@@ -41,7 +41,7 @@ void wrapper_callback_message(mosquitto* /*mqtt*/, void* object, const mosquitto
 }
 
 mqtt::mqtt(Config::Mqtt config)
-    : ThreadRunner { "mqtt" }
+    : thread_runner { "mqtt" }
     , m_config { std::move(config) }
     , m_mqtt { init(client_id().c_str()) }
 {
@@ -53,7 +53,7 @@ mqtt::mqtt(Config::Mqtt config)
 }
 
 mqtt::mqtt()
-    : ThreadRunner("mqtt")
+    : thread_runner("mqtt")
     , m_mqtt { init(client_id().c_str()) }
 {
 }

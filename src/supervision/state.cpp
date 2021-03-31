@@ -43,7 +43,7 @@ auto state_supervisor::step() -> int
     using namespace std::chrono;
 
     for (auto& thread : m_threads) {
-        if (thread->state() <= ThreadRunner::State::Stopped) {
+        if (thread->state() <= thread_runner::State::Stopped) {
             Log::warning() << "The thread " + thread->name() + ": " + thread->state_string();
             return -1;
         }
@@ -100,7 +100,7 @@ void state_supervisor::set_queue_size(std::size_t size)
     m_current_data.buffer_length = size;
 }
 
-void state_supervisor::add_thread(ThreadRunner* thread)
+void state_supervisor::add_thread(thread_runner* thread)
 {
     m_threads.push_back(thread);
 }

@@ -64,7 +64,7 @@ public:
      * @brief add_thread Add a thread to supervise. If this thread quits or has an error state, the main event loop will stop.
      * @param thread Pointer to the thread to supervise
      */
-    void add_thread(ThreadRunner* thread);
+    void add_thread(thread_runner* thread);
 
     void stop();
 
@@ -80,7 +80,7 @@ private:
     RateMeasurement<100, 5000> m_incoming_rate {};
     RateMeasurement<100, 5000> m_outgoing_rate {};
 
-    std::vector<ThreadRunner*> m_threads;
+    std::vector<thread_runner*> m_threads;
 
     ClusterLog::Data m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };

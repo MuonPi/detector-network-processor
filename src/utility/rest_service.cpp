@@ -17,7 +17,7 @@ void service_handler::set_handler(handler h)
 }
 
 service::service(Config::Rest rest_config)
-    : ThreadRunner("REST")
+    : thread_runner("REST")
     , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
     , m_rest_conf { std::move(rest_config) }
 {

@@ -6,52 +6,52 @@
 
 namespace muonpi {
 
-ThreadRunner::ThreadRunner(std::string name, bool use_custom_run)
+thread_runner::thread_runner(std::string name, bool use_custom_run)
     : m_use_custom_run { std::move(use_custom_run) }
     , m_name { std::move(name) }
 {
 }
 
-ThreadRunner::~ThreadRunner()
+thread_runner::~thread_runner()
 {
     finish();
 }
 
-void ThreadRunner::stop()
+void thread_runner::stop()
 {
     m_run = false;
     m_quit = true;
     m_condition.notify_all();
 }
 
-void ThreadRunner::join()
+void thread_runner::join()
 {
     if (m_run_future.valid()) {
         m_run_future.wait();
     }
 }
 
-auto ThreadRunner::step() -> int
+auto thread_runner::step() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::pre_run() -> int
+auto thread_runner::pre_run() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::post_run() -> int
+auto thread_runner::post_run() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::custom_run() -> int
+auto thread_runner::custom_run() -> int
 {
     return 0;
 }
 
-auto ThreadRunner::wait() -> int
+auto thread_runner::wait() -> int
 {
     if (!m_run_future.valid()) {
         return -1;
@@ -60,12 +60,12 @@ auto ThreadRunner::wait() -> int
     return m_run_future.get();
 }
 
-auto ThreadRunner::state() -> State
+auto thread_runner::state() -> State
 {
     return m_state;
 }
 
-auto ThreadRunner::run() -> int
+auto thread_runner::run() -> int
 {
     m_state = State::Initialising;
     struct StateGuard {
@@ -116,18 +116,18 @@ auto ThreadRunner::run() -> int
     return post_run();
 }
 
-void ThreadRunner::finish()
+void thread_runner::finish()
 {
     stop();
     join();
 }
 
-auto ThreadRunner::name() -> std::string
+auto thread_runner::name() -> std::string
 {
     return m_name;
 }
 
-auto ThreadRunner::state_string() -> std::string
+auto thread_runner::state_string() -> std::string
 {
     switch (m_state) {
     case State::Error:
@@ -146,16 +146,16 @@ auto ThreadRunner::state_string() -> std::string
     return {};
 }
 
-void ThreadRunner::start()
+void thread_runner::start()
 {
     if (m_state > State::Initial) {
         Log::info() << "Thread " + m_name + " already running, refusing to start.";
         return;
     }
-    m_run_future = std::async(std::launch::async, &ThreadRunner::run, this);
+    m_run_future = std::async(std::launch::async, &thread_runner::run, this);
 }
 
-void ThreadRunner::start_synchronuos()
+void thread_runner::start_synchronuos()
 {
     if (m_state > State::Initial) {
         return;

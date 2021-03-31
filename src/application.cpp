@@ -251,6 +251,7 @@ auto application::config(std::string filename) -> configuration
         << configuration::definition { "ldap_host", &Config::ldap.server }
 
         << configuration::definition { "rest_port", &Config::rest.port }
+        << configuration::definition { "rest_bind_address", &Config::rest.address }
         << configuration::definition { "rest_trigger_file", &Config::trigger.save_file }
         << configuration::definition { "rest_cert", &Config::rest.cert }
         << configuration::definition { "rest_privkey", &Config::rest.privkey }

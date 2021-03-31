@@ -225,19 +225,19 @@ auto main(int argc, char* argv[]) -> int
     MuonPi::StateSupervisor supervisor { *guard[2].clusterlog.sink };
     MuonPi::coincidence_filter coincidencefilter { *guard[2].event.sink, supervisor };
     MuonPi::TimeBaseSupervisor timebase_supervisor { coincidencefilter, coincidencefilter };
-    MuonPi::DetectorTracker detector_tracker { *guard[2].detectorsummary.sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
-    MuonPi::TriggerHandler trigger_handler { detector_tracker, MuonPi::Config::ldap, MuonPi::Config::trigger };
+    MuonPi::detector_tracker detectortracker { *guard[2].detectorsummary.sink, trigger_sink, timebase_supervisor, timebase_supervisor, supervisor };
+    MuonPi::TriggerHandler trigger_handler { detectortracker, MuonPi::Config::ldap, MuonPi::Config::trigger };
     MuonPi::rest::service rest_service { MuonPi::Config::rest };
 
-    MuonPi::Source::Mqtt<MuonPi::Event> event_source { detector_tracker, source_mqtt_link.subscribe("muonpi/data/#") };
-    MuonPi::Source::Mqtt<MuonPi::Event> l1_source { detector_tracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
-    MuonPi::Source::Mqtt<MuonPi::DetectorInfo<MuonPi::Location>> detector_location_source { detector_tracker, source_mqtt_link.subscribe("muonpi/log/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> event_source { detectortracker, source_mqtt_link.subscribe("muonpi/data/#") };
+    MuonPi::Source::Mqtt<MuonPi::Event> l1_source { detectortracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
+    MuonPi::Source::Mqtt<MuonPi::DetectorInfo<MuonPi::Location>> detector_location_source { detectortracker, source_mqtt_link.subscribe("muonpi/log/#") };
 
     MuonPi::Source::Mqtt<MuonPi::DetectorLog> detectorlog_source { *detectorlog.sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
     rest_service.add_handler(&trigger_handler);
 
-    supervisor.add_thread(&detector_tracker);
+    supervisor.add_thread(&detectortracker);
     supervisor.add_thread(&sink_mqtt_link);
     supervisor.add_thread(&source_mqtt_link);
     supervisor.add_thread(&rest_service);

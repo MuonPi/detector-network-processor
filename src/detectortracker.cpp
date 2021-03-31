@@ -13,8 +13,8 @@
 
 namespace MuonPi {
 
-DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<DetectorInfo<Location>> { "DetectorTracker", std::chrono::milliseconds { 100 } }
+detector_tracker::detector_tracker(Sink::Base<DetectorSummary>& summary_sink, Sink::Base<Trigger::Detector>& trigger_sink, Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink, StateSupervisor& supervisor)
+    : Sink::Threaded<DetectorInfo<Location>> { "detector_tracker", std::chrono::milliseconds { 100 } }
     , Source::Base<DetectorSummary> { summary_sink }
     , Source::Base<Trigger::Detector> { trigger_sink }
     , Pipeline<Event> { event_sink }
@@ -23,7 +23,7 @@ DetectorTracker::DetectorTracker(Sink::Base<DetectorSummary>& summary_sink, Sink
 {
 }
 
-void DetectorTracker::get(Event event)
+void detector_tracker::get(Event event)
 {
     auto detector { m_detectors.find(event.hash()) };
     if (detector == m_detectors.end()) {
@@ -42,12 +42,12 @@ void DetectorTracker::get(Event event)
     }
 }
 
-void DetectorTracker::get(DetectorInfo<Location> detector_info)
+void detector_tracker::get(DetectorInfo<Location> detector_info)
 {
     Threaded<DetectorInfo<Location>>::internal_get(std::move(detector_info));
 }
 
-auto DetectorTracker::process(DetectorInfo<Location> log) -> int
+auto detector_tracker::process(DetectorInfo<Location> log) -> int
 {
     auto detector { m_detectors.find(log.hash()) };
     if (detector == m_detectors.end()) {
@@ -60,7 +60,7 @@ auto DetectorTracker::process(DetectorInfo<Location> log) -> int
     return 0;
 }
 
-auto DetectorTracker::process() -> int
+auto detector_tracker::process() -> int
 {
     using namespace std::chrono;
 
@@ -100,7 +100,7 @@ auto DetectorTracker::process() -> int
     return 0;
 }
 
-void DetectorTracker::get(Trigger::Detector::Action action)
+void detector_tracker::get(Trigger::Detector::Action action)
 {
     std::size_t hash { std::hash<std::string> {}(action.setting.username + action.setting.station) };
     if (action.type == Trigger::Detector::Action::Activate) {
@@ -116,7 +116,7 @@ void DetectorTracker::get(Trigger::Detector::Action action)
     }
 }
 
-void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
+void detector_tracker::detector_status(std::size_t hash, Detector::Status status)
 {
     auto user_info { m_detectors[hash]->user_info() };
     if (status > Detector::Status::Deleted) {
@@ -166,7 +166,7 @@ void DetectorTracker::detector_status(std::size_t hash, Detector::Status status)
     save();
 }
 
-void DetectorTracker::load()
+void detector_tracker::load()
 {
     std::ifstream in { Config::files.state };
 
@@ -198,7 +198,7 @@ void DetectorTracker::load()
     }
 }
 
-void DetectorTracker::save()
+void detector_tracker::save()
 {
     std::ofstream out { Config::files.state };
 

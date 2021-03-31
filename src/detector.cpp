@@ -18,16 +18,16 @@ void Detector::enable()
     set_status(Status::Created);
 }
 
-Detector::Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& tracker)
+Detector::Detector(const DetectorInfo<Location>& initial_log, detector_tracker& tracker)
     : m_location { initial_log.item() }
     , m_hash { initial_log.hash() }
     , m_userinfo { initial_log.user_info() }
-    , m_detector_tracker { tracker }
+    , m_detectortracker { tracker }
 {
 }
 
-Detector::Detector(const std::string& serialised, DetectorTracker& tracker, bool stale)
-    : m_detector_tracker { tracker }
+Detector::Detector(const std::string& serialised, detector_tracker& tracker, bool stale)
+    : m_detectortracker { tracker }
 {
     MessageParser in { serialised, ' ' };
     if (in.size() < 10) {
@@ -121,7 +121,7 @@ void Detector::process(const DetectorInfo<Location>& info)
 void Detector::set_status(Status status)
 {
     if (m_status != status) {
-        m_detector_tracker.detector_status(m_hash, status);
+        m_detectortracker.detector_status(m_hash, status);
     }
     m_status = status;
 }

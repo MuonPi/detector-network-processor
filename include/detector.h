@@ -17,7 +17,7 @@ namespace MuonPi {
 // +++ forward declarations
 class Event;
 class StateSupervisor;
-class DetectorTracker;
+class detector_tracker;
 // --- forward declarations
 
 /**
@@ -46,7 +46,7 @@ public:
      * @brief Detector
      * @param initial_log The initial log message from which this detector object originates
      */
-    Detector(const DetectorInfo<Location>& initial_log, DetectorTracker& tracker);
+    Detector(const DetectorInfo<Location>& initial_log, detector_tracker& tracker);
 
     /**
      * @brief Detector Construct the detector from a serialised string
@@ -54,7 +54,7 @@ public:
      * @param tracker The detector tracker to use
      * @param stale whether the configuration is stale or not. If true, this detector will be marked as unreliable
      */
-    Detector(const std::string& serialised, DetectorTracker& tracker, bool stale);
+    Detector(const std::string& serialised, detector_tracker& tracker, bool stale);
 
     /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.
@@ -129,7 +129,7 @@ private:
     static constexpr std::chrono::system_clock::duration s_log_interval { std::chrono::seconds { 90 } };
     static constexpr std::chrono::system_clock::duration s_quit_interval { s_log_interval * 3 };
 
-    DetectorTracker& m_detector_tracker;
+    detector_tracker& m_detectortracker;
 
     CurrentRateType m_current_rate {};
     MeanRateType m_mean_rate {};

@@ -3,8 +3,7 @@ project(muondetector-cluster LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
-option(CLUSTER_BUILD_TIDY "run clang-tidy when building the project" OFF)
-option(CLUSTER_FORMAT "run clang-format when building the project" ON)
+option(CLUSTER_DISABLE_SSL "build the code so the rest service doesn't use SSL" OFF)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -13,15 +12,6 @@ set(PROJECT_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/output/bin")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake")
 
-
-if(${CLUSTER_BUILD_TIDY})
-  set(CMAKE_CXX_CLANG_TIDY
-      clang-tidy;
-      -header-filter=^global;
-      -checks=-*,bugprone-*,performace-*,readability-*,-readability-magic-numbers,modernize-*,hicpp-*,clang-analyzer-*;
-      -fix;
-      )
-endif(${CLUSTER_BUILD_TIDY})
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

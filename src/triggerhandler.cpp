@@ -253,8 +253,8 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
         }
 
         return request.response<rest::http::status::ok>(stream.str());
-
-    } else if (request.req.method() == rest::http::verb::post) {
+    }
+    if (request.req.method() == rest::http::verb::post) {
         auto trigger { trigger::detector::setting_t::from_string(body) };
 
         if (trigger.type == trigger::detector::setting_t::Invalid) {
@@ -274,7 +274,8 @@ auto trigger_handler::handle(rest::request request) -> rest::response_type
         save();
 
         return request.response<rest::http::status::created>("trigger created");
-    } else if (request.req.method() == rest::http::verb::delete_) {
+    }
+    if (request.req.method() == rest::http::verb::delete_) {
         auto trigger { trigger::detector::setting_t::from_string(body) };
 
         if (trigger.type == trigger::detector::setting_t::Invalid) {

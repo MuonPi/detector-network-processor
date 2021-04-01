@@ -95,7 +95,7 @@ auto database::send_string(const std::string& query) const -> bool
         << "&p=" << m_config.login.password
         << "&epoch=ms";
 
-    auto const host { m_config.host.c_str() };
+    const auto* const host { m_config.host.c_str() };
     auto const port { std::to_string(s_port) };
     const int version { 11 };
 

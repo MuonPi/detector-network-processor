@@ -4,6 +4,7 @@
 #include "utility/scopeguard.h"
 
 #include <sstream>
+#include <utility>
 
 namespace muonpi::rest {
 
@@ -40,8 +41,8 @@ private:
 };
 
 session::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler)
-    : m_stream(std::move(socket), ctx)
-    , m_handler { handler }
+    : m_stream { std::move(socket), ctx }
+    , m_handler { std::move(handler) }
 {
 }
 
@@ -157,9 +158,11 @@ service::service(Config::Rest rest_config)
     m_ctx.set_options(
         boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
 
+#ifndef CLUSTER_DISABLE_SSL
     m_ctx.use_private_key_file(m_rest_conf.privkey, ssl::context::file_format::pem);
     m_ctx.use_certificate_file(m_rest_conf.cert, ssl::context::file_format::pem);
     m_ctx.use_certificate_chain_file(m_rest_conf.fullchain);
+#endif // CLUSTER_DISABLE_SSL
 
     beast::error_code ec;
 

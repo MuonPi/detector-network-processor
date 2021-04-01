@@ -9,10 +9,9 @@ namespace muonpi::rest {
 
 void fail(beast::error_code ec, const std::string& what);
 
-class session
-{
+class session {
 public:
-    explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type (request_type)> handler);
+    explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler);
 
     void run();
 
@@ -32,15 +31,15 @@ private:
     http::request<http::string_body> m_req;
     std::shared_ptr<void> m_res;
 
-    std::function<response_type (request_type)> m_handler;
+    std::function<response_type(request_type)> m_handler;
 
     std::condition_variable m_done {};
     std::mutex m_mutex {};
 
-    constexpr static std::chrono::duration s_timeout {std::chrono::seconds{30}};
+    constexpr static std::chrono::duration s_timeout { std::chrono::seconds { 30 } };
 };
 
-session::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type (request_type)> handler)
+session::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler)
     : m_stream(std::move(socket), ctx)
     , m_handler { handler }
 {
@@ -50,9 +49,9 @@ void session::run()
 {
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
 
-    m_stream.async_handshake(ssl::stream_base::server,[&](beast::error_code ec){
-        scope_guard guard { [&]{notify();}};
-        if(ec) {
+    m_stream.async_handshake(ssl::stream_base::server, [&](beast::error_code ec) {
+        scope_guard guard { [&] { notify(); } };
+        if (ec) {
             fail(ec, "handshake");
             return;
         }
@@ -66,21 +65,21 @@ void session::run()
 
 void session::do_read()
 {
-    scope_guard guard { [&]{notify();}};
+    scope_guard guard { [&] { notify(); } };
     m_req = {};
 
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
 
-    http::async_read(m_stream, m_buffer, m_req,[&](beast::error_code ec, std::size_t bytes_transferred){on_read(ec, bytes_transferred);});
+    http::async_read(m_stream, m_buffer, m_req, [&](beast::error_code ec, std::size_t bytes_transferred) { on_read(ec, bytes_transferred); });
     guard.dismiss();
 }
 
 void session::do_close()
 {
-    scope_guard guard { [&]{notify();}};
+    scope_guard guard { [&] { notify(); } };
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
 
-    m_stream.async_shutdown([&](beast::error_code ec){
+    m_stream.async_shutdown([&](beast::error_code ec) {
         if (ec) {
             fail(ec, "shutdown");
         }
@@ -91,7 +90,7 @@ void session::do_close()
 
 void session::on_read(beast::error_code ec, std::size_t bytes_transferred)
 {
-    scope_guard guard { [&]{notify();}};
+    scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
 
     if (ec == http::error::end_of_stream) {
@@ -110,13 +109,13 @@ void session::on_read(beast::error_code ec, std::size_t bytes_transferred)
     http::async_write(
         m_stream,
         *sp,
-        [&](beast::error_code ec, std::size_t bytes_transferred){on_write(sp->need_eof(), ec, bytes_transferred);});
+        [&](beast::error_code ec, std::size_t bytes_transferred) { on_write(sp->need_eof(), ec, bytes_transferred); });
     guard.dismiss();
 }
 
 void session::on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
 {
-    scope_guard guard { [&]{notify();}};
+    scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
 
     if (ec) {
@@ -124,8 +123,7 @@ void session::on_write(bool close, beast::error_code ec, std::size_t bytes_trans
         return;
     }
 
-    if (close)
-    {
+    if (close) {
         do_close();
         return;
     }
@@ -140,10 +138,6 @@ void session::notify()
 {
     m_done.notify_all();
 }
-
-
-
-
 
 auto service_handler::get_handler() -> handler
 {
@@ -210,15 +204,15 @@ auto service::custom_run() -> int
 
 void service::do_accept()
 {
-    m_acceptor.async_accept([&](const beast::error_code& ec, tcp::socket socket){
+    m_acceptor.async_accept([&](const beast::error_code& ec, tcp::socket socket) {
         if (ec) {
             fail(ec, "on accept");
         } else {
-            std::thread([&]{
-                session sess{std::move(socket), m_ctx, [&](request_type req){return handle(std::move(req));}};
+            std::thread([&] {
+                session sess { std::move(socket), m_ctx, [&](request_type req) { return handle(std::move(req)); } };
                 sess.run();
             }).detach();
-            std::this_thread::sleep_for(std::chrono::milliseconds{2});
+            std::this_thread::sleep_for(std::chrono::milliseconds { 2 });
         }
         do_accept();
     });

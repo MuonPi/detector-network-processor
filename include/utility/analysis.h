@@ -2,10 +2,10 @@
 #define ANALYSIS_H
 
 #include <algorithm>
-#include <functional>
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <functional>
 #include <numeric>
 
 namespace muonpi {

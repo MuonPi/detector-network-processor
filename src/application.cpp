@@ -61,7 +61,7 @@ auto application::setup(std::vector<std::string> arguments) -> bool
     if (m_parameters["d"]) {
         log::manager::singleton()->add_sink(std::make_shared<log::stream_sink>(std::cerr));
     }
-    log::info()<<"muondetector-cluster " + Version::string();
+    log::info() << "muondetector-cluster " + Version::string();
     if (m_parameters["l"]) {
         Config::files.credentials = m_parameters["l"].value;
     }
@@ -124,7 +124,6 @@ auto application::run() -> int
         return -1;
     }
 
-
     sink::collection<event_t> collection_event_sink {};
     sink::collection<cluster_log_t> collection_clusterlog_sink {};
     sink::collection<detetor_summary_t> collection_detectorsummary_sink {};
@@ -140,7 +139,7 @@ auto application::run() -> int
         collection_clusterlog_sink.emplace(m_ascii_clusterlog_sink);
         collection_detectorsummary_sink.emplace(m_ascii_detectorsummary_sink);
     } else {
-        m_trigger_sink = new sink::mqtt<trigger::detector>{ sink_mqtt_link.publish("muonpi/trigger") };
+        m_trigger_sink = new sink::mqtt<trigger::detector> { sink_mqtt_link.publish("muonpi/trigger") };
         collection_trigger_sink.emplace(m_trigger_sink);
 
         if (!Config::meta.local_cluster) {
@@ -185,7 +184,6 @@ auto application::run() -> int
     source::mqtt<detetor_info_t<location_t>> detector_location_source { detectortracker, source_mqtt_link.subscribe("muonpi/log/#") };
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
-
 
     m_supervisor->add_thread(&detectortracker);
     m_supervisor->add_thread(&coincidencefilter);

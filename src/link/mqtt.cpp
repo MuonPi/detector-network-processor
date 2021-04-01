@@ -1,6 +1,6 @@
 #include "link/mqtt.h"
-#include "utility/log.h"
 #include "utility/exceptions.h"
+#include "utility/log.h"
 
 #include <cstring>
 #include <functional>
@@ -204,7 +204,7 @@ void mqtt::unsubscribe(const std::string& topic)
 auto mqtt::publish(const std::string& topic) -> publisher&
 {
     if (!check_connection()) {
-        log::error()<<"could not register mqtt publisher, not connected.";
+        log::error() << "could not register mqtt publisher, not connected.";
         throw error::mqtt_could_not_publish(topic, "Not connected");
     }
     if (m_publishers.find(topic) != m_publishers.end()) {
@@ -261,7 +261,7 @@ auto mqtt::p_subscribe(const std::string& topic) -> bool
 auto mqtt::subscribe(const std::string& topic) -> subscriber&
 {
     if (!check_connection()) {
-        log::error()<<"could not register mqtt subscriber, not connected.";
+        log::error() << "could not register mqtt subscriber, not connected.";
         throw error::mqtt_could_not_subscribe(topic, "Not connected");
     }
 
@@ -271,7 +271,7 @@ auto mqtt::subscribe(const std::string& topic) -> subscriber&
     }
 
     if (!p_subscribe(topic)) {
-        log::error()<<"could not register mqtt subscriber.";
+        log::error() << "could not register mqtt subscriber.";
         throw error::mqtt_could_not_subscribe(topic, "undisclosed error");
     }
     m_subscribers[topic] = std::make_unique<subscriber>(this, topic);

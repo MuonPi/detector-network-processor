@@ -7,18 +7,17 @@
 #include <utility>
 #include <variant>
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/error.hpp>
 #include <boost/asio/ssl/stream.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/version.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
-
 
 namespace muonpi::link {
 database::entry::entry(const std::string& measurement, database& link)
@@ -105,16 +104,15 @@ auto database::send_string(const std::string& query) const -> bool
     ctx.set_verify_mode(ssl::verify_none);
     tcp::resolver resolver(ioc);
     beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
-    if(! SSL_set_tlsext_host_name(stream.native_handle(), host))
-    {
-        beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
-        log::warning()<<"Could not write to database: " + ec.message();
+    if (!SSL_set_tlsext_host_name(stream.native_handle(), host)) {
+        beast::error_code ec { static_cast<int>(::ERR_get_error()), net::error::get_ssl_category() };
+        log::warning() << "Could not write to database: " + ec.message();
         return false;
     }
     auto const results = resolver.resolve(host, port);
     beast::get_lowest_layer(stream).connect(results);
     stream.handshake(ssl::stream_base::client);
-    http::request<http::string_body> req{http::verb::post, target.str(), version};
+    http::request<http::string_body> req { http::verb::post, target.str(), version };
     req.set(http::field::host, host);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
     req.set(http::field::body, query);
@@ -130,7 +128,7 @@ auto database::send_string(const std::string& query) const -> bool
     beast::error_code ec;
     stream.shutdown(ec);
     if (ec && (ec != net::error::eof)) { // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-        log::warning()<<"Could not write to database: " + ec.message();
+        log::warning() << "Could not write to database: " + ec.message();
         return false;
     }
     return true;

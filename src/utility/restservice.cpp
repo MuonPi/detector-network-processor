@@ -34,7 +34,7 @@ private:
 #ifndef CLUSTER_DISABLE_SSL
     beast::ssl_stream<beast::tcp_stream> m_stream;
 #else
-   beast::tcp_stream m_stream;
+    beast::tcp_stream m_stream;
 #endif
 
     beast::flat_buffer m_buffer;
@@ -78,7 +78,7 @@ void session::run()
         do_read();
     });
 #else
-    net::dispatch(m_stream.get_executor(), [&]{do_read();});
+    net::dispatch(m_stream.get_executor(), [&] { do_read(); });
 #endif
 
     std::unique_lock<std::mutex> lock { m_mutex };

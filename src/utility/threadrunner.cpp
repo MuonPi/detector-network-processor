@@ -89,11 +89,11 @@ auto thread_runner::run() -> int
     } };
 
     try {
-    log::debug() << "Starting thread " + m_name;
-    int pre_result { pre_run() };
-    if (pre_result != 0) {
-        return pre_result;
-    }
+        log::debug() << "Starting thread " + m_name;
+        int pre_result { pre_run() };
+        if (pre_result != 0) {
+            return pre_result;
+        }
         m_state = State::Running;
         if (m_use_custom_run) {
             int result { custom_run() };
@@ -109,10 +109,10 @@ auto thread_runner::run() -> int
                 }
             }
         }
-    m_state = State::Finalising;
-    log::debug() << "Stopping thread " + m_name;
-    clean = true;
-    return post_run();
+        m_state = State::Finalising;
+        log::debug() << "Stopping thread " + m_name;
+        clean = true;
+        return post_run();
     } catch (std::exception& e) {
         log::error() << "Thread " + m_name + "Got an uncaught exception: " + std::string { e.what() };
         return -1;

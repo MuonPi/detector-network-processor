@@ -69,21 +69,21 @@ auto resource_tracker::get_data() -> data_t
 
     long page_size_b = sysconf(_SC_PAGE_SIZE);
 
-    float total = cpu_total - m_cpu.total_time_last;
-    float process = process_user + process_system - m_cpu.process_time_last;
-    float system = system_user + system_system + system_nice - m_cpu.system_time_last;
+    float total = static_cast<float>(cpu_total - m_cpu.total_time_last);
+    float process = static_cast<float>(process_user + process_system - m_cpu.process_time_last);
+    float system = static_cast<float>(system_user + system_system + system_nice - m_cpu.system_time_last);
     m_cpu.total_time_last = cpu_total;
     m_cpu.process_time_last = process_user + process_system;
     m_cpu.system_time_last = system_user + system_system + system_nice;
 
     data_t data;
-    data.memory_usage = rss * page_size_b;
+    data.memory_usage = static_cast<float>(rss * page_size_b);
     data.process_cpu_load = 0;
     data.system_cpu_load = 0;
 
     if (!m_first) {
-        data.process_cpu_load = 100.0 * process / std::max(total, 1.0F);
-        data.system_cpu_load = 100.0 * system / std::max(total, 1.0F);
+        data.process_cpu_load = 100.0F * process / std::max(total, 1.0F);
+        data.system_cpu_load = 100.0F * system / std::max(total, 1.0F);
     } else {
         m_first = false;
     }

@@ -124,6 +124,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
     "${PROJECT_HEADER_DIR}/utility/analysis.h"
+    "${PROJECT_HEADER_DIR}/utility/exceptions.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"
@@ -186,8 +187,10 @@ endif()
 
 include(GNUInstallDirs)
 
+if (CMAKE_BUILD_TYPE STREQUAL Release)
 add_custom_target(changelog-cluster ALL COMMAND gzip -cn9 "${PROJECT_CONFIG_DIR}/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz")
 add_custom_target(manpage-cluster ALL COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1" > "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1.gz")
+endif ()
 
 add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/main.cpp")
 

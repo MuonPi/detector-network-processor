@@ -1,6 +1,7 @@
 ﻿#include "utility/configuration.h"
 #include "utility/log.h"
 #include "utility/utility.h"
+#include "utility/exceptions.h"
 
 #include <filesystem>
 #include <fstream>
@@ -121,7 +122,7 @@ auto configuration::operator[](const std::string& name) -> definition&
 {
     if (m_options.find(name) == m_options.end()) {
         log::error()<<"could not find configuration option.";
-        throw "could not find configuration option.";
+        throw error::config_option_not_found{name};
     }
     return m_options[name];
 }

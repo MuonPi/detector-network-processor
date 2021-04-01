@@ -109,7 +109,7 @@ manager::logger<L>::logger(manager& log)
 template <Level L>
 auto manager::logger<L>::operator<<(std::string message) -> logger<L>&
 {
-    m_log.send(message_t { L, message });
+    m_log.send(message_t { L, std::move(message) });
     return *this;
 }
 

@@ -291,7 +291,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
     auto it = handlers.begin();
     for (; it != handlers.end(); it++) {
         if ((*it).matches(path.front())) {
-            continue;
+            break;
         }
     }
     if (it == handlers.end()) {

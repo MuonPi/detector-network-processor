@@ -53,6 +53,12 @@ auto DetectorTracker::process(DetectorInfo<Location> log) -> int
     if (detector == m_detectors.end()) {
         m_detectors[log.hash()] = std::make_unique<Detector>(log, *this);
         m_detectors[log.hash()]->enable();
+        auto userinfo { m_detectors[log.hash()]->user_info() };
+        m_detector_triggers[log.hash()][Trigger::Detector::Setting::Type::Online] = Trigger::Detector::Setting { Trigger::Detector::Setting::Type::Online, userinfo.username, userinfo.station_id };
+        m_detector_triggers[log.hash()][Trigger::Detector::Setting::Type::Offline] = Trigger::Detector::Setting { Trigger::Detector::Setting::Type::Offline, userinfo.username, userinfo.station_id };
+        m_detector_triggers[log.hash()][Trigger::Detector::Setting::Type::Reliable] = Trigger::Detector::Setting { Trigger::Detector::Setting::Type::Reliable, userinfo.username, userinfo.station_id };
+        m_detector_triggers[log.hash()][Trigger::Detector::Setting::Type::Unreliable] = Trigger::Detector::Setting { Trigger::Detector::Setting::Type::Unreliable, userinfo.username, userinfo.station_id };
+
         save();
         return 0;
     }

@@ -12,107 +12,20 @@ void fail(beast::error_code ec, const std::string& what);
 class session
 {
 public:
-    explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type (request_type)> handler)
-        : m_stream(std::move(socket), ctx)
-        , m_handler { handler }
-    {
-    }
+    explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type (request_type)> handler);
 
-    void run()
-    {
-        beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+    void run();
 
-        m_stream.async_handshake(ssl::stream_base::server,[&](beast::error_code ec){
-            scope_guard guard { [&]{notify();}};
-            if(ec) {
-                fail(ec, "handshake");
-                return;
-            }
-            guard.dismiss();
-            do_read();
-        });
+    void do_read();
 
-        std::unique_lock<std::mutex> lock { m_mutex };
-        m_done.wait(lock);
-    }
+    void do_close();
 
-    void do_read()
-    {
-        scope_guard guard { [&]{notify();}};
-        m_req = {};
+    void on_read(beast::error_code ec, std::size_t bytes_transferred);
 
-        beast::get_lowest_layer(m_stream).expires_after(s_timeout);
-
-        http::async_read(m_stream, m_buffer, m_req,[&](beast::error_code ec, std::size_t bytes_transferred){on_read(ec, bytes_transferred);});
-        guard.dismiss();
-    }
-
-    void do_close()
-    {
-        scope_guard guard { [&]{notify();}};
-        beast::get_lowest_layer(m_stream).expires_after(s_timeout);
-
-        m_stream.async_shutdown([&](beast::error_code ec){
-            if (ec) {
-                fail(ec, "shutdown");
-            }
-            notify();
-        });
-        guard.dismiss();
-    }
-
-    void on_read(beast::error_code ec, std::size_t bytes_transferred)
-    {
-        scope_guard guard { [&]{notify();}};
-        boost::ignore_unused(bytes_transferred);
-
-        if (ec == http::error::end_of_stream) {
-            do_close();
-            return;
-        }
-
-        if (ec) {
-            fail(ec, "read");
-            return;
-        }
-
-        auto sp { std::make_shared<http::message<false, http::string_body>>(m_handler(std::move(m_req))) };
-
-        m_res = sp;
-        http::async_write(
-            m_stream,
-            *sp,
-            [&](beast::error_code ec, std::size_t bytes_transferred){on_write(sp->need_eof(), ec, bytes_transferred);});
-        guard.dismiss();
-    }
-
-    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
-    {
-        scope_guard guard { [&]{notify();}};
-        boost::ignore_unused(bytes_transferred);
-
-        if (ec) {
-            fail(ec, "write");
-            return;
-        }
-
-        if (close)
-        {
-            do_close();
-            return;
-        }
-
-        m_res = nullptr;
-
-        do_read();
-        guard.dismiss();
-    }
+    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred);
 
 private:
-    void notify()
-    {
-        m_done.notify_all();
-    }
+    void notify();
 
     beast::ssl_stream<beast::tcp_stream> m_stream;
     beast::flat_buffer m_buffer;
@@ -126,6 +39,111 @@ private:
 
     constexpr static std::chrono::duration s_timeout {std::chrono::seconds{30}};
 };
+
+session::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type (request_type)> handler)
+    : m_stream(std::move(socket), ctx)
+    , m_handler { handler }
+{
+}
+
+void session::run()
+{
+    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+    m_stream.async_handshake(ssl::stream_base::server,[&](beast::error_code ec){
+        scope_guard guard { [&]{notify();}};
+        if(ec) {
+            fail(ec, "handshake");
+            return;
+        }
+        guard.dismiss();
+        do_read();
+    });
+
+    std::unique_lock<std::mutex> lock { m_mutex };
+    m_done.wait(lock);
+}
+
+void session::do_read()
+{
+    scope_guard guard { [&]{notify();}};
+    m_req = {};
+
+    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+    http::async_read(m_stream, m_buffer, m_req,[&](beast::error_code ec, std::size_t bytes_transferred){on_read(ec, bytes_transferred);});
+    guard.dismiss();
+}
+
+void session::do_close()
+{
+    scope_guard guard { [&]{notify();}};
+    beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+    m_stream.async_shutdown([&](beast::error_code ec){
+        if (ec) {
+            fail(ec, "shutdown");
+        }
+        notify();
+    });
+    guard.dismiss();
+}
+
+void session::on_read(beast::error_code ec, std::size_t bytes_transferred)
+{
+    scope_guard guard { [&]{notify();}};
+    boost::ignore_unused(bytes_transferred);
+
+    if (ec == http::error::end_of_stream) {
+        do_close();
+        return;
+    }
+
+    if (ec) {
+        fail(ec, "read");
+        return;
+    }
+
+    auto sp { std::make_shared<http::message<false, http::string_body>>(m_handler(std::move(m_req))) };
+
+    m_res = sp;
+    http::async_write(
+        m_stream,
+        *sp,
+        [&](beast::error_code ec, std::size_t bytes_transferred){on_write(sp->need_eof(), ec, bytes_transferred);});
+    guard.dismiss();
+}
+
+void session::on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
+{
+    scope_guard guard { [&]{notify();}};
+    boost::ignore_unused(bytes_transferred);
+
+    if (ec) {
+        fail(ec, "write");
+        return;
+    }
+
+    if (close)
+    {
+        do_close();
+        return;
+    }
+
+    m_res = nullptr;
+
+    do_read();
+    guard.dismiss();
+}
+
+void session::notify()
+{
+    m_done.notify_all();
+}
+
+
+
+
 
 auto service_handler::get_handler() -> handler
 {

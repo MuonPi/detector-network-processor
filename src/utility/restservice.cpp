@@ -1,10 +1,131 @@
-#include "utility/restservice.h"
+﻿#include "utility/restservice.h"
 #include "utility/base64.h"
 #include "utility/log.h"
+#include "utility/scopeguard.h"
 
 #include <sstream>
 
 namespace muonpi::rest {
+
+void fail(beast::error_code ec, const std::string& what);
+
+class session
+{
+public:
+    explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type (request_type)> handler)
+        : m_stream(std::move(socket), ctx)
+        , m_handler { handler }
+    {
+    }
+
+    void run()
+    {
+        beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+        m_stream.async_handshake(ssl::stream_base::server,[&](beast::error_code ec){
+            scope_guard guard { [&]{notify();}};
+            if(ec) {
+                fail(ec, "handshake");
+                return;
+            }
+            guard.dismiss();
+            do_read();
+        });
+
+        std::unique_lock<std::mutex> lock { m_mutex };
+        m_done.wait(lock);
+    }
+
+    void do_read()
+    {
+        scope_guard guard { [&]{notify();}};
+        m_req = {};
+
+        beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+        http::async_read(m_stream, m_buffer, m_req,[&](beast::error_code ec, std::size_t bytes_transferred){on_read(ec, bytes_transferred);});
+        guard.dismiss();
+    }
+
+    void do_close()
+    {
+        scope_guard guard { [&]{notify();}};
+        beast::get_lowest_layer(m_stream).expires_after(s_timeout);
+
+        m_stream.async_shutdown([&](beast::error_code ec){
+            if (ec) {
+                fail(ec, "shutdown");
+            }
+            notify();
+        });
+        guard.dismiss();
+    }
+
+    void on_read(beast::error_code ec, std::size_t bytes_transferred)
+    {
+        scope_guard guard { [&]{notify();}};
+        boost::ignore_unused(bytes_transferred);
+
+        if (ec == http::error::end_of_stream) {
+            do_close();
+            return;
+        }
+
+        if (ec) {
+            fail(ec, "read");
+            return;
+        }
+
+        auto sp { std::make_shared<http::message<false, http::string_body>>(m_handler(std::move(m_req))) };
+
+        m_res = sp;
+        http::async_write(
+            m_stream,
+            *sp,
+            [&](beast::error_code ec, std::size_t bytes_transferred){on_write(sp->need_eof(), ec, bytes_transferred);});
+        guard.dismiss();
+    }
+
+    void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
+    {
+        scope_guard guard { [&]{notify();}};
+        boost::ignore_unused(bytes_transferred);
+
+        if (ec) {
+            fail(ec, "write");
+            return;
+        }
+
+        if (close)
+        {
+            do_close();
+            return;
+        }
+
+        m_res = nullptr;
+
+        do_read();
+        guard.dismiss();
+    }
+
+private:
+    void notify()
+    {
+        m_done.notify_all();
+    }
+
+    beast::ssl_stream<beast::tcp_stream> m_stream;
+    beast::flat_buffer m_buffer;
+    http::request<http::string_body> m_req;
+    std::shared_ptr<void> m_res;
+
+    std::function<response_type (request_type)> m_handler;
+
+    std::condition_variable m_done {};
+    std::mutex m_mutex {};
+
+    constexpr static std::chrono::duration s_timeout {std::chrono::seconds{30}};
+};
 
 auto service_handler::get_handler() -> handler
 {
@@ -17,7 +138,7 @@ void service_handler::set_handler(handler h)
 }
 
 service::service(Config::Rest rest_config)
-    : thread_runner("REST")
+    : thread_runner("REST", true)
     , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
     , m_rest_conf { std::move(rest_config) }
 {
@@ -62,62 +183,32 @@ void service::add_handler(service_handler* han)
     m_handler.emplace_back(han->get_handler());
 }
 
-auto service::step() -> int
+auto service::custom_run() -> int
 {
-    tcp::socket socket { m_ioc };
-
-    m_acceptor.accept(socket);
-
-    auto f { std::async(std::launch::async, [&] { session(socket); }) };
+    do_accept();
+    m_ioc.run();
     return 0;
 }
 
-void service::session(tcp::socket& socket)
+void service::do_accept()
 {
-    beast::error_code ec;
-
-    beast::ssl_stream<tcp::socket&> stream { socket, m_ctx };
-
-    stream.handshake(ssl::stream_base::server, ec);
-
-    if (ec) {
-        fail(ec, "handshake");
-        return;
-    }
-
-    beast::flat_buffer buffer;
-
-    for (bool close { false }; !close;) {
-        http::request<http::string_body> req;
-        http::read(stream, buffer, req, ec);
-        if (ec == http::error::end_of_stream) {
-            break;
-        }
-
+    m_acceptor.async_accept([&](const beast::error_code& ec, tcp::socket socket){
         if (ec) {
-            fail(ec, "read");
-            return;
+            fail(ec, "on accept");
+        } else {
+            std::thread([&]{
+                session sess{std::move(socket), m_ctx, [&](request_type req){return handle(std::move(req));}};
+                sess.run();
+            }).detach();
+            std::this_thread::sleep_for(std::chrono::milliseconds{2});
         }
+        do_accept();
+    });
+}
 
-        auto res { handle(std::move(req)) };
-
-        close = res.need_eof();
-
-        http::serializer<false, http::string_body> sr { res };
-
-        http::write(stream, sr, ec);
-
-        if (ec) {
-            fail(ec, "write");
-            return;
-        }
-    }
-
-    stream.shutdown(ec);
-
-    if (ec) {
-        fail(ec, "shutdown");
-    }
+void service::on_stop()
+{
+    m_ioc.stop();
 }
 
 auto service::handle(request_type req) const -> response_type
@@ -190,7 +281,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
     return handle(std::move(req), std::move(path), hand.children);
 }
 
-void service::fail(beast::error_code ec, const std::string& what)
+void fail(beast::error_code ec, const std::string& what)
 {
     if (ec == net::ssl::error::stream_truncated) {
         return;

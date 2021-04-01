@@ -23,6 +23,7 @@ void thread_runner::stop()
     m_run = false;
     m_quit = true;
     m_condition.notify_all();
+    on_stop();
 }
 
 void thread_runner::join()
@@ -50,6 +51,10 @@ auto thread_runner::post_run() -> int
 auto thread_runner::custom_run() -> int
 {
     return 0;
+}
+
+void thread_runner::on_stop()
+{
 }
 
 auto thread_runner::wait() -> int

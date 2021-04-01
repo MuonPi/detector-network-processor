@@ -115,7 +115,6 @@ auto application::setup(std::vector<std::string> arguments) -> bool
 auto application::run() -> int
 {
     link::mqtt source_mqtt_link { Config::source_mqtt };
-
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
@@ -130,6 +129,7 @@ auto application::run() -> int
     sink::collection<cluster_log_t> collection_clusterlog_sink {};
     sink::collection<detetor_summary_t> collection_detectorsummary_sink {};
     sink::collection<trigger::detector> collection_trigger_sink {};
+    sink::collection<detector_log_t> collection_detectorlog_sink {};
 
     if (m_parameters["d"]) {
         m_ascii_event_sink = new sink::ascii<event_t> { std::cout };
@@ -167,6 +167,7 @@ auto application::run() -> int
         collection_event_sink.emplace(m_event_sink);
         collection_clusterlog_sink.emplace(m_clusterlog_sink);
         collection_detectorsummary_sink.emplace(m_detectorsummary_sink);
+        collection_detectorlog_sink.emplace(m_detectorlog_sink);
     }
 
     m_supervisor = new state_supervisor { collection_clusterlog_sink };
@@ -183,7 +184,7 @@ auto application::run() -> int
     source::mqtt<event_t> l1_source { detectortracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
     source::mqtt<detetor_info_t<location_t>> detector_location_source { detectortracker, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    source::mqtt<detector_log_t> detectorlog_source { *m_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
+    source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
 
     m_supervisor->add_thread(&detectortracker);
@@ -193,6 +194,8 @@ auto application::run() -> int
     m_supervisor->add_thread(&collection_event_sink);
     m_supervisor->add_thread(&collection_detectorsummary_sink);
     m_supervisor->add_thread(&collection_clusterlog_sink);
+    m_supervisor->add_thread(&collection_trigger_sink);
+    m_supervisor->add_thread(&collection_detectorlog_sink);
 
     s_shutdown_handler = [this](int signal) { signal_handler(signal); };
 

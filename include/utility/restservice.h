@@ -69,6 +69,7 @@ private:
     handler m_handler {};
 };
 
+
 class service : public thread_runner {
 public:
     service(Config::Rest rest_config);
@@ -76,18 +77,16 @@ public:
     void add_handler(service_handler* han);
 
 protected:
-    [[nodiscard]] auto step() -> int override;
+    [[nodiscard]] auto custom_run() -> int override;
+
+    void do_accept();
+
+    void on_stop() override;
 
 private:
-    void session(tcp::socket& socket);
-
-    void send();
-
     [[nodiscard]] auto handle(request_type req) const -> response_type;
 
     [[nodiscard]] auto handle(request_type req, std::queue<std::string> path, const std::vector<handler>& handlers) const -> response_type;
-
-    static void fail(beast::error_code ec, const std::string& what);
 
     std::vector<handler> m_handler {};
 

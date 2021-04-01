@@ -78,6 +78,8 @@ protected:
 
     [[nodiscard]] virtual auto custom_run() -> int;
 
+    virtual void on_stop();
+
     /**
      * @brief finish Tells the main loop to finish and waits for the thread to exit
      */

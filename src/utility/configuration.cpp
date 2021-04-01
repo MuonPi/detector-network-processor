@@ -120,7 +120,8 @@ void configuration::set_filename(const std::string& filename)
 auto configuration::operator[](const std::string& name) -> definition&
 {
     if (m_options.find(name) == m_options.end()) {
-        throw -1;
+        log::error()<<"could not find configuration option.";
+        throw "could not find configuration option.";
     }
     return m_options[name];
 }

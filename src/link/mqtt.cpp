@@ -203,7 +203,8 @@ void mqtt::unsubscribe(const std::string& topic)
 auto mqtt::publish(const std::string& topic) -> publisher&
 {
     if (!check_connection()) {
-        throw -1;
+        log::error()<<"could not register mqtt publisher, not connected.";
+        throw "Not connected to mqtt.";
     }
     if (m_publishers.find(topic) != m_publishers.end()) {
         return { *m_publishers[topic] };
@@ -259,7 +260,8 @@ auto mqtt::p_subscribe(const std::string& topic) -> bool
 auto mqtt::subscribe(const std::string& topic) -> subscriber&
 {
     if (!check_connection()) {
-        throw -1;
+        log::error()<<"could not register mqtt subscriber, not connected.";
+        throw "Not connected to mqtt.";
     }
 
     if (m_subscribers.find(topic) != m_subscribers.end()) {
@@ -268,7 +270,8 @@ auto mqtt::subscribe(const std::string& topic) -> subscriber&
     }
 
     if (!p_subscribe(topic)) {
-        throw -1;
+        log::error()<<"could not register mqtt subscriber.";
+        throw "could not subscribe";
     }
     m_subscribers[topic] = std::make_unique<subscriber>(this, topic);
     return { *m_subscribers[topic] };

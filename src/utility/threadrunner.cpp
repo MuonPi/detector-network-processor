@@ -28,6 +28,10 @@ void thread_runner::stop()
 
 void thread_runner::join()
 {
+    if ((m_thread != nullptr) && m_thread->joinable()) {
+        m_thread->join();
+        m_thread.reset();
+    }
     if (m_run_future.valid()) {
         m_run_future.wait();
     }
@@ -84,12 +88,12 @@ auto thread_runner::run() -> int
         }
     } };
 
+    try {
     log::debug() << "Starting thread " + m_name;
     int pre_result { pre_run() };
     if (pre_result != 0) {
         return pre_result;
     }
-    try {
         m_state = State::Running;
         if (m_use_custom_run) {
             int result { custom_run() };
@@ -105,6 +109,10 @@ auto thread_runner::run() -> int
                 }
             }
         }
+    m_state = State::Finalising;
+    log::debug() << "Stopping thread " + m_name;
+    clean = true;
+    return post_run();
     } catch (std::exception& e) {
         log::error() << "Thread " + m_name + "Got an uncaught exception: " + std::string { e.what() };
         return -1;
@@ -112,10 +120,19 @@ auto thread_runner::run() -> int
         log::error() << "Thread " + m_name + "Got an uncaught exception.";
         return -1;
     }
-    m_state = State::Finalising;
-    log::debug() << "Stopping thread " + m_name;
-    clean = true;
-    return post_run();
+}
+
+void thread_runner::exec()
+{
+    if ((m_thread != nullptr)) {
+        auto handle { m_thread->native_handle() };
+        pthread_setname_np(handle, m_name.c_str());
+    }
+
+    std::promise<int> promise {};
+    m_run_future = promise.get_future();
+    int value = run();
+    promise.set_value(value);
 }
 
 void thread_runner::finish()
@@ -154,7 +171,7 @@ void thread_runner::start()
         log::info() << "Thread " + m_name + " already running, refusing to start.";
         return;
     }
-    m_run_future = std::async(std::launch::async, &thread_runner::run, this);
+    m_thread = std::make_unique<std::thread>(&thread_runner::exec, this);
 }
 
 void thread_runner::start_synchronuos()
@@ -162,10 +179,7 @@ void thread_runner::start_synchronuos()
     if (m_state > State::Initial) {
         return;
     }
-    std::promise<int> promise {};
-    m_run_future = promise.get_future();
-    int value = run();
-    promise.set_value(value);
+    exec();
 }
 
 }

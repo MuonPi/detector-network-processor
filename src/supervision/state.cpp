@@ -44,7 +44,7 @@ auto state_supervisor::step() -> int
 
     for (auto& thread : m_threads) {
         if (thread->state() <= thread_runner::State::Stopped) {
-            log::warning() << "The thread " + thread->name() + ": " + thread->state_string();
+            log::warning() << "The thread '" + thread->name() + "' stopped: " + thread->state_string();
             return -1;
         }
     }

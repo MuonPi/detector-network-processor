@@ -21,6 +21,7 @@ public:
         Finalising
     };
     thread_runner(std::string name, bool use_custom_run = false);
+
     /**
      * @brief ~thread_runner Stops the thread and waits for it to finish.
      */
@@ -78,6 +79,8 @@ protected:
 
     [[nodiscard]] virtual auto custom_run() -> int;
 
+    void exec();
+
     virtual void on_stop();
 
     /**
@@ -116,6 +119,8 @@ private:
     std::string m_name {};
 
     State m_state { State::Initial };
+
+    std::unique_ptr<std::thread> m_thread { nullptr };
 };
 
 }

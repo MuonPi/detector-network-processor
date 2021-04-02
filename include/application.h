@@ -21,9 +21,6 @@ namespace muonpi {
 
 class application {
 public:
-    application();
-    ~application();
-
     [[nodiscard]] auto setup(std::vector<std::string> arguments) -> bool;
     [[nodiscard]] auto run() -> int;
 
@@ -36,23 +33,27 @@ private:
 
     parameters m_parameters { parameter() };
 
-    link::database* m_db_link { nullptr };
 
-    sink::base<trigger::detector>* m_trigger_sink { nullptr };
+    std::unique_ptr<link::database> m_db_link { nullptr };
 
-    sink::base<event_t>* m_event_sink { nullptr };
-    sink::base<cluster_log_t>* m_clusterlog_sink { nullptr };
-    sink::base<detetor_summary_t>* m_detectorsummary_sink { nullptr };
+    template <typename T>
+    using sink_ptr = std::unique_ptr<sink::base<T>>;
 
-    sink::base<event_t>* m_broadcast_event_sink { nullptr };
+    sink_ptr<trigger::detector> m_trigger_sink { nullptr };
 
-    sink::base<detector_log_t>* m_detectorlog_sink { nullptr };
+    sink_ptr<event_t> m_event_sink { nullptr };
+    sink_ptr<cluster_log_t> m_clusterlog_sink { nullptr };
+    sink_ptr<detetor_summary_t> m_detectorsummary_sink { nullptr };
 
-    sink::base<event_t>* m_ascii_event_sink { nullptr };
-    sink::base<cluster_log_t>* m_ascii_clusterlog_sink { nullptr };
-    sink::base<detetor_summary_t>* m_ascii_detectorsummary_sink { nullptr };
+    sink_ptr<event_t> m_broadcast_event_sink { nullptr };
 
-    state_supervisor* m_supervisor { nullptr };
+    sink_ptr<detector_log_t> m_detectorlog_sink { nullptr };
+
+    sink_ptr<event_t> m_ascii_event_sink { nullptr };
+    sink_ptr<cluster_log_t> m_ascii_clusterlog_sink { nullptr };
+    sink_ptr<detetor_summary_t> m_ascii_detectorsummary_sink { nullptr };
+
+    std::unique_ptr<state_supervisor> m_supervisor { nullptr };
 
     static std::function<void(int)> s_shutdown_handler;
 

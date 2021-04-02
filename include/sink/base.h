@@ -1,4 +1,4 @@
-#ifndef SINKBASE_H
+﻿#ifndef SINKBASE_H
 #define SINKBASE_H
 
 #include "utility/threadrunner.h"
@@ -95,7 +95,7 @@ public:
 
     void get(T item) override;
 
-    void emplace(base<T>* sink);
+    void emplace(base<T>& sink);
 
 protected:
     /**
@@ -106,7 +106,16 @@ protected:
     [[nodiscard]] auto process(T item) -> int override;
 
 private:
-    std::vector<base<T>*> m_sinks {};
+    struct forward
+    {
+        base<T>& sink;
+
+        inline void put(T item) {
+            sink.get(std::move(item));
+        }
+    };
+
+    std::vector<forward> m_sinks {};
 };
 
 template <typename T>
@@ -202,16 +211,16 @@ void collection<T>::get(T item)
 template <typename T>
 auto collection<T>::process(T item) -> int
 {
-    for (auto* sink : m_sinks) {
-        sink->get(item);
+    for (auto& fwd : m_sinks) {
+        fwd.put(item);
     }
     return 0;
 }
 
 template <typename T>
-void collection<T>::emplace(base<T>* sink)
+void collection<T>::emplace(base<T>& sink)
 {
-    m_sinks.emplace_back(sink);
+    m_sinks.emplace_back(forward{sink});
 }
 
 }

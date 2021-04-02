@@ -34,7 +34,7 @@ public:
      * @brief mqtt
      * @param publisher The topic from which the messages should be published
      */
-    mqtt(link::mqtt::publisher& publisher);
+    mqtt(link::mqtt::publisher& publisher, bool detailed = false);
 
     ~mqtt() override;
 
@@ -74,8 +74,9 @@ private:
 };
 
 template <typename T>
-mqtt<T>::mqtt(link::mqtt::publisher& publisher)
+mqtt<T>::mqtt(link::mqtt::publisher& publisher, bool detailed)
     : m_link { publisher }
+    , m_detailed { detailed }
 {
 }
 

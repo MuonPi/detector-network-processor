@@ -152,8 +152,7 @@ auto application::run() -> int
 
     trigger_handler triggerhandler { detectortracker, Config::ldap, Config::trigger };
     rest::service rest_service { Config::rest };
-    rest_service.add_handler(&triggerhandler);
-    m_supervisor->add_thread(&rest_service);
+    rest_service.add_handler(triggerhandler);
 
     source::mqtt<event_t> event_source { detectortracker, source_mqtt_link.subscribe("muonpi/data/#") };
     source::mqtt<event_t> l1_source { detectortracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
@@ -161,15 +160,16 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    m_supervisor->add_thread(&detectortracker);
-    m_supervisor->add_thread(&coincidencefilter);
-    m_supervisor->add_thread(&sink_mqtt_link);
-    m_supervisor->add_thread(&source_mqtt_link);
-    m_supervisor->add_thread(&collection_event_sink);
-    m_supervisor->add_thread(&collection_detectorsummary_sink);
-    m_supervisor->add_thread(&collection_clusterlog_sink);
-    m_supervisor->add_thread(&collection_trigger_sink);
-    m_supervisor->add_thread(&collection_detectorlog_sink);
+    m_supervisor->add_thread(rest_service);
+    m_supervisor->add_thread(detectortracker);
+    m_supervisor->add_thread(coincidencefilter);
+    m_supervisor->add_thread(sink_mqtt_link);
+    m_supervisor->add_thread(source_mqtt_link);
+    m_supervisor->add_thread(collection_event_sink);
+    m_supervisor->add_thread(collection_detectorsummary_sink);
+    m_supervisor->add_thread(collection_clusterlog_sink);
+    m_supervisor->add_thread(collection_trigger_sink);
+    m_supervisor->add_thread(collection_detectorlog_sink);
 
     s_shutdown_handler = [this](int signal) { signal_handler(signal); };
 

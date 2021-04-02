@@ -73,7 +73,7 @@ class service : public thread_runner {
 public:
     service(Config::Rest rest_config);
 
-    void add_handler(service_handler* han);
+    void add_handler(service_handler& han);
 
 protected:
     [[nodiscard]] auto custom_run() -> int override;

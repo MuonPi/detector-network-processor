@@ -221,9 +221,9 @@ service::service(Config::Rest rest_config)
     start();
 }
 
-void service::add_handler(service_handler* han)
+void service::add_handler(service_handler& han)
 {
-    m_handler.emplace_back(han->get_handler());
+    m_handler.emplace_back(han.get_handler());
 }
 
 auto service::custom_run() -> int

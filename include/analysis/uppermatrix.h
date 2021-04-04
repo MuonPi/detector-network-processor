@@ -71,19 +71,6 @@ private:
     std::vector<T> m_elements;
 };
 
-class detector_pairs {
-public:
-    void add_detector(std::size_t hash);
-    void remove_detector(std::size_t hash);
-
-    void increase_count(std::size_t hash_1, std::size_t hash_2);
-    [[nodiscard]] auto get_counts(std::size_t hash) -> std::unordered_map<std::size_t, std::size_t>;
-
-private:
-    std::vector<std::size_t> m_detectors {};
-    upper_matrix<std::size_t> m_data { 0 };
-};
-
 template <typename T>
 upper_matrix<T>::upper_matrix(std::size_t n)
     : m_columns { n }

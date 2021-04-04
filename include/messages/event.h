@@ -1,12 +1,10 @@
 ﻿#ifndef EVENT_H
 #define EVENT_H
 
-#include "defaults.h"
 #include "messages/detectorinfo.h"
 #include "messages/userinfo.h"
 
 #include <chrono>
-#include <memory>
 #include <string>
 #include <vector>
 

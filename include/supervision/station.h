@@ -27,7 +27,6 @@ class station
     : public sink::threaded<detector_info_t<location_t>>,
       public source::base<detector_summary_t>,
       public source::base<trigger::detector>,
-      public sink::base<trigger::detector::action_t>,
       public pipeline::base<event_t>,
       public source::base<timebase_t> {
 public:
@@ -46,8 +45,6 @@ public:
      * @param status The new status of the detector
      */
     void detector_status(std::size_t hash, detector_station::Status status);
-
-    void get(trigger::detector::action_t action) override;
 
     void get(event_t event) override;
 
@@ -72,8 +69,6 @@ private:
     std::queue<std::size_t> m_delete_detectors {};
 
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
-
-    std::map<std::size_t, std::map<trigger::detector::setting_t::Type, trigger::detector::setting_t>> m_detector_triggers {};
 };
 
 }

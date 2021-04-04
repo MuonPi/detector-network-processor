@@ -16,30 +16,18 @@ namespace muonpi {
  * @param T The type of each datapoints
  * @param C The type of the counter variable
  */
-template <std::size_t N, typename T = double, typename C = std::size_t>
+template <std::size_t N, typename T, typename C, T Min, T Max>
 class histogram {
 public:
     static_assert (std::is_integral<C>::value);
     static_assert (std::is_arithmetic<T>::value);
+    static_assert (Max > Min);
 
     struct bin {
         T lower {};
         T upper {};
         std::size_t count { 0 };
     };
-
-    /**
-     * @brief histogram Create a histogram with a fixed bin width. Note that the lower bound in this case will be assumed as 0.
-     * @param width The width of each bin
-     */
-    explicit histogram(T width);
-
-    /**
-     * @brief histogram Create a histogram between two values.
-     * @param lower The lower bound of the histogram
-     * @param upper The upper bound
-     */
-    explicit histogram(T lower, T upper);
 
     /**
      * @brief add Adds a value to the histogram.
@@ -62,9 +50,6 @@ public:
     [[nodiscard]] auto qualified_bins() const -> std::array<bin, N>;
 
 private:
-    T m_lower {};
-    T m_upper {};
-    T m_width {};
     std::array<C, N> m_bins {};
 };
 
@@ -72,48 +57,32 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 
-template <std::size_t N, typename T, typename C>
-histogram<N, T, C>::histogram(T width)
-    : m_lower { 0 }
-    , m_upper { width * N }
-    , m_width { width }
+template <std::size_t N, typename T, typename C, T Min, T Max>
+void histogram<N, T, C, Min, Max>::add(T value)
 {
-}
-
-template <std::size_t N, typename T, typename C>
-histogram<N, T, C>::histogram(T lower, T upper)
-    : m_lower { lower }
-    , m_upper { upper }
-    , m_width { (upper - lower) / N }
-{
-}
-
-template <std::size_t N, typename T, typename C>
-void histogram<N, T, C>::add(T value)
-{
-    if ((value < m_lower) || (value >= m_upper)) {
+    if ((value < Min) || (value > Max)) {
         return;
     }
 
-    const std::size_t i { std::floor((value - m_lower) / m_width) };
+    const std::size_t i { (value - Min)*(N - 1) / (Max - Min) };
 
     m_bins[i]++;
 }
 
-template <std::size_t N, typename T, typename C>
-auto histogram<N, T, C>::bins() const -> const std::array<C, N>&
+template <std::size_t N, typename T, typename C, T Min, T Max>
+auto histogram<N, T, C, Min, Max>::bins() const -> const std::array<C, N>&
 {
     return m_bins;
 }
 
-template <std::size_t N, typename T, typename C>
-auto histogram<N, T, C>::qualified_bins() const -> std::array<bin, N>
+template <std::size_t N, typename T, typename C, T Min, T Max>
+auto histogram<N, T, C, Min, Max>::qualified_bins() const -> std::array<bin, N>
 {
     std::array<bin, N> bins;
-    T last { m_lower };
+    T last { Min };
     for (auto& [i, b] : bins) {
         b.lower = last;
-        last += m_width;
+        last += Max - Min;
         b.upper = last;
         b.count = m_bins[i];
     }

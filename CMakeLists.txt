@@ -59,7 +59,6 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/triggerhandler.cpp"
 
     "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
-    "${PROJECT_SRC_DIR}/analysis/uppermatrix.cpp"
     "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidencefilter.cpp"
     "${PROJECT_SRC_DIR}/analysis/detectorstation.cpp"
@@ -68,6 +67,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
     "${PROJECT_SRC_DIR}/supervision/resource.cpp"
     "${PROJECT_SRC_DIR}/supervision/station.cpp"
+    "${PROJECT_SRC_DIR}/supervision/station_coincidence.cpp"
     )
 
 set(CLUSTER_HEADER_FILES
@@ -121,6 +121,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"
     "${PROJECT_HEADER_DIR}/supervision/resource.h"
     "${PROJECT_HEADER_DIR}/supervision/station.h"
+    "${PROJECT_HEADER_DIR}/supervision/station_coincidence.h"
     )
 
 configure_file(

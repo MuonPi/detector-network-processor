@@ -1,6 +1,8 @@
 #ifndef TRIGGER_H
 #define TRIGGER_H
 
+#include "messages/userinfo.h"
+
 #include <cinttypes>
 #include <string>
 
@@ -25,6 +27,8 @@ struct detector {
 
         [[nodiscard]] static auto from_string(const std::string& string) -> setting_t;
     } setting;
+
+    std::size_t hash {};
 
     struct action_t {
         enum Type {

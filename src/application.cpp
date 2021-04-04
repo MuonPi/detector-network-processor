@@ -3,11 +3,9 @@
 #include "defaults.h"
 
 #include "utility/log.h"
-#include "utility/restservice.h"
 
 #include "analysis/coincidencefilter.h"
 #include "supervision/station.h"
-#include "utility/triggerhandler.h"
 
 #include "link/mqtt.h"
 
@@ -150,17 +148,12 @@ auto application::run() -> int
     supervision::timebase timebasesupervisor { coincidencefilter, coincidencefilter };
     supervision::station stationsupervisor { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
 
-    trigger_handler triggerhandler { stationsupervisor, Config::ldap, Config::trigger };
-    rest::service rest_service { Config::rest };
-    rest_service.add_handler(triggerhandler);
-
     source::mqtt<event_t> event_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/data/#") };
     source::mqtt<event_t> l1_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/l1data/#") };
     source::mqtt<detector_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#") };
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    m_supervisor->add_thread(rest_service);
     m_supervisor->add_thread(stationsupervisor);
     m_supervisor->add_thread(coincidencefilter);
     m_supervisor->add_thread(sink_mqtt_link);

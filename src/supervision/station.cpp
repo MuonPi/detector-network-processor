@@ -100,22 +100,6 @@ auto station::process() -> int
     return 0;
 }
 
-void station::get(trigger::detector::action_t action)
-{
-    std::size_t hash { std::hash<std::string> {}(action.setting.username + action.setting.station) };
-    if (action.type == trigger::detector::action_t::Activate) {
-        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
-            m_detector_triggers[hash] = {};
-        }
-        m_detector_triggers[hash][action.setting.type] = action.setting;
-    } else {
-        m_detector_triggers[hash].erase(action.setting.type);
-        if (m_detector_triggers[hash].empty()) {
-            m_detector_triggers.erase(hash);
-        }
-    }
-}
-
 void station::detector_status(std::size_t hash, detector_station::Status status)
 {
     auto user_info { m_detectors[hash]->user_info() };
@@ -123,47 +107,30 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
         source::base<detector_summary_t>::put(m_detectors[hash]->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
+    save();
+
+    trigger::detector trigger{};
+
+    trigger.hash = hash;
+    trigger.setting.username = user_info.username;
+    trigger.setting.station = user_info.station_id;
 
     switch (status) {
     case detector_station::Status::Deleted:
         m_delete_detectors.push(hash);
-        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
-            return;
-        }
-        if (m_detector_triggers[hash].find(trigger::detector::setting_t::Type::Offline) == m_detector_triggers[hash].end()) {
-            return;
-        }
-        source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Offline] });
-        return;
+        trigger.setting.type = trigger::detector::setting_t::Type::Offline;
+        break;
     case detector_station::Status::Created:
-        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
-            return;
-        }
-        if (m_detector_triggers[hash].find(trigger::detector::setting_t::Type::Online) == m_detector_triggers[hash].end()) {
-            return;
-        }
-        source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Online] });
+        trigger.setting.type = trigger::detector::setting_t::Type::Online;
         break;
     case detector_station::Status::Reliable:
-        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
-            return;
-        }
-        if (m_detector_triggers[hash].find(trigger::detector::setting_t::Type::Reliable) == m_detector_triggers[hash].end()) {
-            return;
-        }
-        source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Reliable] });
+        trigger.setting.type = trigger::detector::setting_t::Type::Reliable;
         break;
     case detector_station::Status::Unreliable:
-        if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
-            return;
-        }
-        if (m_detector_triggers[hash].find(trigger::detector::setting_t::Type::Unreliable) == m_detector_triggers[hash].end()) {
-            return;
-        }
-        source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Unreliable] });
+        trigger.setting.type = trigger::detector::setting_t::Type::Unreliable;
         break;
     }
-    save();
+    source::base<trigger::detector>::put(std::move(trigger));
 }
 
 void station::load()

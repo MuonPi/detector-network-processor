@@ -1,11 +1,11 @@
-﻿#ifndef DETECTORTRACKER_H
-#define DETECTORTRACKER_H
+﻿#ifndef STATIONSUPERVISION_H
+#define STATIONSUPERVISION_H
 
 #include "pipeline.h"
 #include "sink/base.h"
 #include "source/base.h"
 
-#include "detector.h"
+#include "analysis/detectorstation.h"
 
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
@@ -17,12 +17,13 @@
 
 namespace muonpi {
 
-namespace supervision {
-class state;
-}
 class detetor_summary_t;
 
-class detector_tracker
+
+namespace supervision {
+class state;
+
+class station
     : public sink::threaded<detetor_info_t<location_t>>,
       public source::base<detetor_summary_t>,
       public source::base<trigger::detector>,
@@ -37,14 +38,14 @@ public:
      * @param event_sink A sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    detector_tracker(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor);
+    station(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor);
 
     /**
      * @brief detector_status Update the status of one detector
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, detector::Status status);
+    void detector_status(std::size_t hash, detector_station::Status status);
 
     void get(trigger::detector::action_t action) override;
 
@@ -66,7 +67,7 @@ protected:
 private:
     supervision::state& m_supervisor;
 
-    std::map<std::size_t, std::unique_ptr<detector>> m_detectors {};
+    std::map<std::size_t, std::unique_ptr<detector_station>> m_detectors {};
 
     std::queue<std::size_t> m_delete_detectors {};
 
@@ -76,5 +77,6 @@ private:
 };
 
 }
+}
 
-#endif // DETECTORTRACKER_H
+#endif // STATIONSUPERVISION_H

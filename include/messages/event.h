@@ -12,7 +12,7 @@
 
 namespace muonpi {
 
-class detector;
+class detector_station;
 
 struct timebase_t {
     double factor { 0.0 };

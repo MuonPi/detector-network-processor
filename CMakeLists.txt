@@ -41,8 +41,6 @@ find_package(Boost 1.71 COMPONENTS system REQUIRED)
 
 
 set(CLUSTER_SOURCE_FILES
-    "${PROJECT_SRC_DIR}/detectortracker.cpp"
-    "${PROJECT_SRC_DIR}/detector.cpp"
     "${PROJECT_SRC_DIR}/triggerhandler.cpp"
     "${PROJECT_SRC_DIR}/application.cpp"
 
@@ -67,15 +65,15 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/analysis/uppermatrix.cpp"
     "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidencefilter.cpp"
+    "${PROJECT_SRC_DIR}/analysis/detectorstation.cpp"
 
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
     "${PROJECT_SRC_DIR}/supervision/resource.cpp"
+    "${PROJECT_SRC_DIR}/supervision/station.cpp"
     )
 
 set(CLUSTER_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/detectortracker.h"
-    "${PROJECT_HEADER_DIR}/detector.h"
     "${PROJECT_HEADER_DIR}/triggerhandler.h"
     "${PROJECT_HEADER_DIR}/pipeline.h"
     "${PROJECT_HEADER_DIR}/application.h"
@@ -120,10 +118,12 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/analysis/uppermatrix.h"
     "${PROJECT_HEADER_DIR}/analysis/eventconstructor.h"
     "${PROJECT_HEADER_DIR}/analysis/coincidencefilter.h"
+    "${PROJECT_HEADER_DIR}/analysis/detectorstation.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"
     "${PROJECT_HEADER_DIR}/supervision/resource.h"
+    "${PROJECT_HEADER_DIR}/supervision/station.h"
     )
 
 configure_file(

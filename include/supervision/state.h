@@ -1,7 +1,7 @@
 #ifndef STATESUPERVISOR_H
 #define STATESUPERVISOR_H
 
-#include "detector.h"
+#include "analysis/detectorstation.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
 
@@ -42,7 +42,7 @@ public:
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, detector::Status status);
+    void detector_status(std::size_t hash, detector_station::Status status);
 
     /**
      * @brief step Gets called from the core class.
@@ -75,7 +75,7 @@ public:
     void stop();
 
 private:
-    std::map<std::size_t, detector::Status> m_detectors;
+    std::map<std::size_t, detector_station::Status> m_detectors;
     std::chrono::milliseconds m_timeout {};
     std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };

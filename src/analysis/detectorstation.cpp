@@ -1,10 +1,10 @@
-#include "detector.h"
+#include "analysis/detectorstation.h"
 #include "messages/event.h"
 #include "supervision/state.h"
 #include "utility/log.h"
 #include "utility/utility.h"
 
-#include "detectortracker.h"
+#include "supervision/station.h"
 
 namespace muonpi {
 
@@ -13,21 +13,21 @@ constexpr double MAX_TIMING_ERROR { 1000. }; //< max allowable timing error in n
 constexpr double MAX_LOCATION_ERROR { MAX_TIMING_ERROR * LIGHTSPEED }; //< max allowable location error in meter
 constexpr double stddev_factor { 0.75 };
 
-void detector::enable()
+void detector_station::enable()
 {
     set_status(Status::Created);
 }
 
-detector::detector(const detetor_info_t<location_t>& initial_log, detector_tracker& tracker)
+detector_station::detector_station(const detetor_info_t<location_t>& initial_log, supervision::station& stationsupervisor)
     : m_location { initial_log.item() }
     , m_hash { initial_log.hash() }
     , m_userinfo { initial_log.user_info() }
-    , m_detectortracker { tracker }
+    , m_stationsupervisor { stationsupervisor }
 {
 }
 
-detector::detector(const std::string& serialised, detector_tracker& tracker, bool stale)
-    : m_detectortracker { tracker }
+detector_station::detector_station(const std::string& serialised, supervision::station& stationsupervisor, bool stale)
+    : m_stationsupervisor { stationsupervisor }
 {
     message_parser in { serialised, ' ' };
     if (in.size() < 10) {
@@ -55,7 +55,7 @@ detector::detector(const std::string& serialised, detector_tracker& tracker, boo
     m_location.dop = std::stod(in[9], nullptr);
 }
 
-auto detector::serialise() const -> std::string
+auto detector_station::serialise() const -> std::string
 {
     std::ostringstream out {};
     out << m_hash << ' ' << m_userinfo.username << ' ' << m_userinfo.station_id << ' ';
@@ -78,7 +78,7 @@ auto detector::serialise() const -> std::string
     return out.str();
 }
 
-auto detector::process(const event_t& event) -> bool
+auto detector_station::process(const event_t& event) -> bool
 {
     m_current_rate.increase_counter();
     m_mean_rate.increase_counter();
@@ -111,32 +111,32 @@ auto detector::process(const event_t& event) -> bool
     return (event.data().time_acc <= MAX_TIMING_ERROR) && (event.data().fix == 1);
 }
 
-void detector::process(const detetor_info_t<location_t>& info)
+void detector_station::process(const detetor_info_t<location_t>& info)
 {
     m_last_log = std::chrono::system_clock::now();
     m_location = info.item();
     check_reliability();
 }
 
-void detector::set_status(Status status)
+void detector_station::set_status(Status status)
 {
     if (m_status != status) {
-        m_detectortracker.detector_status(m_hash, status);
+        m_stationsupervisor.detector_status(m_hash, status);
     }
     m_status = status;
 }
 
-auto detector::is(Status status) const -> bool
+auto detector_station::is(Status status) const -> bool
 {
     return m_status == status;
 }
 
-auto detector::factor() const -> double
+auto detector_station::factor() const -> double
 {
     return m_factor;
 }
 
-void detector::check_reliability()
+void detector_station::check_reliability()
 {
     const double loc_precision { m_location.dop * std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
     if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR) || (m_mean_rate.stddev() > (m_mean_rate.mean() * stddev_factor))) {
@@ -146,7 +146,7 @@ void detector::check_reliability()
     }
 }
 
-void detector::step()
+void detector_station::step()
 {
     auto diff { std::chrono::system_clock::now() - std::chrono::system_clock::time_point { m_last_log } };
     if (diff > s_log_interval) {
@@ -170,7 +170,7 @@ void detector::step()
     }
 }
 
-auto detector::current_log_data() -> detetor_summary_t
+auto detector_station::current_log_data() -> detetor_summary_t
 {
     m_current_data.mean_eventrate = m_current_rate.mean();
     m_current_data.stddev_eventrate = m_current_rate.stddev();
@@ -188,14 +188,14 @@ auto detector::current_log_data() -> detetor_summary_t
     return log;
 }
 
-auto detector::change_log_data() -> detetor_summary_t
+auto detector_station::change_log_data() -> detetor_summary_t
 {
     auto summary { current_log_data() };
     summary.set_change_flag();
     return summary;
 }
 
-auto detector::user_info() const -> userinfo_t
+auto detector_station::user_info() const -> userinfo_t
 {
     return m_userinfo;
 }

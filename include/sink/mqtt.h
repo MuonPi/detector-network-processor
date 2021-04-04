@@ -15,8 +15,6 @@
 #include "messages/event.h"
 #include "messages/trigger.h"
 
-#include "detector.h"
-
 #include <ctime>
 #include <iomanip>
 #include <memory>

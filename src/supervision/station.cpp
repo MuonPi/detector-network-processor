@@ -1,6 +1,5 @@
-#include "detectortracker.h"
+#include "supervision/station.h"
 
-#include "detector.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
@@ -11,9 +10,9 @@
 
 #include "supervision/state.h"
 
-namespace muonpi {
+namespace muonpi::supervision {
 
-detector_tracker::detector_tracker(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor)
+station::station(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor)
     : sink::threaded<detetor_info_t<location_t>> { "detector_tracker", std::chrono::milliseconds { 100 } }
     , source::base<detetor_summary_t> { summary_sink }
     , source::base<trigger::detector> { trigger_sink }
@@ -23,7 +22,7 @@ detector_tracker::detector_tracker(sink::base<detetor_summary_t>& summary_sink, 
 {
 }
 
-void detector_tracker::get(event_t event)
+void station::get(event_t event)
 {
     auto det_iterator { m_detectors.find(event.hash()) };
     if (det_iterator == m_detectors.end()) {
@@ -37,21 +36,21 @@ void detector_tracker::get(event_t event)
 
     event.set_detector_info(det->location(), det->user_info());
 
-    if (det->is(detector::Status::Reliable)) {
+    if (det->is(detector_station::Status::Reliable)) {
         source::base<event_t>::put(event);
     }
 }
 
-void detector_tracker::get(detetor_info_t<location_t> detector_info)
+void station::get(detetor_info_t<location_t> detector_info)
 {
     threaded<detetor_info_t<location_t>>::internal_get(std::move(detector_info));
 }
 
-auto detector_tracker::process(detetor_info_t<location_t> log) -> int
+auto station::process(detetor_info_t<location_t> log) -> int
 {
     auto det { m_detectors.find(log.hash()) };
     if (det == m_detectors.end()) {
-        m_detectors[log.hash()] = std::make_unique<detector>(log, *this);
+        m_detectors[log.hash()] = std::make_unique<detector_station>(log, *this);
         m_detectors[log.hash()]->enable();
         save();
         return 0;
@@ -60,7 +59,7 @@ auto detector_tracker::process(detetor_info_t<location_t> log) -> int
     return 0;
 }
 
-auto detector_tracker::process() -> int
+auto station::process() -> int
 {
     using namespace std::chrono;
 
@@ -70,7 +69,7 @@ auto detector_tracker::process() -> int
 
         det->step();
 
-        if (det->is(detector::Status::Reliable)) {
+        if (det->is(detector_station::Status::Reliable)) {
             reliable++;
             if (det->factor() > largest) {
                 largest = det->factor();
@@ -100,7 +99,7 @@ auto detector_tracker::process() -> int
     return 0;
 }
 
-void detector_tracker::get(trigger::detector::action_t action)
+void station::get(trigger::detector::action_t action)
 {
     std::size_t hash { std::hash<std::string> {}(action.setting.username + action.setting.station) };
     if (action.type == trigger::detector::action_t::Activate) {
@@ -116,16 +115,16 @@ void detector_tracker::get(trigger::detector::action_t action)
     }
 }
 
-void detector_tracker::detector_status(std::size_t hash, detector::Status status)
+void station::detector_status(std::size_t hash, detector_station::Status status)
 {
     auto user_info { m_detectors[hash]->user_info() };
-    if (status > detector::Status::Deleted) {
+    if (status > detector_station::Status::Deleted) {
         source::base<detetor_summary_t>::put(m_detectors[hash]->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
 
     switch (status) {
-    case detector::Status::Deleted:
+    case detector_station::Status::Deleted:
         m_delete_detectors.push(hash);
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
             return;
@@ -135,7 +134,7 @@ void detector_tracker::detector_status(std::size_t hash, detector::Status status
         }
         source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Offline] });
         return;
-    case detector::Status::Created:
+    case detector_station::Status::Created:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
             return;
         }
@@ -144,7 +143,7 @@ void detector_tracker::detector_status(std::size_t hash, detector::Status status
         }
         source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Online] });
         break;
-    case detector::Status::Reliable:
+    case detector_station::Status::Reliable:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
             return;
         }
@@ -153,7 +152,7 @@ void detector_tracker::detector_status(std::size_t hash, detector::Status status
         }
         source::base<trigger::detector>::put({ m_detector_triggers[hash][trigger::detector::setting_t::Type::Reliable] });
         break;
-    case detector::Status::Unreliable:
+    case detector_station::Status::Unreliable:
         if (m_detector_triggers.find(hash) == m_detector_triggers.end()) {
             return;
         }
@@ -166,7 +165,7 @@ void detector_tracker::detector_status(std::size_t hash, detector::Status status
     save();
 }
 
-void detector_tracker::load()
+void station::load()
 {
     std::ifstream in { Config::files.state };
 
@@ -185,8 +184,8 @@ void detector_tracker::load()
             stale = true;
         }
         for (; std::getline(in, line);) {
-            auto det { std::make_unique<detector>(line, *this, stale) };
-            if (det->is(detector::Status::Deleted)) {
+            auto det { std::make_unique<detector_station>(line, *this, stale) };
+            if (det->is(detector_station::Status::Deleted)) {
                 continue;
             }
             m_detectors.emplace(det->user_info().hash(), std::move(det));
@@ -198,7 +197,7 @@ void detector_tracker::load()
     }
 }
 
-void detector_tracker::save()
+void station::save()
 {
     std::ofstream out { Config::files.state };
 
@@ -208,7 +207,7 @@ void detector_tracker::save()
     }
     out << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() << '\n';
     for (auto& [hash, det] : m_detectors) {
-        if (det->is(detector::Status::Deleted)) {
+        if (det->is(detector_station::Status::Deleted)) {
             continue;
         }
         out << det->serialise() << '\n';

@@ -1,7 +1,7 @@
 #ifndef COINCIDENCEFILTER_H
 #define COINCIDENCEFILTER_H
 
-#include "detector.h"
+#include "analysis/detectorstation.h"
 #include "messages/clusterlog.h"
 #include "supervision/state.h"
 #include "supervision/timebase.h"

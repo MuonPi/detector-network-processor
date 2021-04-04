@@ -6,7 +6,7 @@
 #include "utility/restservice.h"
 
 #include "analysis/coincidencefilter.h"
-#include "detectortracker.h"
+#include "supervision/station.h"
 #include "triggerhandler.h"
 
 #include "link/mqtt.h"
@@ -148,20 +148,20 @@ auto application::run() -> int
     m_supervisor = std::make_unique<supervision::state> ( collection_clusterlog_sink );
     coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
     supervision::timebase timebasesupervisor { coincidencefilter, coincidencefilter };
-    detector_tracker detectortracker { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
+    supervision::station stationsupervisor { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
 
-    trigger_handler triggerhandler { detectortracker, Config::ldap, Config::trigger };
+    trigger_handler triggerhandler { stationsupervisor, Config::ldap, Config::trigger };
     rest::service rest_service { Config::rest };
     rest_service.add_handler(triggerhandler);
 
-    source::mqtt<event_t> event_source { detectortracker, source_mqtt_link.subscribe("muonpi/data/#") };
-    source::mqtt<event_t> l1_source { detectortracker, source_mqtt_link.subscribe("muonpi/l1data/#") };
-    source::mqtt<detetor_info_t<location_t>> detector_location_source { detectortracker, source_mqtt_link.subscribe("muonpi/log/#") };
+    source::mqtt<event_t> event_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/data/#") };
+    source::mqtt<event_t> l1_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/l1data/#") };
+    source::mqtt<detetor_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#") };
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
     m_supervisor->add_thread(rest_service);
-    m_supervisor->add_thread(detectortracker);
+    m_supervisor->add_thread(stationsupervisor);
     m_supervisor->add_thread(coincidencefilter);
     m_supervisor->add_thread(sink_mqtt_link);
     m_supervisor->add_thread(source_mqtt_link);

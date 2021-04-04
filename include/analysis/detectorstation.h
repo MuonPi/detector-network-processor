@@ -1,5 +1,5 @@
-#ifndef DETECTOR_H
-#define DETECTOR_H
+#ifndef DETECTORSTATION_H
+#define DETECTORSTATION_H
 
 #include "defaults.h"
 #include "messages/detectorinfo.h"
@@ -18,7 +18,9 @@ namespace muonpi {
 
 // +++ forward declarations
 class event_t;
-class detector_tracker;
+namespace supervision {
+class station;
+}
 // --- forward declarations
 
 /**
@@ -26,7 +28,7 @@ class detector_tracker;
  * Represents a connected detector.
  * Scans the message rate and deletes the runtime objects from memory if the detector has not been active for some time.
  */
-class detector {
+class detector_station {
 private:
     static constexpr std::size_t s_history_length { 10 };
     static constexpr std::size_t s_time_interval { 30000 };
@@ -45,15 +47,15 @@ public:
      * @brief detector
      * @param initial_log The initial log message from which this detector object originates
      */
-    detector(const detetor_info_t<location_t>& initial_log, detector_tracker& tracker);
+    detector_station(const detetor_info_t<location_t>& initial_log, supervision::station& stationsupervisor);
 
     /**
      * @brief detector Construct the detector from a serialised string
      * @param serialised The serialised string
-     * @param tracker The detector tracker to use
+     * @param stationsupervisor The station supervisor to use
      * @param stale whether the configuration is stale or not. If true, this detector will be marked as unreliable
      */
-    detector(const std::string& serialised, detector_tracker& tracker, bool stale);
+    detector_station(const std::string& serialised, supervision::station& stationsupervisor, bool stale);
 
     /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.
@@ -82,7 +84,7 @@ public:
     [[nodiscard]] auto factor() const -> double;
 
     /**
-     * @brief step Gets called by the detector_tracker with a guaranteed maximum time delay. May be called more often.
+     * @brief step Gets called by the supervision::station with a guaranteed maximum time delay. May be called more often.
      */
     void step();
 
@@ -139,7 +141,7 @@ private:
     static constexpr std::chrono::system_clock::duration s_log_interval { std::chrono::seconds { 90 } };
     static constexpr std::chrono::system_clock::duration s_quit_interval { s_log_interval * 3 };
 
-    detector_tracker& m_detectortracker;
+    supervision::station& m_stationsupervisor;
 
     rate_measurement<s_history_length, s_time_interval> m_current_rate {};
     rate_measurement<s_history_length * 10, s_time_interval> m_mean_rate {};
@@ -156,4 +158,4 @@ private:
 
 }
 
-#endif // DETECTOR_H
+#endif // DETECTORSTATION_H

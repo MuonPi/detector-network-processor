@@ -41,7 +41,6 @@ find_package(Boost 1.71 COMPONENTS system REQUIRED)
 
 
 set(CLUSTER_SOURCE_FILES
-    "${PROJECT_SRC_DIR}/triggerhandler.cpp"
     "${PROJECT_SRC_DIR}/application.cpp"
 
     "${PROJECT_SRC_DIR}/link/mqtt.cpp"
@@ -60,6 +59,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
+    "${PROJECT_SRC_DIR}/utility/triggerhandler.cpp"
 
     "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/uppermatrix.cpp"
@@ -74,8 +74,6 @@ set(CLUSTER_SOURCE_FILES
     )
 
 set(CLUSTER_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/triggerhandler.h"
-    "${PROJECT_HEADER_DIR}/pipeline.h"
     "${PROJECT_HEADER_DIR}/application.h"
 
     "${PROJECT_HEADER_DIR}/link/database.h"
@@ -88,6 +86,8 @@ set(CLUSTER_HEADER_FILES
 
     "${PROJECT_HEADER_DIR}/source/base.h"
     "${PROJECT_HEADER_DIR}/source/mqtt.h"
+
+    "${PROJECT_HEADER_DIR}/pipeline/base.h"
 
     "${PROJECT_HEADER_DIR}/messages/event.h"
     "${PROJECT_HEADER_DIR}/messages/detectorlog.h"
@@ -107,7 +107,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
     "${PROJECT_HEADER_DIR}/utility/exceptions.h"
-
+    "${PROJECT_HEADER_DIR}/utility/triggerhandler.h"
 
     "${PROJECT_HEADER_DIR}/analysis/dataseries.h"
     "${PROJECT_HEADER_DIR}/analysis/cachedvalue.h"

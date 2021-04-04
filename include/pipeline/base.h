@@ -4,16 +4,16 @@
 #include "sink/base.h"
 #include "source/base.h"
 
-namespace muonpi {
+namespace muonpi::pipeline {
 
 template <typename T>
-class pipeline : public sink::base<T>, public source::base<T> {
+class base : public sink::base<T>, public source::base<T> {
 public:
-    pipeline(sink::base<T>& sink);
+    base(sink::base<T>& sink);
 };
 
 template <typename T>
-pipeline<T>::pipeline(sink::base<T>& sink)
+base<T>::base(sink::base<T>& sink)
     : source::base<T>(sink)
 {
 }

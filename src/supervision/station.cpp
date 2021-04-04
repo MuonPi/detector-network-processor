@@ -16,7 +16,7 @@ station::station(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger
     : sink::threaded<detetor_info_t<location_t>> { "detector_tracker", std::chrono::milliseconds { 100 } }
     , source::base<detetor_summary_t> { summary_sink }
     , source::base<trigger::detector> { trigger_sink }
-    , pipeline<event_t> { event_sink }
+    , pipeline::base<event_t> { event_sink }
     , source::base<timebase_t> { timebase_sink }
     , m_supervisor { supervisor }
 {

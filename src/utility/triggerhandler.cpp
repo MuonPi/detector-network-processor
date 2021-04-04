@@ -1,4 +1,4 @@
-#include "triggerhandler.h"
+#include "utility/triggerhandler.h"
 
 #include "defaults.h"
 #include "utility/log.h"

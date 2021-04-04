@@ -9,8 +9,6 @@
 #include "analysis/eventconstructor.h"
 #include "utility/threadrunner.h"
 
-#include <pipeline.h>
-
 #include <map>
 #include <queue>
 #include <vector>

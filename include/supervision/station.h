@@ -1,7 +1,7 @@
 ﻿#ifndef STATIONSUPERVISION_H
 #define STATIONSUPERVISION_H
 
-#include "pipeline.h"
+#include "pipeline/base.h"
 #include "sink/base.h"
 #include "source/base.h"
 
@@ -28,7 +28,7 @@ class station
       public source::base<detetor_summary_t>,
       public source::base<trigger::detector>,
       public sink::base<trigger::detector::action_t>,
-      public pipeline<event_t>,
+      public pipeline::base<event_t>,
       public source::base<timebase_t> {
 public:
     /**

@@ -7,7 +7,7 @@
 
 #include "analysis/coincidencefilter.h"
 #include "supervision/station.h"
-#include "triggerhandler.h"
+#include "utility/triggerhandler.h"
 
 #include "link/mqtt.h"
 

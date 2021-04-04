@@ -29,6 +29,8 @@ public:
 protected:
     [[nodiscard]] auto step() -> int override;
 
+    void on_stop() override;
+
 private:
     void save();
     void reset();
@@ -42,6 +44,9 @@ private:
     constexpr static std::size_t s_bins { 2000 }; //<! total number of bins to use per pair
     constexpr static double s_c { 299'792'458.0 * 1.0e-9 };
     constexpr static double s_total_width { 2.0 * 100000.0 };
+
+    std::condition_variable m_condition {};
+    std::mutex m_mutex {};
 
     struct data_t {
         std::size_t first {};

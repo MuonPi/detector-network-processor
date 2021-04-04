@@ -111,7 +111,7 @@ void database<detector_summary_t>::get(detector_summary_t log)
 template <>
 void database<event_t>::get(event_t event)
 {
-    if (event.n() == 1) {
+    if (event.n() < 2) {
         // by default, don't write the single events to the db
         return;
     }

@@ -94,6 +94,12 @@ auto thread_runner::run() -> int
         if (pre_result != 0) {
             return pre_result;
         }
+
+        if ((m_thread != nullptr)) {
+            log::debug()<<"setting name for thread "  + m_name;
+            auto handle { m_thread->native_handle() };
+            pthread_setname_np(handle, m_name.c_str());
+        }
         m_state = State::Running;
         if (m_use_custom_run) {
             int result { custom_run() };
@@ -124,10 +130,6 @@ auto thread_runner::run() -> int
 
 void thread_runner::exec()
 {
-    if ((m_thread != nullptr)) {
-        auto handle { m_thread->native_handle() };
-        pthread_setname_np(handle, m_name.c_str());
-    }
 
     std::promise<int> promise {};
     m_run_future = promise.get_future();

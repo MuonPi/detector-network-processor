@@ -26,6 +26,7 @@ public:
     [[nodiscard]] auto at(std::size_t x, std::size_t y) -> T&;
 
     void emplace(std::size_t x, std::size_t y, T item);
+
     /**
      * @brief remove_index Removes a specific index from the matrix.
      * Complexity should be O(n)
@@ -58,7 +59,7 @@ private:
      */
     [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
     {
-        return 1 / 2 * (x * x - x) + y;
+        return (x * x - x)/2 + y;
     }
 
     /**
@@ -86,13 +87,16 @@ upper_matrix<T>::upper_matrix(std::size_t n)
 template <typename T>
 auto upper_matrix<T>::at(std::size_t x, std::size_t y) -> T&
 {
-    return m_elements.at(position(std::move(x), std::move(y)));
+    return m_elements.at(position(x, y));
 }
 
 template <typename T>
 void upper_matrix<T>::emplace(std::size_t x, std::size_t y, T item)
 {
-    m_elements[position(std::move(x), std::move(y))] = std::move(item);
+    if (m_elements.empty()) {
+        return;
+    }
+    m_elements[position(x, y)] = std::move(item);
 }
 
 template <typename T>

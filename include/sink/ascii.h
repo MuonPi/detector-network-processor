@@ -45,7 +45,7 @@ ascii<T>::~ascii() = default;
 template <>
 void ascii<event_t>::get(event_t event)
 {
-    if (event.n() == 0) {
+    if (event.n() < 2) {
         return;
     }
 

@@ -53,7 +53,6 @@ auto station::process(detector_info_t<location_t> log) -> int
     if (det == m_detectors.end()) {
         m_detectors[log.hash] = std::make_unique<detector_station>(log, *this);
         m_detectors[log.hash]->enable();
-        save();
         return 0;
     }
     (*det).second->process(log);
@@ -107,7 +106,6 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
         source::base<detector_summary_t>::put(m_detectors[hash]->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
-    save();
 
     trigger::detector trigger{};
 

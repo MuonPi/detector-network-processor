@@ -1,9 +1,11 @@
-﻿#include "analysis/stationcoincidence.h"
+#include "analysis/stationcoincidence.h"
 
 #include "supervision/station.h"
 
 #include "utility/coordinatemodel.h"
 #include "utility/utility.h"
+
+#include "utility/log.h"
 
 #include <algorithm>
 #include <fstream>
@@ -22,9 +24,18 @@ station_coincidence::station_coincidence(std::string data_directory, supervision
 
 auto station_coincidence::step() -> int
 {
-    std::this_thread::sleep_for(s_sample_time);
+    std::unique_lock<std::mutex> lock { m_mutex };
+    if (m_condition.wait_for(lock, s_sample_time) == std::cv_status::no_timeout) {
+        return 0;
+    }
+    log::debug()<<"Saving histogram data.";
     save();
     return 0;
+}
+
+void station_coincidence::on_stop()
+{
+    m_condition.notify_all();
 }
 
 void station_coincidence::get(event_t event)
@@ -37,22 +48,25 @@ void station_coincidence::get(event_t event)
         const std::size_t first_h { event.events.at(i).hash };
         auto condition_1 = [&](const auto& iterator){return iterator.first.hash() == first_h;};
         auto it_1 { std::find_if(m_stations.begin(), m_stations.end(), condition_1) };
+        std::size_t first { static_cast<std::size_t>(std::distance(m_stations.begin(), it_1)) };
         if (it_1 == m_stations.end()) {
             const auto& [userinfo, location] {m_stationsupervisor.get_station(first_h)};
             add_station(userinfo, location);
+            first = m_stations.size() - 1;
         }
-        const std::size_t first { static_cast<std::size_t>(std::distance(m_stations.begin(), it_1)) };
         const auto first_t { event.events.at(i).start };
         for (std::size_t j { i + 1 }; j < event.n(); j++) {
             const std::size_t second_h { event.events.at(j).hash };
             auto condition_2 = [&](const auto& iterator){return iterator.first.hash() == second_h;};
             auto it_2 { std::find_if(m_stations.begin(), m_stations.end(), condition_2) };
+            std::size_t second { static_cast<std::size_t>(std::distance(m_stations.begin(), it_2)) };
             if (it_2 == m_stations.end()) {
-                const auto& [userinfo, location] {m_stationsupervisor.get_station(first_h)};
+                const auto& [userinfo, location] {m_stationsupervisor.get_station(second_h)};
                 add_station(userinfo, location);
+                second = m_stations.size() - 1;
             }
-            const std::size_t second { static_cast<std::size_t>(std::distance(m_stations.begin(), it_2)) };
             const auto second_t { event.events.at(j).start };
+
             if (second_h > first_h) {
                 m_data.at(std::max(first, second), std::min(first, second)).hist.add(static_cast<std::int32_t>(first_t - second_t));
             } else {
@@ -95,6 +109,7 @@ void station_coincidence::reset()
 void station_coincidence::add_station(const userinfo_t& userinfo, const location_t& location)
 {
     const auto x { m_data.increase() };
+    m_stations.emplace_back(std::make_pair(userinfo, location));
     if (x > 0) {
         coordinate::geodetic<double> first {location.lat, location.lon, location.h};
         for (std::size_t y { 0 }; y < x; y++) {
@@ -106,7 +121,6 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
             m_data.emplace(x, y, {userinfo.hash(), user.hash(), histogram<s_bins, std::int32_t, std::uint16_t>{min, max}});
         }
     }
-    m_stations.emplace_back(std::make_pair(userinfo, location));
 }
 
 }

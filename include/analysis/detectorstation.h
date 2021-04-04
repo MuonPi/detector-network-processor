@@ -110,7 +110,7 @@ public:
      * @brief location Accesses the location info of the detector
      * @return the location_t struct
      */
-    [[nodiscard]] auto location() const -> location_t { return m_location; }
+    [[nodiscard]] auto location() const -> location_t;
 
     /**
      * @brief serialise Serialise the current detector information

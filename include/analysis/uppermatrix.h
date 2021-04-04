@@ -25,6 +25,7 @@ public:
      */
     [[nodiscard]] auto at(std::size_t x, std::size_t y) -> T&;
 
+    void emplace(std::size_t x, std::size_t y, T item);
     /**
      * @brief remove_index Removes a specific index from the matrix.
      * Complexity should be O(n)
@@ -43,6 +44,10 @@ public:
      * @param index the index to swap with the last column
      */
     void swap_last(std::size_t index);
+
+    void reset();
+
+    [[nodiscard]] auto data() const -> const std::vector<T>&;
 
 private:
     /**
@@ -82,6 +87,12 @@ template <typename T>
 auto upper_matrix<T>::at(std::size_t x, std::size_t y) -> T&
 {
     return m_elements.at(position(std::move(x), std::move(y)));
+}
+
+template <typename T>
+void upper_matrix<T>::emplace(std::size_t x, std::size_t y, T item)
+{
+    m_elements[position(std::move(x), std::move(y))] = std::move(item);
 }
 
 template <typename T>
@@ -134,6 +145,19 @@ void upper_matrix<T>::swap_last(std::size_t first)
         at(x, first) = at(m_columns - 1, x - 1);
         at(m_columns - 1, x - 1) = temp;
     }
+}
+
+template <typename T>
+void upper_matrix<T>::reset()
+{
+    m_columns = 0;
+    m_elements.clear();
+}
+
+template <typename T>
+auto upper_matrix<T>::data() const -> const std::vector<T>&
+{
+    return m_elements;
 }
 
 }

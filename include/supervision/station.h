@@ -50,6 +50,9 @@ public:
 
     void get(detector_info_t<location_t> detector_info) override;
 
+    [[nodiscard]] auto get_stations() const -> std::vector<std::pair<userinfo_t, location_t>>;
+    [[nodiscard]] auto get_station(std::size_t hash) const -> std::pair<userinfo_t, location_t>;
+
 protected:
     /**
      * @brief process Process a log message. Hands the message over to a detector, if none exists, creates a new one.

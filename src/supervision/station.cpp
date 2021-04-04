@@ -133,6 +133,24 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
     source::base<trigger::detector>::put(std::move(trigger));
 }
 
+auto station::get_stations() const -> std::vector<std::pair<userinfo_t, location_t>>
+{
+    std::vector<std::pair<userinfo_t, location_t>> stations {};
+    for (const auto& [hash, station]: m_detectors) {
+        stations.emplace_back(std::make_pair(station->user_info(), station->location()));
+    }
+    return stations;
+}
+
+auto station::get_station(std::size_t hash) const -> std::pair<userinfo_t, location_t>
+{
+    const auto it { m_detectors.find(hash) };
+    if (it == m_detectors.end()) {
+        return {};
+    }
+    return std::make_pair(it->second->user_info(), it->second->location());
+}
+
 void station::load()
 {
     std::ifstream in { Config::files.state };

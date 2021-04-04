@@ -202,4 +202,9 @@ auto detector_station::user_info() const -> userinfo_t
     return m_userinfo;
 }
 
+auto detector_station::location() const -> location_t
+{
+    return m_location;
+}
+
 }

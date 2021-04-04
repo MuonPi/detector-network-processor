@@ -48,6 +48,7 @@ set(CLUSTER_SOURCE_FILES
 
     "${PROJECT_SRC_DIR}/messages/event.cpp"
     "${PROJECT_SRC_DIR}/messages/detectorlog.cpp"
+    "${PROJECT_SRC_DIR}/messages/trigger.cpp"
 
     "${PROJECT_SRC_DIR}/utility/threadrunner.cpp"
     "${PROJECT_SRC_DIR}/utility/log.cpp"
@@ -56,18 +57,17 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
-    "${PROJECT_SRC_DIR}/utility/triggerhandler.cpp"
 
     "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidencefilter.cpp"
     "${PROJECT_SRC_DIR}/analysis/detectorstation.cpp"
+    "${PROJECT_SRC_DIR}/analysis/stationcoincidence.cpp"
 
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
     "${PROJECT_SRC_DIR}/supervision/resource.cpp"
     "${PROJECT_SRC_DIR}/supervision/station.cpp"
-    "${PROJECT_SRC_DIR}/supervision/station_coincidence.cpp"
     )
 
 set(CLUSTER_HEADER_FILES
@@ -104,7 +104,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
     "${PROJECT_HEADER_DIR}/utility/exceptions.h"
-    "${PROJECT_HEADER_DIR}/utility/triggerhandler.h"
+    "${PROJECT_HEADER_DIR}/utility/coordinatemodel.h"
 
     "${PROJECT_HEADER_DIR}/analysis/dataseries.h"
     "${PROJECT_HEADER_DIR}/analysis/cachedvalue.h"
@@ -116,12 +116,12 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/analysis/eventconstructor.h"
     "${PROJECT_HEADER_DIR}/analysis/coincidencefilter.h"
     "${PROJECT_HEADER_DIR}/analysis/detectorstation.h"
+    "${PROJECT_HEADER_DIR}/analysis/stationcoincidence.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"
     "${PROJECT_HEADER_DIR}/supervision/resource.h"
     "${PROJECT_HEADER_DIR}/supervision/station.h"
-    "${PROJECT_HEADER_DIR}/supervision/station_coincidence.h"
     )
 
 configure_file(

@@ -6,6 +6,7 @@
 
 #include "analysis/coincidencefilter.h"
 #include "supervision/station.h"
+#include "analysis/stationcoincidence.h"
 
 #include "link/mqtt.h"
 
@@ -154,6 +155,9 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
+    station_coincidence stationcoincidence{"data", stationsupervisor};
+
+    m_supervisor->add_thread(stationcoincidence);
     m_supervisor->add_thread(stationsupervisor);
     m_supervisor->add_thread(coincidencefilter);
     m_supervisor->add_thread(sink_mqtt_link);

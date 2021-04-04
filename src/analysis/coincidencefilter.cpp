@@ -1,4 +1,5 @@
-﻿#include "coincidencefilter.h"
+﻿#include "analysis/coincidencefilter.h"
+
 #include "utility/log.h"
 
 #include "messages/clusterlog.h"
@@ -7,14 +8,13 @@
 #include "sink/base.h"
 #include "source/base.h"
 #include "supervision/timebase.h"
-#include "utility/criterion.h"
-#include "utility/eventconstructor.h"
+#include "analysis/criterion.h"
 
 #include <cinttypes>
 
 namespace muonpi {
 
-coincidence_filter::coincidence_filter(sink::base<event_t>& event_sink, state_supervisor& supervisor)
+coincidence_filter::coincidence_filter(sink::base<event_t>& event_sink, supervision::state& supervisor)
     : sink::threaded<event_t> { "coincidence_filter", std::chrono::milliseconds { 100 } }
     , source::base<event_t> { event_sink }
     , m_supervisor { supervisor }

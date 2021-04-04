@@ -53,7 +53,7 @@ private:
     sink_ptr<cluster_log_t> m_ascii_clusterlog_sink { nullptr };
     sink_ptr<detetor_summary_t> m_ascii_detectorsummary_sink { nullptr };
 
-    std::unique_ptr<state_supervisor> m_supervisor { nullptr };
+    std::unique_ptr<supervision::state> m_supervisor { nullptr };
 
     static std::function<void(int)> s_shutdown_handler;
 

@@ -6,15 +6,15 @@
 
 #include <algorithm>
 
-namespace muonpi {
+namespace muonpi::supervision {
 
-timebase_supervisor::timebase_supervisor(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink)
+timebase::timebase(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink)
     : pipeline<event_t> { event_sink }
     , pipeline<timebase_t> { timebase_sink }
 {
 }
 
-void timebase_supervisor::get(event_t event)
+void timebase::get(event_t event)
 {
     if (event.start() < m_start) {
         m_start = event.start();
@@ -24,7 +24,7 @@ void timebase_supervisor::get(event_t event)
     pipeline<event_t>::put(event);
 }
 
-void timebase_supervisor::get(timebase_t timebase)
+void timebase::get(timebase_t timebase)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < s_sample_time) {
         timebase.base = m_current;

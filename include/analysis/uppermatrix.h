@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace MuonPi {
+namespace muonpi {
 
 template <typename T>
 class upper_matrix {

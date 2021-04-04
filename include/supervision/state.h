@@ -4,10 +4,11 @@
 #include "detector.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
-#include "utility/resourcetracker.h"
 
 #include "analysis/dataseries.h"
 #include "analysis/ratemeasurement.h"
+
+#include "supervision/resource.h"
 
 #include "source/base.h"
 
@@ -17,18 +18,18 @@
 #include <map>
 #include <vector>
 
-namespace muonpi {
+namespace muonpi::supervision {
 
 /**
  * @brief The state_supervisor class Supervises the program and collects metadata
  */
-class state_supervisor : public source::base<cluster_log_t> {
+class state : public source::base<cluster_log_t> {
 public:
     /**
      * @brief state_supervisor
      * @param log_sink The specific log sinks to send metadata to
      */
-    state_supervisor(sink::base<cluster_log_t>& log_sink);
+    state(sink::base<cluster_log_t>& log_sink);
 
     /**
      * @brief time_status Update the current timeout used
@@ -95,7 +96,7 @@ private:
     cluster_log_t::data_t m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 
-    resource_tracker m_resource_tracker {};
+    resource m_resource_tracker {};
 };
 
 }

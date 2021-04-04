@@ -5,8 +5,8 @@
 #include "messages/clusterlog.h"
 #include "supervision/state.h"
 #include "supervision/timebase.h"
-#include "utility/coincidence.h"
-#include "utility/eventconstructor.h"
+#include "analysis/coincidence.h"
+#include "analysis/eventconstructor.h"
 #include "utility/threadrunner.h"
 
 #include <pipeline.h>
@@ -27,7 +27,7 @@ public:
      * @param event_sink A collection of event sinks to use
      * @param supervisor A reference to a state_supervisor, which keeps track of program metadata
      */
-    coincidence_filter(sink::base<event_t>& event_sink, state_supervisor& supervisor);
+    coincidence_filter(sink::base<event_t>& event_sink, supervision::state& supervisor);
 
     ~coincidence_filter() override = default;
 
@@ -49,7 +49,7 @@ private:
 
     std::chrono::system_clock::duration m_timeout { std::chrono::seconds { 10 } };
 
-    state_supervisor& m_supervisor;
+    supervision::state& m_supervisor;
 };
 
 }

@@ -1,7 +1,7 @@
 #ifndef COINCIDENCE_H
 #define COINCIDENCE_H
 
-#include "criterion.h"
+#include "analysis/criterion.h"
 
 #include <chrono>
 #include <memory>

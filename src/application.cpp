@@ -5,7 +5,7 @@
 #include "utility/log.h"
 #include "utility/restservice.h"
 
-#include "coincidencefilter.h"
+#include "analysis/coincidencefilter.h"
 #include "detectortracker.h"
 #include "triggerhandler.h"
 
@@ -145,9 +145,9 @@ auto application::run() -> int
         collection_detectorlog_sink.emplace(*m_detectorlog_sink);
     }
 
-    m_supervisor = std::make_unique<state_supervisor> ( collection_clusterlog_sink );
+    m_supervisor = std::make_unique<supervision::state> ( collection_clusterlog_sink );
     coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
-    timebase_supervisor timebasesupervisor { coincidencefilter, coincidencefilter };
+    supervision::timebase timebasesupervisor { coincidencefilter, coincidencefilter };
     detector_tracker detectortracker { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
 
     trigger_handler triggerhandler { detectortracker, Config::ldap, Config::trigger };

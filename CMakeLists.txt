@@ -41,7 +41,6 @@ find_package(Boost 1.71 COMPONENTS system REQUIRED)
 
 
 set(CLUSTER_SOURCE_FILES
-    "${PROJECT_SRC_DIR}/coincidencefilter.cpp"
     "${PROJECT_SRC_DIR}/detectortracker.cpp"
     "${PROJECT_SRC_DIR}/detector.cpp"
     "${PROJECT_SRC_DIR}/triggerhandler.cpp"
@@ -56,24 +55,25 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/messages/detectorsummary.cpp"
     "${PROJECT_SRC_DIR}/messages/clusterlog.cpp"
 
-    "${PROJECT_SRC_DIR}/utility/coincidence.cpp"
-    "${PROJECT_SRC_DIR}/utility/eventconstructor.cpp"
     "${PROJECT_SRC_DIR}/utility/threadrunner.cpp"
     "${PROJECT_SRC_DIR}/utility/log.cpp"
     "${PROJECT_SRC_DIR}/utility/utility.cpp"
     "${PROJECT_SRC_DIR}/utility/parameters.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
-    "${PROJECT_SRC_DIR}/utility/resourcetracker.cpp"
-    "${PROJECT_SRC_DIR}/utility/uppermatrix.cpp"
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
 
+    "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
+    "${PROJECT_SRC_DIR}/analysis/uppermatrix.cpp"
+    "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"
+    "${PROJECT_SRC_DIR}/analysis/coincidencefilter.cpp"
+
     "${PROJECT_SRC_DIR}/supervision/state.cpp"
     "${PROJECT_SRC_DIR}/supervision/timebase.cpp"
+    "${PROJECT_SRC_DIR}/supervision/resource.cpp"
     )
 
 set(CLUSTER_HEADER_FILES
-    "${PROJECT_HEADER_DIR}/coincidencefilter.h"
     "${PROJECT_HEADER_DIR}/detectortracker.h"
     "${PROJECT_HEADER_DIR}/detector.h"
     "${PROJECT_HEADER_DIR}/triggerhandler.h"
@@ -100,16 +100,11 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/messages/trigger.h"
 
     "${PROJECT_HEADER_DIR}/utility/threadrunner.h"
-    "${PROJECT_HEADER_DIR}/utility/coincidence.h"
-    "${PROJECT_HEADER_DIR}/utility/criterion.h"
     "${PROJECT_HEADER_DIR}/utility/log.h"
     "${PROJECT_HEADER_DIR}/utility/utility.h"
     "${PROJECT_HEADER_DIR}/utility/geohash.h"
-    "${PROJECT_HEADER_DIR}/utility/eventconstructor.h"
     "${PROJECT_HEADER_DIR}/utility/parameters.h"
     "${PROJECT_HEADER_DIR}/utility/configuration.h"
-    "${PROJECT_HEADER_DIR}/utility/resourcetracker.h"
-    "${PROJECT_HEADER_DIR}/utility/uppermatrix.h"
     "${PROJECT_HEADER_DIR}/utility/restservice.h"
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
@@ -120,9 +115,15 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/analysis/cachedvalue.h"
     "${PROJECT_HEADER_DIR}/analysis/ratemeasurement.h"
     "${PROJECT_HEADER_DIR}/analysis/histogram.h"
+    "${PROJECT_HEADER_DIR}/analysis/coincidence.h"
+    "${PROJECT_HEADER_DIR}/analysis/criterion.h"
+    "${PROJECT_HEADER_DIR}/analysis/uppermatrix.h"
+    "${PROJECT_HEADER_DIR}/analysis/eventconstructor.h"
+    "${PROJECT_HEADER_DIR}/analysis/coincidencefilter.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"
+    "${PROJECT_HEADER_DIR}/supervision/resource.h"
     )
 
 configure_file(

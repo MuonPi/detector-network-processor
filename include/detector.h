@@ -18,7 +18,6 @@ namespace muonpi {
 
 // +++ forward declarations
 class event_t;
-class state_supervisor;
 class detector_tracker;
 // --- forward declarations
 

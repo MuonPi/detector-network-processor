@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
-namespace muonpi {
+namespace muonpi::supervision {
 
-class resource_tracker {
+class resource {
 public:
     struct data_t {
         float process_cpu_load {};

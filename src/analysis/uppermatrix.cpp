@@ -1,9 +1,9 @@
-#include "utility/uppermatrix.h"
+#include "analysis/uppermatrix.h"
 
 #include <algorithm>
 #include <cinttypes>
 
-namespace MuonPi {
+namespace muonpi {
 
 void detector_pairs::add_detector(std::size_t hash)
 {

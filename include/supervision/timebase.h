@@ -8,14 +8,14 @@
 #include <chrono>
 #include <memory>
 
-namespace muonpi {
+namespace muonpi::supervision {
 
 /**
  * @brief The timebase_supervisor class
  */
-class timebase_supervisor : public pipeline<event_t>, public pipeline<timebase_t> {
+class timebase : public pipeline<event_t>, public pipeline<timebase_t> {
 public:
-    timebase_supervisor(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink);
+    timebase(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink);
 
     void get(event_t event) override;
     void get(timebase_t timebase) override;

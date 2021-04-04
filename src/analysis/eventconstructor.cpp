@@ -1,5 +1,5 @@
-#include "utility/eventconstructor.h"
-#include "utility/criterion.h"
+#include "analysis/eventconstructor.h"
+#include "analysis/criterion.h"
 #include "utility/log.h"
 
 namespace muonpi {

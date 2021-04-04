@@ -1,13 +1,13 @@
-#include "utility/resourcetracker.h"
+#include "supervision/resource.h"
 
 #include <algorithm>
 #include <fstream>
 #include <string>
 #include <unistd.h>
 
-namespace muonpi {
+namespace muonpi::supervision {
 
-auto resource_tracker::get_data() -> data_t
+auto resource::get_data() -> data_t
 {
     std::ifstream total_stream("/proc/stat", std::ios_base::in);
 

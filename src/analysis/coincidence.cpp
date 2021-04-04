@@ -1,4 +1,4 @@
-#include "utility/coincidence.h"
+#include "analysis/coincidence.h"
 #include "messages/event.h"
 
 #include <cmath>

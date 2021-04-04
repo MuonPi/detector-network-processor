@@ -12,9 +12,9 @@
 
 namespace muonpi::supervision {
 
-station::station(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor)
-    : sink::threaded<detetor_info_t<location_t>> { "detector_tracker", std::chrono::milliseconds { 100 } }
-    , source::base<detetor_summary_t> { summary_sink }
+station::station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor)
+    : sink::threaded<detector_info_t<location_t>> { "detector_tracker", std::chrono::milliseconds { 100 } }
+    , source::base<detector_summary_t> { summary_sink }
     , source::base<trigger::detector> { trigger_sink }
     , pipeline::base<event_t> { event_sink }
     , source::base<timebase_t> { timebase_sink }
@@ -24,7 +24,7 @@ station::station(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger
 
 void station::get(event_t event)
 {
-    auto det_iterator { m_detectors.find(event.hash()) };
+    auto det_iterator { m_detectors.find(event.hash) };
     if (det_iterator == m_detectors.end()) {
         return;
     }
@@ -34,24 +34,25 @@ void station::get(event_t event)
         return;
     }
 
-    event.set_detector_info(det->location(), det->user_info());
+    event.location = det->location();
+    event.userinfo = det->user_info();
 
     if (det->is(detector_station::Status::Reliable)) {
         source::base<event_t>::put(event);
     }
 }
 
-void station::get(detetor_info_t<location_t> detector_info)
+void station::get(detector_info_t<location_t> detector_info)
 {
-    threaded<detetor_info_t<location_t>>::internal_get(std::move(detector_info));
+    threaded<detector_info_t<location_t>>::internal_get(std::move(detector_info));
 }
 
-auto station::process(detetor_info_t<location_t> log) -> int
+auto station::process(detector_info_t<location_t> log) -> int
 {
-    auto det { m_detectors.find(log.hash()) };
+    auto det { m_detectors.find(log.hash) };
     if (det == m_detectors.end()) {
-        m_detectors[log.hash()] = std::make_unique<detector_station>(log, *this);
-        m_detectors[log.hash()]->enable();
+        m_detectors[log.hash] = std::make_unique<detector_station>(log, *this);
+        m_detectors[log.hash]->enable();
         save();
         return 0;
     }
@@ -91,7 +92,7 @@ auto station::process() -> int
         m_last = now;
 
         for (auto& [hash, det] : m_detectors) {
-            source::base<detetor_summary_t>::put(det->current_log_data());
+            source::base<detector_summary_t>::put(det->current_log_data());
         }
     }
     // --- push detector log messages at regular interval
@@ -119,7 +120,7 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
 {
     auto user_info { m_detectors[hash]->user_info() };
     if (status > detector_station::Status::Deleted) {
-        source::base<detetor_summary_t>::put(m_detectors[hash]->change_log_data());
+        source::base<detector_summary_t>::put(m_detectors[hash]->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
 

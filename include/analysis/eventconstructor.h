@@ -8,7 +8,7 @@
 
 namespace muonpi {
 
-class event_t;
+struct event_t;
 class criterion;
 /**
  * @brief The event_constructor class
@@ -31,7 +31,7 @@ public:
      * @brief timed_out Check whether the timeout has been reached
      * @return true if the constructor timed out.
      */
-    [[nodiscard]] auto timed_out() const -> bool;
+    [[nodiscard]] auto timed_out(std::chrono::system_clock::time_point now) const -> bool;
 
     event_t event;
     std::chrono::system_clock::duration timeout { std::chrono::minutes { 1 } };

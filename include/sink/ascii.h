@@ -45,78 +45,78 @@ ascii<T>::~ascii() = default;
 template <>
 void ascii<event_t>::get(event_t event)
 {
-    if (event.n() > 1) {
-        guid uuid { event.hash(), static_cast<std::uint64_t>(event.start()) };
-        const std::int64_t cluster_coinc_time = event.end() - event.start();
-        std::ostringstream out {};
-        out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
-        for (const auto& evt : event.events()) {
-            const std::int64_t evt_coinc_time = evt.start() - event.start();
-            out
-                << "\n\t" << uuid.to_string() << ' ' << evt_coinc_time
-                << std::hex
-                << ' ' << evt.data().user
-                << ' ' << evt.data().station_id
-                << ' ' << std::dec << evt.data().start
-                << ' ' << (evt.data().end - evt.data().start)
-                << ' ' << std::hex << evt.data().time_acc
-                << ' ' << evt.data().ublox_counter
-                << ' ' << static_cast<std::uint16_t>(evt.data().fix)
-                << ' ' << static_cast<std::uint16_t>(evt.data().utc)
-                << ' ' << static_cast<std::uint16_t>(evt.data().gnss_time_grid);
-        }
-
-        out << '\n';
-
-        m_ostream << out.str() << std::flush;
+    if (event.n() == 0) {
+        return;
     }
-}
 
-template <>
-void ascii<cluster_log_t>::get(cluster_log_t log)
-{
-    auto data { log.data() };
+    guid uuid { event.hash, static_cast<std::uint64_t>(event.start) };
+    const std::int64_t cluster_coinc_time = event.end - event.start;
     std::ostringstream out {};
-
-    out
-        << "Cluster Log:"
-        << "\n\ttimeout: " << data.timeout << " ms"
-        << "\n\ttimebase: " << data.timebase << " ms"
-        << "\n\tuptime: " << data.uptime << " ms"
-        << "\n\tin: " << data.frequency.single_in << " Hz"
-        << "\n\tout: " << data.frequency.l1_out << " Hz"
-        << "\n\tbuffer: " << data.buffer_length
-        << "\n\tevents in interval: " << data.incoming
-        << "\n\tcpu load: " << data.system_cpu_load
-        << "\n\tprocess cpu load: " << data.process_cpu_load
-        << "\n\tmemory usage: " << data.memory_usage
-        << "\n\tout in interval: ";
-
-    for (auto& [n, i] : data.outgoing) {
-        out << "(" << n << ":" << i << ") ";
+    out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
+    for (const auto& evt : event.events) {
+        const std::int64_t evt_coinc_time = evt.start - event.start;
+        out
+            << "\n\t" << uuid.to_string() << ' ' << evt_coinc_time
+            << std::hex
+            << ' ' << evt.user
+            << ' ' << evt.station_id
+            << ' ' << std::dec << evt.start
+            << ' ' << (evt.end - evt.start)
+            << ' ' << std::hex << evt.time_acc
+            << ' ' << evt.ublox_counter
+            << ' ' << static_cast<std::uint16_t>(evt.fix)
+            << ' ' << static_cast<std::uint16_t>(evt.utc)
+            << ' ' << static_cast<std::uint16_t>(evt.gnss_time_grid);
     }
 
-    out
-        << "\n\tdetectors: " << data.total_detectors << "(" << data.reliable_detectors << ")"
-        << "\n\tmaximum n: " << data.maximum_n << '\n';
+    out << '\n';
 
     m_ostream << out.str() << std::flush;
 }
 
 template <>
-void ascii<detetor_summary_t>::get(detetor_summary_t log)
+void ascii<cluster_log_t>::get(cluster_log_t log)
 {
-    auto data { log.data() };
     std::ostringstream out {};
 
     out
-        << "Detector Summary: " << log.user_info().site_id()
-        << "\n\teventrate: " << data.mean_eventrate
-        << "\n\teventrate stddev: " << data.stddev_eventrate
-        << "\n\tpulselength: " << data.mean_pulselength
-        << "\n\tincoming: " << data.incoming
-        << "\n\tublox counter progess: " << data.ublox_counter_progress
-        << "\n\tdeadtime factor: " << data.deadtime
+        << "Cluster Log:"
+        << "\n\ttimeout: " << log.timeout << " ms"
+        << "\n\ttimebase: " << log.timebase << " ms"
+        << "\n\tuptime: " << log.uptime << " ms"
+        << "\n\tin: " << log.frequency.single_in << " Hz"
+        << "\n\tout: " << log.frequency.l1_out << " Hz"
+        << "\n\tbuffer: " << log.buffer_length
+        << "\n\tevents in interval: " << log.incoming
+        << "\n\tcpu load: " << log.system_cpu_load
+        << "\n\tprocess cpu load: " << log.process_cpu_load
+        << "\n\tmemory usage: " << log.memory_usage
+        << "\n\tout in interval: ";
+
+    for (auto& [n, i] : log.outgoing) {
+        out << "(" << n << ":" << i << ") ";
+    }
+
+    out
+        << "\n\tdetectors: " << log.total_detectors << "(" << log.reliable_detectors << ")"
+        << "\n\tmaximum n: " << log.maximum_n << '\n';
+
+    m_ostream << out.str() << std::flush;
+}
+
+template <>
+void ascii<detector_summary_t>::get(detector_summary_t log)
+{
+    std::ostringstream out {};
+
+    out
+        << "Detector Summary: " << log.userinfo.site_id()
+        << "\n\teventrate: " << log.mean_eventrate
+        << "\n\teventrate stddev: " << log.stddev_eventrate
+        << "\n\tpulselength: " << log.mean_pulselength
+        << "\n\tincoming: " << log.incoming
+        << "\n\tublox counter progess: " << log.ublox_counter_progress
+        << "\n\tdeadtime factor: " << log.deadtime
         << '\n';
 
     m_ostream << out.str() << std::flush;

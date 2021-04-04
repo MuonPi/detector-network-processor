@@ -12,9 +12,9 @@ void event_constructor::set_timeout(std::chrono::system_clock::duration new_time
     timeout = new_timeout;
 }
 
-auto event_constructor::timed_out() const -> bool
+auto event_constructor::timed_out(std::chrono::system_clock::time_point now) const -> bool
 {
-    return (std::chrono::system_clock::now() - m_start) >= timeout;
+    return (now - m_start) >= timeout;
 }
 
 }

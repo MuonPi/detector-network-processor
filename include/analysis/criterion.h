@@ -5,7 +5,7 @@
 
 namespace muonpi {
 
-class event_t;
+struct event_t;
 
 /**
  * @brief The Criterion class

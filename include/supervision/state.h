@@ -93,7 +93,7 @@ private:
 
     std::vector<forward> m_threads;
 
-    cluster_log_t::data_t m_current_data;
+    cluster_log_t m_current_data;
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
 
     resource m_resource_tracker {};

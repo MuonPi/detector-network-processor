@@ -43,7 +43,7 @@ private:
 
     sink_ptr<event_t> m_event_sink { nullptr };
     sink_ptr<cluster_log_t> m_clusterlog_sink { nullptr };
-    sink_ptr<detetor_summary_t> m_detectorsummary_sink { nullptr };
+    sink_ptr<detector_summary_t> m_detectorsummary_sink { nullptr };
 
     sink_ptr<event_t> m_broadcast_event_sink { nullptr };
 
@@ -51,7 +51,7 @@ private:
 
     sink_ptr<event_t> m_ascii_event_sink { nullptr };
     sink_ptr<cluster_log_t> m_ascii_clusterlog_sink { nullptr };
-    sink_ptr<detetor_summary_t> m_ascii_detectorsummary_sink { nullptr };
+    sink_ptr<detector_summary_t> m_ascii_detectorsummary_sink { nullptr };
 
     std::unique_ptr<supervision::state> m_supervisor { nullptr };
 

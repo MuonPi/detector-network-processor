@@ -17,7 +17,7 @@
 namespace muonpi {
 
 // +++ forward declarations
-class event_t;
+struct event_t;
 namespace supervision {
 class station;
 }
@@ -47,7 +47,7 @@ public:
      * @brief detector
      * @param initial_log The initial log message from which this detector object originates
      */
-    detector_station(const detetor_info_t<location_t>& initial_log, supervision::station& stationsupervisor);
+    detector_station(const detector_info_t<location_t>& initial_log, supervision::station& stationsupervisor);
 
     /**
      * @brief detector Construct the detector from a serialised string
@@ -68,7 +68,7 @@ public:
      * @brief process Processes a detector info message. Checks for regular log messages and warns the event listener if they are delayed or have subpar location accuracy.
      * @param info The detector info to process
      */
-    void process(const detetor_info_t<location_t>& info);
+    void process(const detector_info_t<location_t>& info);
 
     /**
      * @brief is Checks the current detector status against a value
@@ -92,13 +92,13 @@ public:
      * @brief current_log_data gets the current log data.
      * @return
      */
-    [[nodiscard]] auto current_log_data() -> detetor_summary_t;
+    [[nodiscard]] auto current_log_data() -> detector_summary_t;
 
     /**
      * @brief change_log_data gets the current log data when the detector has experienced a change in status.
      * @return
      */
-    [[nodiscard]] auto change_log_data() -> detetor_summary_t;
+    [[nodiscard]] auto change_log_data() -> detector_summary_t;
 
     /**
      * @brief user_info Accesses the user info from the object
@@ -146,7 +146,7 @@ private:
     rate_measurement<s_history_length, s_time_interval> m_current_rate {};
     rate_measurement<s_history_length * 10, s_time_interval> m_mean_rate {};
 
-    detetor_summary_t::data_t m_current_data;
+    detector_summary_t m_current_data;
     std::uint16_t m_last_ublox_counter {};
 
     data_series<double, 100> m_pulselength {};

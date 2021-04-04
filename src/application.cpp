@@ -104,14 +104,14 @@ auto application::run() -> int
 
     sink::collection<event_t> collection_event_sink {};
     sink::collection<cluster_log_t> collection_clusterlog_sink {};
-    sink::collection<detetor_summary_t> collection_detectorsummary_sink {};
+    sink::collection<detector_summary_t> collection_detectorsummary_sink {};
     sink::collection<trigger::detector> collection_trigger_sink {};
     sink::collection<detector_log_t> collection_detectorlog_sink {};
 
     if (m_parameters["d"]) {
         m_ascii_event_sink = std::make_unique<sink::ascii<event_t>> ( std::cout );
         m_ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>> ( std::cout );
-        m_ascii_detectorsummary_sink = std::make_unique<sink::ascii<detetor_summary_t>> ( std::cout );
+        m_ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>> ( std::cout );
 
         collection_event_sink.emplace(*m_ascii_event_sink);
         collection_clusterlog_sink.emplace(*m_ascii_clusterlog_sink);
@@ -125,7 +125,7 @@ auto application::run() -> int
 
             m_event_sink = std::make_unique<sink::database<event_t>> ( *m_db_link );
             m_clusterlog_sink = std::make_unique<sink::database<cluster_log_t>> ( *m_db_link );
-            m_detectorsummary_sink = std::make_unique<sink::database<detetor_summary_t>> ( *m_db_link );
+            m_detectorsummary_sink = std::make_unique<sink::database<detector_summary_t>> ( *m_db_link );
 
             m_broadcast_event_sink = std::make_unique<sink::mqtt<event_t>> ( sink_mqtt_link.publish("muonpi/events") );
 
@@ -136,7 +136,7 @@ auto application::run() -> int
         } else {
             m_event_sink = std::make_unique<sink::mqtt<event_t>> ( sink_mqtt_link.publish("muonpi/l1data"), true );
             m_clusterlog_sink = std::make_unique<sink::mqtt<cluster_log_t>> ( sink_mqtt_link.publish("muonpi/cluster") );
-            m_detectorsummary_sink = std::make_unique<sink::mqtt<detetor_summary_t>> ( sink_mqtt_link.publish("muonpi/cluster") );
+            m_detectorsummary_sink = std::make_unique<sink::mqtt<detector_summary_t>> ( sink_mqtt_link.publish("muonpi/cluster") );
             m_detectorlog_sink = std::make_unique<sink::mqtt<detector_log_t>> ( sink_mqtt_link.publish("muonpi/log/") );
         }
         collection_event_sink.emplace(*m_event_sink);
@@ -156,7 +156,7 @@ auto application::run() -> int
 
     source::mqtt<event_t> event_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/data/#") };
     source::mqtt<event_t> l1_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/l1data/#") };
-    source::mqtt<detetor_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#") };
+    source::mqtt<detector_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#") };
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 

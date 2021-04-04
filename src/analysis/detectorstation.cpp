@@ -18,10 +18,10 @@ void detector_station::enable()
     set_status(Status::Created);
 }
 
-detector_station::detector_station(const detetor_info_t<location_t>& initial_log, supervision::station& stationsupervisor)
-    : m_location { initial_log.item() }
-    , m_hash { initial_log.hash() }
-    , m_userinfo { initial_log.user_info() }
+detector_station::detector_station(const detector_info_t<location_t>& initial_log, supervision::station& stationsupervisor)
+    : m_location { initial_log.get<location_t>() }
+    , m_hash { initial_log.hash }
+    , m_userinfo { initial_log.userinfo }
     , m_stationsupervisor { stationsupervisor }
 {
 }
@@ -84,7 +84,7 @@ auto detector_station::process(const event_t& event) -> bool
     m_mean_rate.increase_counter();
     m_current_data.incoming++;
 
-    const std::uint16_t current_ublox_counter = event.data().ublox_counter;
+    const std::uint16_t current_ublox_counter = event.ublox_counter;
     if (!m_initial) {
         std::uint16_t difference { static_cast<uint16_t>(current_ublox_counter - m_last_ublox_counter) };
 
@@ -97,24 +97,24 @@ auto detector_station::process(const event_t& event) -> bool
     }
     m_last_ublox_counter = current_ublox_counter;
 
-    double pulselength { static_cast<double>(event.data().end - event.data().start) };
+    double pulselength { static_cast<double>(event.end - event.start) };
     if ((pulselength > 0.) && (pulselength < 1e6)) {
         m_pulselength.add(pulselength);
     }
-    m_time_acc.add(event.data().time_acc);
-    m_reliability_time_acc.add(event.data().time_acc);
+    m_time_acc.add(event.time_acc);
+    m_reliability_time_acc.add(event.time_acc);
 
-    if (event.data().time_acc > (MAX_TIMING_ERROR * 100)) {
+    if (event.time_acc > (MAX_TIMING_ERROR * 100)) {
         set_status(Status::Unreliable);
     }
 
-    return (event.data().time_acc <= MAX_TIMING_ERROR) && (event.data().fix == 1);
+    return (event.time_acc <= MAX_TIMING_ERROR) && (event.fix == 1);
 }
 
-void detector_station::process(const detetor_info_t<location_t>& info)
+void detector_station::process(const detector_info_t<location_t>& info)
 {
     m_last_log = std::chrono::system_clock::now();
-    m_location = info.item();
+    m_location = info.get<location_t>();
     check_reliability();
 }
 
@@ -170,7 +170,7 @@ void detector_station::step()
     }
 }
 
-auto detector_station::current_log_data() -> detetor_summary_t
+auto detector_station::current_log_data() -> detector_summary_t
 {
     m_current_data.mean_eventrate = m_current_rate.mean();
     m_current_data.stddev_eventrate = m_current_rate.stddev();
@@ -182,16 +182,18 @@ auto detector_station::current_log_data() -> detetor_summary_t
     } else {
         m_current_data.deadtime = 1. - static_cast<double>(m_current_data.incoming) / static_cast<double>(m_current_data.ublox_counter_progress);
     }
-    detetor_summary_t log(m_hash, m_userinfo, m_current_data);
+    detector_summary_t log {m_current_data};
+    log.hash = m_hash;
+    log.userinfo = m_userinfo;
     m_current_data.incoming = 0;
     m_current_data.ublox_counter_progress = 0;
     return log;
 }
 
-auto detector_station::change_log_data() -> detetor_summary_t
+auto detector_station::change_log_data() -> detector_summary_t
 {
     auto summary { current_log_data() };
-    summary.set_change_flag();
+    summary.change = 1;
     return summary;
 }
 

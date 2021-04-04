@@ -5,6 +5,7 @@
 
 #include <chrono>
 #include <string>
+#include <tuple>
 
 namespace muonpi {
 
@@ -27,7 +28,6 @@ struct detector_type {
         OTHER
     } physical_type;
     double cross_section { 0.0 };
-    [[nodiscard]] static auto id() -> std::uint8_t;
 };
 
 enum class detector_state {
@@ -70,108 +70,26 @@ struct gnss_parameters_t {
     double sats_used { 0. };
 };
 
-/**
- * @brief The detetor_info_t class
- */
-template <typename T>
-class detetor_info_t {
-public:
-    //	detectorType type { detectorType::GateConnection::NONE, detectorType::detectorCount::NONE, detectorType::PhysicalType::UNDEFINED, 0.0 };
-    //	detectorState state { detectorState::UNDEFINED };
 
-    /**
-     * @brief detetor_info_t
-     * @param hash The hash of the detector identifier
-     * @param user_info The user info object
-     * @param item The specific detector info struct
-     */
-    detetor_info_t(std::size_t hash, userinfo_t user_info, T item);
+template <typename... T>
+struct detector_info_t
+{
+    std::tuple<T...> items {};
+    std::size_t hash {};
+    userinfo_t userinfo {};
 
-    detetor_info_t() noexcept;
+    template <typename I>
+    [[nodiscard]] inline auto item() -> I&
+    {
+        return std::get<I>(items);
+    }
 
-    /**
-     * @brief hash
-     * @return The hash of the detector for this info object
-     */
-    [[nodiscard]] auto hash() const noexcept -> std::size_t;
-
-    /**
-     * @brief item The item stored in this detetor_info_t object
-     * @return The specific detector info struct
-     */
-    [[nodiscard]] auto item() const -> T;
-
-    /**
-     * @brief time The time this log message arrived
-     * @return The arrival time
-     */
-    [[nodiscard]] auto time() const -> std::chrono::system_clock::time_point;
-
-    [[nodiscard]] auto valid() const -> bool;
-
-    /**
-     * @brief data Accesses the user info from the object
-     * @return the userinfo_t struct
-     */
-    [[nodiscard]] auto user_info() const -> userinfo_t;
-
-    std::size_t m_hash { 0 };
-    T m_item {};
-    userinfo_t m_userinfo {};
-
-private:
-    std::chrono::system_clock::time_point m_time { std::chrono::system_clock::now() };
-
-    bool m_valid { true };
+    template <typename I>
+    [[nodiscard]] inline auto get() const -> I
+    {
+        return std::get<I>(items);
+    }
 };
-
-/*
-* implementation section
-*/
-
-template <typename T>
-detetor_info_t<T>::detetor_info_t(std::size_t hash, userinfo_t user_info, T item)
-    : m_hash { hash }
-    , m_item { item }
-    , m_userinfo { user_info }
-{
-}
-
-template <typename T>
-detetor_info_t<T>::detetor_info_t() noexcept
-    : m_valid { false }
-{
-}
-
-template <typename T>
-auto detetor_info_t<T>::hash() const noexcept -> std::size_t
-{
-    return m_hash;
-}
-
-template <typename T>
-auto detetor_info_t<T>::item() const -> T
-{
-    return m_item;
-}
-
-template <typename T>
-auto detetor_info_t<T>::user_info() const -> userinfo_t
-{
-    return m_userinfo;
-}
-
-template <typename T>
-auto detetor_info_t<T>::time() const -> std::chrono::system_clock::time_point
-{
-    return m_time;
-}
-
-template <typename T>
-auto detetor_info_t<T>::valid() const -> bool
-{
-    return m_valid;
-}
 
 }
 

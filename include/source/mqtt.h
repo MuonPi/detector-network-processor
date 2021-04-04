@@ -88,7 +88,7 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-mqtt<detetor_info_t<location_t>>::item_collector::item_collector()
+mqtt<detector_info_t<location_t>>::item_collector::item_collector()
     : default_status { 0x003F }
     , status { default_status }
 {
@@ -116,34 +116,34 @@ void mqtt<T>::item_collector::reset()
 }
 
 template <>
-auto mqtt<detetor_info_t<location_t>>::item_collector::add(message_parser& /*topic*/, message_parser& message) -> ResultCode
+auto mqtt<detector_info_t<location_t>>::item_collector::add(message_parser& /*topic*/, message_parser& message) -> ResultCode
 {
     if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Reset;
     }
-    item.m_hash = user_info.hash();
-    item.m_userinfo = user_info;
+    item.hash = user_info.hash();
+    item.userinfo = user_info;
     try {
         if (message[1] == "geoHeightMSL") {
-            item.m_item.h = std::stod(message[2], nullptr);
+            item.item<location_t>().h = std::stod(message[2], nullptr);
             status &= ~1;
         } else if (message[1] == "geoHorAccuracy") {
-            item.m_item.h_acc = std::stod(message[2], nullptr);
+            item.item<location_t>().h_acc = std::stod(message[2], nullptr);
             status &= ~2;
         } else if (message[1] == "geoLatitude") {
-            item.m_item.lat = std::stod(message[2], nullptr);
+            item.item<location_t>().lat = std::stod(message[2], nullptr);
             status &= ~4;
         } else if (message[1] == "geoLongitude") {
-            item.m_item.lon = std::stod(message[2], nullptr);
+            item.item<location_t>().lon = std::stod(message[2], nullptr);
             status &= ~8;
         } else if (message[1] == "geoVertAccuracy") {
-            item.m_item.v_acc = std::stod(message[2], nullptr);
+            item.item<location_t>().v_acc = std::stod(message[2], nullptr);
             status &= ~16;
         } else if (message[1] == "positionDOP") {
-            item.m_item.dop = std::stod(message[2], nullptr);
+            item.item<location_t>().dop = std::stod(message[2], nullptr);
             status &= ~32;
         } else if (message[1] == "maxGeohashLength") {
-            item.m_item.max_geohash_length = std::stoi(message[2], nullptr);
+            item.item<location_t>().max_geohash_length = std::stoi(message[2], nullptr);
         } else {
             return ResultCode::Aggregating;
         }
@@ -152,8 +152,8 @@ auto mqtt<detetor_info_t<location_t>>::item_collector::add(message_parser& /*top
         return ResultCode::Error;
     }
 
-    if (item.m_item.max_geohash_length == 0) {
-        item.m_item.max_geohash_length = Config::meta.max_geohash_length;
+    if (item.item<location_t>().max_geohash_length == 0) {
+        item.item<location_t>().max_geohash_length = Config::meta.max_geohash_length;
     }
     return ((status == 0) ? ResultCode::Finished : ResultCode::Aggregating);
 }
@@ -169,12 +169,11 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
             return Error;
         }
 
-        event_t::data_t data;
+        event_t data;
 
-        std::size_t hash { 0 };
         std::size_t n { 0 };
         try {
-            hash = std::stoul(content[1], nullptr, 16);
+            data.hash = std::stoul(content[1], nullptr, 16);
             n = std::stoul(content[4], nullptr);
             data.user = topic[2];
             data.station_id = topic[3];
@@ -190,11 +189,12 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
             return Error;
         }
         if (status == 0) {
-            item = event_t { hash, data };
+
+            item = data;
             status = n - 1;
             return Aggregating;
         }
-        item.add_event(event_t { hash, data });
+        item.emplace(data);
         status--;
         if (status == 0) {
             return Finished;
@@ -202,7 +202,8 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
             return Aggregating;
         }
     }
-    event_t::data_t data;
+
+    event_t data;
 
     try {
 
@@ -214,6 +215,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
             return Error;
         }
 
+        data.hash = user_info.hash();
         data.start = static_cast<std::int_fast64_t>(std::stold(content[0]) * 1e9);
         data.end = static_cast<std::int_fast64_t>(std::stold(content[1]) * 1e9);
         data.user = topic[2];
@@ -232,7 +234,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
     if (data.start > data.end) {
         return Error;
     }
-    item = event_t { user_info.hash(), data };
+    item = data;
     status = 0;
     return Finished;
 }
@@ -240,9 +242,9 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
 template <>
 auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, message_parser& message) -> ResultCode
 {
-    if (!item.has_items()) {
-        item.set_log_id(message[0]);
-        item.set_userinfo(user_info);
+    if (item.items.empty()) {
+        item.log_id = message[0];
+        item.userinfo = user_info;
     } else if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Commit;
     }
@@ -296,25 +298,25 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             || (message[1] == "usedSats")
             || (message[1] == "vbias")
             || (message[1] == "vsense")) {
-            item.add_item({ message[1], std::stod(message[2], nullptr), unit });
+            item.emplace({ message[1], std::stod(message[2], nullptr), unit });
         } else if (
             (message[1] == "UBX_HW_Version")
             || (message[1] == "UBX_Prot_Version")
             || (message[1] == "UBX_SW_Version")
             || (message[1] == "geoHash")) {
-            item.add_item({ message[1], message[2], "" });
+            item.emplace({ message[1], message[2], "" });
         } else if (
             (message[1] == "gainSwitch")
             || (message[1] == "polaritySwitch1")
             || (message[1] == "polaritySwitch2")
             || (message[1] == "preampSwitch1")
             || (message[1] == "preampSwitch2")) {
-            item.add_item({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+            item.emplace({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else if (message[1] == "systemNrCPUs") {
-            item.add_item({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
+            item.emplace({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else {
             // unknown log message, forward as string as it is
-            item.add_item({ message[1], message.get(), "" });
+            item.emplace({ message[1], message.get(), "" });
         }
     } catch (std::invalid_argument& e) {
         log::warning() << "received exception when parsing log item: " + std::string(e.what());

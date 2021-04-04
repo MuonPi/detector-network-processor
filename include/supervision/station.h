@@ -17,15 +17,15 @@
 
 namespace muonpi {
 
-class detetor_summary_t;
+struct detector_summary_t;
 
 
 namespace supervision {
 class state;
 
 class station
-    : public sink::threaded<detetor_info_t<location_t>>,
-      public source::base<detetor_summary_t>,
+    : public sink::threaded<detector_info_t<location_t>>,
+      public source::base<detector_summary_t>,
       public source::base<trigger::detector>,
       public sink::base<trigger::detector::action_t>,
       public pipeline::base<event_t>,
@@ -38,7 +38,7 @@ public:
      * @param event_sink A sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    station(sink::base<detetor_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor);
+    station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor);
 
     /**
      * @brief detector_status Update the status of one detector
@@ -51,14 +51,14 @@ public:
 
     void get(event_t event) override;
 
-    void get(detetor_info_t<location_t> detector_info) override;
+    void get(detector_info_t<location_t> detector_info) override;
 
 protected:
     /**
      * @brief process Process a log message. Hands the message over to a detector, if none exists, creates a new one.
      * @param log The log message to check
      */
-    [[nodiscard]] auto process(detetor_info_t<location_t> log) -> int override;
+    [[nodiscard]] auto process(detector_info_t<location_t> log) -> int override;
     [[nodiscard]] auto process() -> int override;
 
     void save();

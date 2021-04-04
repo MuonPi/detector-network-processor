@@ -5,8 +5,10 @@
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
 #include "messages/userinfo.h"
-#include "utility/analysis.h"
 #include "utility/threadrunner.h"
+
+#include "analysis/dataseries.h"
+#include "analysis/ratemeasurement.h"
 
 #include <chrono>
 #include <future>
@@ -31,8 +33,6 @@ private:
     static constexpr std::size_t s_time_interval { 30000 };
 
 public:
-    using CurrentRateType = rate_measurement<s_history_length, s_time_interval>;
-    using MeanRateType = rate_measurement<s_history_length * 10, s_time_interval>;
 
     enum class Status {
         Created,
@@ -142,8 +142,8 @@ private:
 
     detector_tracker& m_detectortracker;
 
-    CurrentRateType m_current_rate {};
-    MeanRateType m_mean_rate {};
+    rate_measurement<s_history_length, s_time_interval> m_current_rate {};
+    rate_measurement<s_history_length * 10, s_time_interval> m_mean_rate {};
 
     detetor_summary_t::data_t m_current_data;
     std::uint16_t m_last_ublox_counter {};

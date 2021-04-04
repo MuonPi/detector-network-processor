@@ -113,8 +113,13 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/restservice.h"
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
-    "${PROJECT_HEADER_DIR}/utility/analysis.h"
     "${PROJECT_HEADER_DIR}/utility/exceptions.h"
+
+
+    "${PROJECT_HEADER_DIR}/analysis/dataseries.h"
+    "${PROJECT_HEADER_DIR}/analysis/cachedvalue.h"
+    "${PROJECT_HEADER_DIR}/analysis/ratemeasurement.h"
+    "${PROJECT_HEADER_DIR}/analysis/histogram.h"
 
     "${PROJECT_HEADER_DIR}/supervision/state.h"
     "${PROJECT_HEADER_DIR}/supervision/timebase.h"

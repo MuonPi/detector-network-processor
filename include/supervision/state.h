@@ -4,8 +4,10 @@
 #include "detector.h"
 #include "messages/clusterlog.h"
 #include "sink/base.h"
-#include "utility/analysis.h"
 #include "utility/resourcetracker.h"
+
+#include "analysis/dataseries.h"
+#include "analysis/ratemeasurement.h"
 
 #include "source/base.h"
 

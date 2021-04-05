@@ -1,5 +1,7 @@
 #include "messages/event.h"
 
+#include <algorithm>
+
 namespace muonpi {
 
 auto event_t::duration() const noexcept -> std::int_fast64_t
@@ -9,7 +11,7 @@ auto event_t::duration() const noexcept -> std::int_fast64_t
 
 auto event_t::n() const noexcept -> std::size_t
 {
-    return events.size();
+    return std::max<std::size_t>(events.size(), 1);
 }
 
 void event_t::emplace(event_t event) noexcept

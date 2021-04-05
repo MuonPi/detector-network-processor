@@ -62,22 +62,22 @@ auto station::process(detector_info_t<location_t> log) -> int
 auto station::process() -> int
 {
     using namespace std::chrono;
+    {
+        double largest { 1.0 };
+        system_clock::time_point now { system_clock::now() };
+        for (auto& [hash, det] : m_detectors) {
 
-    double largest { 1.0 };
-    std::size_t reliable { 0 };
-    for (auto& [hash, det] : m_detectors) {
+            det->step(now);
 
-        det->step();
-
-        if (det->is(detector_station::Status::Reliable)) {
-            reliable++;
-            if (det->factor() > largest) {
-                largest = det->factor();
+            if (det->is(detector_station::Status::Reliable)) {
+                if (det->factor() > largest) {
+                    largest = det->factor();
+                }
             }
         }
+        source::base<timebase_t>::put(timebase_t { largest });
     }
 
-    source::base<timebase_t>::put(timebase_t { largest });
 
     while (!m_delete_detectors.empty()) {
         m_detectors.erase(m_delete_detectors.front());

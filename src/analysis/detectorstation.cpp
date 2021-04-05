@@ -146,9 +146,9 @@ void detector_station::check_reliability()
     }
 }
 
-void detector_station::step()
+void detector_station::step(const std::chrono::system_clock::time_point& now)
 {
-    auto diff { std::chrono::system_clock::now() - std::chrono::system_clock::time_point { m_last_log } };
+    auto diff { now - std::chrono::system_clock::time_point { m_last_log } };
     if (diff > s_log_interval) {
         if (diff > s_quit_interval) {
             set_status(Status::Deleted);
@@ -160,8 +160,8 @@ void detector_station::step()
         check_reliability();
     }
 
-    if (m_current_rate.step()) {
-        m_mean_rate.step();
+    if (m_current_rate.step(now)) {
+        m_mean_rate.step(now);
         if (m_current_rate.mean() < (m_mean_rate.mean() - m_mean_rate.stddev())) {
             m_factor = ((m_mean_rate.mean() - m_current_rate.mean()) / (m_mean_rate.stddev()) + 1.0) * 2.0;
         } else {

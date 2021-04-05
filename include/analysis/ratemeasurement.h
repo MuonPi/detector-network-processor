@@ -31,10 +31,11 @@ public:
      * @return True if the timeout was reached and the rates have been determined in this step
      */
     auto step() -> bool;
+    auto step(const std::chrono::system_clock::time_point& now) -> bool;
 
 private:
     std::size_t m_current_n { 0 };
-    std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
+    std::chrono::system_clock::time_point m_last { std::chrono::system_clock::now() };
 };
 
 // +++++++++++++++++++++++++++++++
@@ -50,10 +51,16 @@ void rate_measurement<N, T, Sample>::increase_counter()
 template <std::size_t N, std::size_t T, bool Sample>
 auto rate_measurement<N, T, Sample>::step() -> bool
 {
-    std::chrono::steady_clock::time_point now { std::chrono::steady_clock::now() };
+    return step(std::chrono::system_clock::now());
+}
+
+template <std::size_t N, std::size_t T, bool Sample>
+auto rate_measurement<N, T, Sample>::step(const std::chrono::system_clock::time_point& now) -> bool
+{
     if (static_cast<std::size_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now - m_last).count()) >= T) {
         m_last = now;
-        data_series<double, N, Sample>::add(static_cast<double>(m_current_n) * 1000.0 / static_cast<double>(T));
+        constexpr double ms_to_s { 1000.0 };
+        data_series<double, N, Sample>::add(static_cast<double>(m_current_n) * ms_to_s / static_cast<double>(T));
         m_current_n = 0;
         return true;
     }

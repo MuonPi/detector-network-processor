@@ -86,7 +86,7 @@ public:
     /**
      * @brief step Gets called by the supervision::station with a guaranteed maximum time delay. May be called more often.
      */
-    void step();
+    void step(const std::chrono::system_clock::time_point& now);
 
     /**
      * @brief current_log_data gets the current log data.

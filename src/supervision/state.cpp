@@ -48,7 +48,7 @@ auto state::step() -> int
             return -1;
         }
     }
-    steady_clock::time_point now { steady_clock::now() };
+    system_clock::time_point now { system_clock::now() };
     if ((std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() % 2) == 0) {
         auto data = m_resource_tracker.get_data();
         m_current_data.memory_usage = data.memory_usage;
@@ -60,17 +60,17 @@ auto state::step() -> int
     if ((now - m_last) >= Config::interval.clusterlog) {
         m_last = now;
 
-        source::base<cluster_log_t>::put(cluster_log_t { m_current_data });
+        source::base<cluster_log_t>::put(m_current_data);
 
         m_current_data.incoming = 0;
         m_current_data.outgoing.clear();
     }
 
-    if (m_outgoing_rate.step()) {
-        m_incoming_rate.step();
+    if (m_outgoing_rate.step(now)) {
+        m_incoming_rate.step(now);
         m_current_data.timeout = duration_cast<milliseconds>(m_timeout).count();
         m_current_data.timebase = duration_cast<milliseconds>(m_timebase).count();
-        m_current_data.uptime = duration_cast<minutes>(system_clock::now() - m_startup).count();
+        m_current_data.uptime = duration_cast<minutes>(now - m_startup).count();
 
         m_current_data.frequency.single_in = m_incoming_rate.mean();
         m_current_data.frequency.l1_out = m_outgoing_rate.mean();

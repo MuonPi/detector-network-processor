@@ -30,15 +30,18 @@ void wrapper_signal_handler(int signal)
 
 auto application::setup(std::vector<std::string> arguments) -> bool
 {
-    log::manager::singleton()->add_sink(std::make_shared<log::syslog_sink>());
 
     if (!m_parameters.start(std::move(arguments))) {
         return false;
     }
     if (m_parameters["d"]) {
         log::manager::singleton()->add_sink(std::make_shared<log::stream_sink>(std::cerr));
+    } else {
+        log::manager::singleton()->add_sink(std::make_shared<log::syslog_sink>());
     }
+
     log::info() << "muondetector-cluster " + Version::string();
+
     if (m_parameters["l"]) {
         Config::files.credentials = m_parameters["l"].value;
     }
@@ -115,7 +118,9 @@ auto application::run() -> int
         collection_event_sink.emplace(*m_ascii_event_sink);
         collection_clusterlog_sink.emplace(*m_ascii_clusterlog_sink);
         collection_detectorsummary_sink.emplace(*m_ascii_detectorsummary_sink);
-    } else {
+    }
+
+    if (!m_parameters["o"]) {
         m_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>> ( sink_mqtt_link.publish("muonpi/trigger") );
         collection_trigger_sink.emplace(*m_trigger_sink);
 
@@ -247,6 +252,7 @@ auto application::parameter() -> parameters
         << parameters::definition { "c", "config", "Specify a configuration file to use", true }
         << parameters::definition { "l", "credentials", "Specify a credentials file to use", true }
         << parameters::definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
+        << parameters::definition { "o", "offline", "Do not send processed data to the servers.", true }
         << parameters::definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
 
     return params;

@@ -67,10 +67,11 @@ void station_coincidence::get(event_t event)
             }
             const auto second_t { event.events.at(j).start };
 
+            auto& pair { m_data.at(std::max(first, second), std::min(first, second)) };
             if (second_h > first_h) {
-                m_data.at(std::max(first, second), std::min(first, second)).hist.add(static_cast<std::int32_t>(first_t - second_t));
+                pair.hist.add(static_cast<std::int32_t>(first_t - second_t));
             } else {
-                m_data.at(std::max(first, second), std::min(first, second)).hist.add(static_cast<std::int32_t>(second_t - first_t));
+                pair.hist.add(static_cast<std::int32_t>(second_t - first_t));
             }
         }
     }
@@ -85,11 +86,16 @@ void station_coincidence::save()
     }
 
     for (const auto& data : m_data.data()) {
-        std::ofstream data_file { m_data_directory + "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + ".dat" };
+        std::ofstream histogram_file { m_data_directory + "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + ".hist" };
         for (const auto& bin : data.hist.qualified_bins()) {
-            data_file << ((bin.lower + bin.upper) / 2) << ' ' << bin.count << '\n';
+            histogram_file << ((bin.lower + bin.upper) / 2) << ' ' << bin.count << '\n';
         }
-        data_file.close();
+        histogram_file.close();
+        std::ofstream metadata_file { m_data_directory + "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + ".meta" };
+        metadata_file
+                << "bin_width " << std::to_string(data.hist.width())<<" ns\n"
+                << "distance " << data.distance << " m\n"
+                << "total " << std::to_string(data.hist.integral()) << " 1\n";
     }
     reset();
     m_saving = false;
@@ -113,11 +119,12 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
         coordinate::geodetic<double> first { location.lat * units::degree, location.lon * units::degree, location.h };
         for (std::size_t y { 0 }; y < x; y++) {
             const auto& [user, loc] { m_stations.at(y) };
-            const auto time_of_flight { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, { loc.lat * units::degree, loc.lon * units::degree, loc.h }) / s_c };
+            const auto distance { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, { loc.lat * units::degree, loc.lon * units::degree, loc.h }) };
+            const auto time_of_flight { distance / s_c };
             const std::int32_t bin_width { static_cast<std::int32_t>(std::clamp((2.0 * time_of_flight) / static_cast<double>(s_bins), 1.0, s_total_width / static_cast<double>(s_bins))) };
             const std::int32_t min { bin_width * -static_cast<std::int32_t>(s_bins * 0.5) };
             const std::int32_t max { bin_width * static_cast<std::int32_t>(s_bins * 0.5) };
-            m_data.emplace(x, y, { userinfo.hash(), user.hash(), histogram<s_bins, std::int32_t, std::uint16_t> { min, max } });
+            m_data.emplace(x, y, { userinfo.hash(), user.hash(), static_cast<float>(distance), histogram<s_bins, std::int32_t, std::uint16_t> { min, max } });
         }
     }
 }

@@ -64,6 +64,7 @@ private:
     struct data_t {
         std::size_t first {};
         std::size_t second {};
+        float distance {};
         histogram<s_bins, std::int32_t, std::uint16_t> hist {};
     };
     std::vector<std::pair<userinfo_t, location_t>> m_stations {};

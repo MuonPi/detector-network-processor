@@ -63,6 +63,17 @@ public:
      */
     [[nodiscard]] auto qualified_bins() const -> std::vector<bin>;
 
+    /**
+     * @brief width Get the binwidth of this histogram
+     * @return
+     */
+    [[nodiscard]] auto width() const -> T;
+
+    /**
+     * @brief integral get the total number of entries
+     * @return
+     */
+    [[nodiscard]] auto integral() const -> std::uint64_t;
 private:
     T m_lower {};
     T m_upper {};
@@ -131,5 +142,23 @@ auto histogram<N, T, C>::qualified_bins() const -> std::vector<bin>
     }
     return bins;
 }
+
+template <std::size_t N, typename T, typename C>
+auto histogram<N, T, C>::width() const -> T
+{
+    return m_width;
+}
+
+
+template <std::size_t N, typename T, typename C>
+auto histogram<N, T, C>::integral() const -> std::uint64_t
+{
+    std::uint64_t total {};
+    for (const auto& n : m_bins) {
+        total += n;
+    }
+    return total;
+}
+
 }
 #endif // HISTOGRAM_H

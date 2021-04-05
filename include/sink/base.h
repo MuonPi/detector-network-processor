@@ -106,11 +106,11 @@ protected:
     [[nodiscard]] auto process(T item) -> int override;
 
 private:
-    struct forward
-    {
+    struct forward {
         base<T>& sink;
 
-        inline void put(T item) {
+        inline void put(T item)
+        {
             sink.get(std::move(item));
         }
     };
@@ -220,7 +220,7 @@ auto collection<T>::process(T item) -> int
 template <typename T>
 void collection<T>::emplace(base<T>& sink)
 {
-    m_sinks.emplace_back(forward{sink});
+    m_sinks.emplace_back(forward { sink });
 }
 
 }

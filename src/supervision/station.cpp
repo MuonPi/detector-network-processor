@@ -78,7 +78,6 @@ auto station::process() -> int
         source::base<timebase_t>::put(timebase_t { largest });
     }
 
-
     while (!m_delete_detectors.empty()) {
         m_detectors.erase(m_delete_detectors.front());
         m_delete_detectors.pop();
@@ -107,7 +106,7 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
     }
     m_supervisor.detector_status(hash, status);
 
-    trigger::detector trigger{};
+    trigger::detector trigger {};
 
     trigger.hash = hash;
     trigger.setting.username = user_info.username;
@@ -134,7 +133,7 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
 auto station::get_stations() const -> std::vector<std::pair<userinfo_t, location_t>>
 {
     std::vector<std::pair<userinfo_t, location_t>> stations {};
-    for (const auto& [hash, stat]: m_detectors) {
+    for (const auto& [hash, stat] : m_detectors) {
         stations.emplace_back(std::make_pair(stat->user_info(), stat->location()));
     }
     return stations;

@@ -19,7 +19,7 @@ namespace muonpi {
 // +++ forward declarations
 struct event_t;
 namespace supervision {
-class station;
+    class station;
 }
 // --- forward declarations
 
@@ -34,7 +34,6 @@ private:
     static constexpr std::size_t s_time_interval { 30000 };
 
 public:
-
     enum class Status {
         Created,
         Deleted,

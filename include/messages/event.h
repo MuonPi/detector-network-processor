@@ -15,7 +15,6 @@ struct timebase_t {
     std::chrono::steady_clock::duration base {};
 };
 
-
 struct event_t {
     location_t location {};
     userinfo_t userinfo {};

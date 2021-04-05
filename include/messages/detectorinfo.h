@@ -70,10 +70,8 @@ struct gnss_parameters_t {
     double sats_used { 0. };
 };
 
-
 template <typename... T>
-struct detector_info_t
-{
+struct detector_info_t {
     std::tuple<T...> items {};
     std::size_t hash {};
     userinfo_t userinfo {};

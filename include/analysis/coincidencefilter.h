@@ -1,12 +1,12 @@
 #ifndef COINCIDENCEFILTER_H
 #define COINCIDENCEFILTER_H
 
+#include "analysis/coincidence.h"
 #include "analysis/detectorstation.h"
+#include "analysis/eventconstructor.h"
 #include "messages/clusterlog.h"
 #include "supervision/state.h"
 #include "supervision/timebase.h"
-#include "analysis/coincidence.h"
-#include "analysis/eventconstructor.h"
 #include "utility/threadrunner.h"
 
 #include <map>

@@ -102,7 +102,7 @@ void state::set_queue_size(std::size_t size)
 
 void state::add_thread(thread_runner& thread)
 {
-    m_threads.emplace_back(forward{thread});
+    m_threads.emplace_back(forward { thread });
 }
 
 void state::stop()

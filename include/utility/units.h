@@ -15,10 +15,8 @@ namespace units {
     static constexpr double micro = 1.0e-6;
     static constexpr double nano = 1.0e-9;
 
-
     static constexpr double radian = 1.0;
     static constexpr double degree = (pi / 180.0) * radian;
-
 
     static constexpr double kilometer = 1.0;
     static constexpr double meter = milli * kilometer;

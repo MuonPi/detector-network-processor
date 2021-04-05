@@ -59,7 +59,7 @@ private:
      */
     [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
     {
-        return (x * x - x)/2 + y;
+        return (x * x - x) / 2 + y;
     }
 
     /**

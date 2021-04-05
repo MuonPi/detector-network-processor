@@ -19,8 +19,8 @@ namespace muonpi {
 template <std::size_t N, typename T = double, typename C = std::size_t>
 class histogram {
 public:
-    static_assert (std::is_integral<C>::value);
-    static_assert (std::is_arithmetic<T>::value);
+    static_assert(std::is_integral<C>::value);
+    static_assert(std::is_arithmetic<T>::value);
 
     struct bin {
         T lower {};
@@ -74,7 +74,6 @@ private:
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 
-
 template <std::size_t N, typename T, typename C>
 histogram<N, T, C>::histogram()
     : m_lower {}
@@ -123,7 +122,7 @@ auto histogram<N, T, C>::qualified_bins() const -> std::vector<bin>
     std::vector<bin> bins;
     T last { m_lower };
     for (auto& b : m_bins) {
-        bin current{};
+        bin current {};
         current.lower = last;
         last += m_width;
         current.upper = last;

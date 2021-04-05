@@ -8,19 +8,18 @@
 
 #include "sink/base.h"
 
-#include "analysis/uppermatrix.h"
 #include "analysis/histogram.h"
+#include "analysis/uppermatrix.h"
 
 #include <string>
 
 namespace muonpi {
 
 namespace supervision {
-class station;
+    class station;
 }
 
-class station_coincidence : public sink::base<event_t>, public thread_runner
-{
+class station_coincidence : public sink::base<event_t>, public thread_runner {
 public:
     station_coincidence(std::string data_directory, supervision::station& stationsupervisor);
 
@@ -40,7 +39,7 @@ private:
 
     std::string m_data_directory {};
 
-    constexpr static std::chrono::duration s_sample_time { std::chrono::hours{12} };
+    constexpr static std::chrono::duration s_sample_time { std::chrono::hours { 12 } };
     constexpr static std::size_t s_bins { 2000 }; //<! total number of bins to use per pair
     constexpr static double s_c { 299'792'458.0 * 1.0e-9 };
     constexpr static double s_total_width { 2.0 * 100000.0 };

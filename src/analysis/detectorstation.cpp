@@ -182,7 +182,7 @@ auto detector_station::current_log_data() -> detector_summary_t
     } else {
         m_current_data.deadtime = 1. - static_cast<double>(m_current_data.incoming) / static_cast<double>(m_current_data.ublox_counter_progress);
     }
-    detector_summary_t log {m_current_data};
+    detector_summary_t log { m_current_data };
     log.hash = m_hash;
     log.userinfo = m_userinfo;
     m_current_data.incoming = 0;

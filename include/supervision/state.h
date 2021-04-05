@@ -86,8 +86,7 @@ private:
     rate_measurement<100, 5000> m_incoming_rate {};
     rate_measurement<100, 5000> m_outgoing_rate {};
 
-    struct forward
-    {
+    struct forward {
         thread_runner& runner;
     };
 

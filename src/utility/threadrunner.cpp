@@ -96,7 +96,7 @@ auto thread_runner::run() -> int
         }
 
         if ((m_thread != nullptr)) {
-            log::debug()<<"setting name for thread "  + m_name;
+            log::debug() << "setting name for thread " + m_name;
             auto handle { m_thread->native_handle() };
             pthread_setname_np(handle, m_name.c_str());
         }

@@ -2,14 +2,13 @@
 
 #include "utility/log.h"
 
+#include "analysis/criterion.h"
 #include "messages/clusterlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
 #include "sink/base.h"
 #include "source/base.h"
 #include "supervision/timebase.h"
-#include "analysis/criterion.h"
-
 
 #include <cinttypes>
 

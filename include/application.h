@@ -33,7 +33,6 @@ private:
 
     parameters m_parameters { parameter() };
 
-
     std::unique_ptr<link::database> m_db_link { nullptr };
 
     template <typename T>

@@ -20,7 +20,8 @@ namespace muonpi {
  */
 template <typename T, std::size_t N, bool Sample = false>
 class data_series {
-    static_assert (std::is_arithmetic<T>::value);
+    static_assert(std::is_arithmetic<T>::value);
+
 public:
     /**
      * @brief add Adds a value to the data series
@@ -83,7 +84,6 @@ private:
     cached_value<T> m_stddev { [this] { return private_stddev(); }, [this] { return dirty(m_stddev_dirty); } };
     cached_value<T> m_variance { [this] { return private_variance(); }, [this] { return dirty(m_var_dirty); } };
 };
-
 
 // +++++++++++++++++++++++++++++++
 // implementation part starts here

@@ -64,7 +64,6 @@ public:
     void add_thread(thread_runner& thread);
 
 protected:
-
     /**
      * @brief step Gets called from the core class.
      * @return 0 if everything is okay

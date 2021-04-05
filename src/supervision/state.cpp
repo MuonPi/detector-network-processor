@@ -8,7 +8,7 @@
 namespace muonpi::supervision {
 
 state::state(sink::base<cluster_log_t>& log_sink)
-    : thread_runner { "muon::state"}
+    : thread_runner { "muon::state" }
     , source::base<cluster_log_t> { log_sink }
 {
 }
@@ -82,7 +82,7 @@ auto state::step() -> int
         m_current_data.frequency.l1_out = m_outgoing_rate.mean();
     }
 
-    std::this_thread::sleep_for( std::chrono::milliseconds { s_rate_interval } );
+    std::this_thread::sleep_for(std::chrono::milliseconds { s_rate_interval });
     return 0;
 }
 

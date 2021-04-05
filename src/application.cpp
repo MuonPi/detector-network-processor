@@ -93,7 +93,7 @@ auto application::setup(std::vector<std::string> arguments) -> bool
 
 auto application::run() -> int
 {
-    link::mqtt source_mqtt_link { Config::source_mqtt, "muon::mqtt::so"};
+    link::mqtt source_mqtt_link { Config::source_mqtt, "muon::mqtt::so" };
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
@@ -103,11 +103,11 @@ auto application::run() -> int
         return -1;
     }
 
-    sink::collection<event_t> collection_event_sink {"muon::sink::e"};
-    sink::collection<cluster_log_t> collection_clusterlog_sink {"muon::sink::c"};
-    sink::collection<detector_summary_t> collection_detectorsummary_sink {"muon::sink::d"};
-    sink::collection<trigger::detector> collection_trigger_sink {"muon::sink::t"};
-    sink::collection<detector_log_t> collection_detectorlog_sink {"muon::sink::l"};
+    sink::collection<event_t> collection_event_sink { "muon::sink::e" };
+    sink::collection<cluster_log_t> collection_clusterlog_sink { "muon::sink::c" };
+    sink::collection<detector_summary_t> collection_detectorsummary_sink { "muon::sink::d" };
+    sink::collection<trigger::detector> collection_trigger_sink { "muon::sink::t" };
+    sink::collection<detector_log_t> collection_detectorlog_sink { "muon::sink::l" };
 
     if (m_parameters["d"]) {
         m_ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);

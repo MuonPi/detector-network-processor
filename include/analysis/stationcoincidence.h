@@ -19,10 +19,22 @@ namespace supervision {
     class station;
 }
 
+/**
+ * @brief The station_coincidence class. It stores histograms between all possible detector pairs.
+ */
 class station_coincidence : public sink::base<event_t>, public thread_runner {
 public:
+    /**
+     * @brief station_coincidence
+     * @param data_directory The data directory to use to store the data
+     * @param stationsupervisor reference to the supervision::station object
+     */
     station_coincidence(std::string data_directory, supervision::station& stationsupervisor);
 
+    /**
+     * @brief get Reimplemented from sink::base
+     * @param event the event to process
+     */
     void get(event_t event) override;
 
 protected:

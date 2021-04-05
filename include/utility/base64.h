@@ -8,6 +8,11 @@
 
 namespace muonpi::base64 {
 
+/**
+ * @brief decode Decode a base64 encoded string
+ * @param val
+ * @return
+ */
 [[nodiscard]] inline auto decode(std::string_view val) -> std::string
 {
     using namespace boost::archive::iterators;
@@ -17,6 +22,11 @@ namespace muonpi::base64 {
     });
 }
 
+/**
+ * @brief encode Encode a string to base64
+ * @param val
+ * @return
+ */
 [[nodiscard]] inline auto encode(std::string_view val) -> std::string
 {
     using namespace boost::archive::iterators;

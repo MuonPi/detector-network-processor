@@ -41,7 +41,11 @@ public:
         Reliable
     };
 
+    /**
+     * @brief enable Enable the detector_station object so it has the status Enabled
+     */
     void enable();
+
     /**
      * @brief detector
      * @param initial_log The initial log message from which this detector object originates

@@ -15,9 +15,23 @@ namespace muonpi::supervision {
  */
 class timebase : public pipeline::base<event_t>, public pipeline::base<timebase_t> {
 public:
+    /**
+     * @brief timebase
+     * @param event_sink The event sink to use
+     * @param timebase_sink the timebase sink to use
+     */
     timebase(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink);
 
+    /**
+     * @brief get Reimplemented from pipeline::base
+     * @param event
+     */
     void get(event_t event) override;
+
+    /**
+     * @brief get Reimplemented from pipeline::base
+     * @param tb
+     */
     void get(timebase_t tb) override;
 
 private:

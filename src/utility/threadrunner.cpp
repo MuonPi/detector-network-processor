@@ -100,7 +100,7 @@ auto thread_runner::run() -> int
             auto handle { m_thread->native_handle() };
             const auto result { pthread_setname_np(handle, m_name.c_str()) };
             if (result != 0) {
-                log::debug()<<"couldn't set name of thread " + m_name + " (" + ((result==ERANGE)?std::string{"ERANGE"}:std::to_string(result)) + ")";
+                log::debug() << "couldn't set name of thread " + m_name + " (" + ((result == ERANGE) ? std::string { "ERANGE" } : std::to_string(result)) + ")";
             }
         }
         m_state = State::Running;

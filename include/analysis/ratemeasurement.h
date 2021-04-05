@@ -27,10 +27,16 @@ public:
     void increase_counter();
 
     /**
-     * @brief step Called periodically
+     * @brief step Called periodically. Internally calls step(now);
      * @return True if the timeout was reached and the rates have been determined in this step
      */
     auto step() -> bool;
+
+    /**
+     * @brief step Called periodically
+     * @param now the time point when the method was called
+     * @return True if the timeout was reached and the rates have been determined in this step
+     */
     auto step(const std::chrono::system_clock::time_point& now) -> bool;
 
 private:

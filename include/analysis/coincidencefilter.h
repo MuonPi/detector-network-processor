@@ -29,7 +29,16 @@ public:
 
     ~coincidence_filter() override = default;
 
+    /**
+     * @brief get Get one timebase_t object. Reimplemented from sink::base
+     * @param timebase
+     */
     void get(timebase_t timebase) override;
+
+    /**
+     * @brief get Get one event_t object. Reimplemented from sink::base
+     * @param event
+     */
     void get(event_t event) override;
 
 protected:
@@ -38,6 +47,11 @@ protected:
      * @param event The event to process
      */
     [[nodiscard]] auto process(event_t event) -> int override;
+
+    /**
+     * @brief process gets periodically called by sink::threaded
+     * @return
+     */
     [[nodiscard]] auto process() -> int override;
 
 private:

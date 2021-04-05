@@ -36,6 +36,9 @@ struct enu {
 };
 
 template <typename T>
+/**
+ * @brief Implementes the WGS84 models for coordinate transformations
+ */
 struct WGS84 {
     constexpr static double a { 6378137.0 };
     constexpr static double b { 6356752.314245 };
@@ -44,6 +47,9 @@ struct WGS84 {
 };
 
 template <typename T>
+/**
+ * @brief Implementes the GRS80 models for coordinate transformations
+ */
 struct GRS80 {
     constexpr static double a { 6378137.0 };
     constexpr static double b { 6356752.314140 };
@@ -63,6 +69,7 @@ public:
      * @return Ecef coordinates
      */
     [[nodiscard]] static auto to_ecef(const geodetic<T>& coords) -> ecef<T>;
+
     /**
      * @brief to_ecef converts Enu coordinates to ecef reference system
      * @param coords Enu coordinates
@@ -70,11 +77,44 @@ public:
      * @return Coordinates in Ecef reference system
      */
     [[nodiscard]] static auto to_ecef(const enu<T>& coords, const ecef<T>& reference) -> ecef<T>;
+
+    /**
+     * @brief to_enu Convert geodetic coordinates to enu coordinates
+     * @param coords geodetic coordinates to convert
+     * @param reference The reference ecef coordinates
+     * @return
+     */
     [[nodiscard]] static auto to_enu(const geodetic<T>& coords, const ecef<T>& reference) -> enu<T>;
+
+    /**
+     * @brief to_enu Convert ecef coordinates to enu coordinates
+     * @param coords The ecef coordinates to convert
+     * @param reference The reference ecef coordinates
+     * @return
+     */
     [[nodiscard]] static auto to_enu(const ecef<T>& coords, const ecef<T>& reference) -> enu<T>;
+
+    /**
+     * @brief to_geodetic Convert enu coordinates to geodetic coordinates
+     * @param coords The enu coordinates to convert
+     * @param reference The reference coordinates for the enu coordinates
+     * @return
+     */
     [[nodiscard]] static auto to_geodetic(const enu<T>& coords, const ecef<T>& reference) -> geodetic<T>;
+
+    /**
+     * @brief to_geodetic Convert ecef coordinates to geodetic coordinates
+     * @param coords The ecef coordinates to convert
+     * @return
+     */
     [[nodiscard]] static auto to_geodetic(const ecef<T>& coords) -> geodetic<T>;
 
+    /**
+     * @brief straight_distance Calculate the straight distance between two geodetic coordinates
+     * @param first The first set of coordinates
+     * @param second The second set of coordinates
+     * @return
+     */
     [[nodiscard]] static auto straight_distance(const geodetic<T>& first, const geodetic<T>& second) -> T;
 };
 

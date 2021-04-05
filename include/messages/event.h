@@ -37,9 +37,28 @@ struct event_t {
 
     std::vector<data_t> events {};
 
+    /**
+     * @brief emplace add an event to this event
+     * @param event the event to add
+     */
     void emplace(event_t event) noexcept;
+
+    /**
+     * @brief emplace add event data to this event
+     * @param event the data to add
+     */
     void emplace(data_t event) noexcept;
+
+    /**
+     * @brief n
+     * @return the number of events represented by this object
+     */
     [[nodiscard]] auto n() const noexcept -> std::size_t;
+
+    /**
+     * @brief duration the duration of the event. For coincidences represents the coincidence time.
+     * @return the duration of the event
+     */
     [[nodiscard]] auto duration() const noexcept -> std::int_fast64_t;
 };
 

@@ -61,9 +61,31 @@ public:
     [[nodiscard]] auto current() const -> T;
 
 private:
-    [[nodiscard]] inline auto private_mean() const -> T;
-    [[nodiscard]] inline auto private_stddev() const -> T;
-    [[nodiscard]] inline auto private_variance() const -> T;
+    [[nodiscard]] inline auto private_mean() const -> T
+    {
+        const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
+        const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
+        const auto begin { m_buffer.begin() };
+
+        return std::accumulate(begin, end, 0.0) / n;
+    }
+
+    [[nodiscard]] inline auto private_stddev() const -> T
+    {
+        return std::sqrt(variance());
+    }
+
+    [[nodiscard]] inline auto private_variance() const -> T
+    {
+        const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
+        const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
+        const auto begin { m_buffer.begin() };
+        const auto denominator { Sample ? (n - 1.0) : n };
+        const auto m { m_mean() };
+
+        return 1.0 / (denominator)*std::inner_product(
+                   begin, end, begin, 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
+    }
 
     [[nodiscard]] inline auto dirty(bool& var) -> bool
     {
@@ -88,35 +110,6 @@ private:
 // +++++++++++++++++++++++++++++++
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
-
-template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::private_mean() const -> T
-{
-    const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
-    const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
-    const auto begin { m_buffer.begin() };
-
-    return std::accumulate(begin, end, 0.0) / n;
-}
-
-template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::private_variance() const -> T
-{
-    const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
-    const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
-    const auto begin { m_buffer.begin() };
-    const auto denominator { Sample ? (n - 1.0) : n };
-    const auto m { m_mean() };
-
-    return 1.0 / (denominator)*std::inner_product(
-               begin, end, begin, 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
-}
-
-template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::private_stddev() const -> T
-{
-    return std::sqrt(variance());
-}
 
 template <typename T, std::size_t N, bool Sample>
 void data_series<T, N, Sample>::add(T value)

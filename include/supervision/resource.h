@@ -13,6 +13,10 @@ public:
         float memory_usage {};
     };
 
+    /**
+     * @brief get_data Gets the data about used system resources
+     * @return The acquired data
+     */
     [[nodiscard]] auto get_data() -> data_t;
 
 private:

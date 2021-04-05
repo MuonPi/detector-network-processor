@@ -31,13 +31,16 @@ public:
     /**
      * @brief mqtt
      * @param publisher The topic from which the messages should be published
+     * @paragraph detailed if false, anonymises the users of mqtt messages
      */
     mqtt(link::mqtt::publisher& publisher, bool detailed = false);
 
     ~mqtt() override;
 
-    void set_detailed();
-
+    /**
+     * @brief get Reimplemented from sink::base
+     * @param message
+     */
     void get(T message) override;
 
 private:
@@ -80,12 +83,6 @@ mqtt<T>::mqtt(link::mqtt::publisher& publisher, bool detailed)
 
 template <typename T>
 mqtt<T>::~mqtt() = default;
-
-template <typename T>
-void mqtt<T>::set_detailed()
-{
-    m_detailed = true;
-}
 
 template <typename T>
 auto mqtt<T>::construct(const std::string& time, const std::string& parname) -> constructor

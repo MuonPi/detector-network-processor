@@ -8,6 +8,9 @@
 namespace muonpi {
 
 template <typename T>
+/**
+ * @brief The upper_matrix class. Represents an upper triangle matrix in order to store all possible pairs of detector stations
+ */
 class upper_matrix {
 public:
     /**
@@ -25,6 +28,12 @@ public:
      */
     [[nodiscard]] auto at(std::size_t x, std::size_t y) -> T&;
 
+    /**
+     * @brief emplace Sets the item at position x y to item
+     * @param x the x position
+     * @param y the y position
+     * @param item the item to add. gets moved.
+     */
     void emplace(std::size_t x, std::size_t y, T item);
 
     /**
@@ -46,8 +55,14 @@ public:
      */
     void swap_last(std::size_t index);
 
+    /**
+     * @brief reset Empties the data data structure
+     */
     void reset();
 
+    /**
+     * @brief data Get a const reference to the underyling data.
+     */
     [[nodiscard]] auto data() const -> const std::vector<T>&;
 
 private:

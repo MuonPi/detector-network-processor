@@ -20,6 +20,9 @@ public:
 
     ~scope_guard();
 
+    /**
+     * @brief dismiss Dismiss the guard, so the lambda given in the constructor will not be executed
+     */
     void dismiss();
 
 private:

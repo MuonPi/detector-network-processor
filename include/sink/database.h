@@ -30,6 +30,10 @@ public:
      */
     database(link::database& link);
 
+    /**
+     * @brief get Reimplemented from sink::base
+     * @param message
+     */
     void get(T message) override;
 
 private:

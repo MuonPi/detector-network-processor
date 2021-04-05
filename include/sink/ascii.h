@@ -86,7 +86,7 @@ void ascii<cluster_log_t>::get(cluster_log_t log)
         << "Cluster Log:"
         << "\n\ttimeout: " << log.timeout << " ms"
         << "\n\ttimebase: " << log.timebase << " ms"
-        << "\n\tuptime: " << log.uptime << " ms"
+        << "\n\tuptime: " << log.uptime << " min"
         << "\n\tin: " << log.frequency.single_in << " Hz"
         << "\n\tout: " << log.frequency.l1_out << " Hz"
         << "\n\tbuffer: " << log.buffer_length

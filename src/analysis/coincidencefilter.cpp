@@ -76,8 +76,8 @@ auto coincidence_filter::process(event_t event) -> int
         matches.pop();
         if (constructor.event.n() < 2) {
             event_t e { constructor.event };
+            constructor.event.data.end = constructor.event.data.start;
             constructor.event.emplace(e);
-            constructor.event.data.end = constructor.event.data.end;
         }
         constructor.event.emplace(std::move(event));
         return 0;
@@ -96,8 +96,8 @@ auto coincidence_filter::process(event_t event) -> int
     matches.pop();
     if (constructor.event.n() < 2) {
         event_t e { constructor.event };
+        constructor.event.data.end = constructor.event.data.start;
         constructor.event.emplace(e);
-        constructor.event.data.end = constructor.event.data.end;
     }
     constructor.event.emplace(event);
     // +++ Event matches more than one constructor

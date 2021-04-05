@@ -56,13 +56,12 @@ void ascii<event_t>::get(event_t event)
     for (const auto& evt : event.events) {
         const std::int64_t evt_coinc_time = evt.start - event.data.start;
         out
-            << "\n\t" << uuid.to_string() << ' ' << evt_coinc_time
-            << std::hex
+            << "\n\t" << std::hex << uuid.to_string() << std::dec << ' ' << evt_coinc_time
             << ' ' << evt.user
             << ' ' << evt.station_id
-            << ' ' << std::dec << evt.start
-            << ' ' << (evt.end - evt.start)
-            << ' ' << std::hex << evt.time_acc
+            << ' ' << evt.start
+            << ' ' << evt.duration()
+            << ' ' << evt.time_acc
             << ' ' << evt.ublox_counter
             << ' ' << static_cast<std::uint16_t>(evt.fix)
             << ' ' << static_cast<std::uint16_t>(evt.utc)

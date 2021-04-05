@@ -20,6 +20,7 @@ namespace muonpi {
  */
 template <typename T, std::size_t N, bool Sample = false>
 class data_series {
+    static_assert (std::is_arithmetic<T>::value);
 public:
     /**
      * @brief add Adds a value to the data series
@@ -120,16 +121,14 @@ auto data_series<T, N, Sample>::private_stddev() const -> T
 template <typename T, std::size_t N, bool Sample>
 void data_series<T, N, Sample>::add(T value)
 {
-    if (m_full || (m_index > 0)) {
-        m_index = (m_index + 1) % N;
-        if (m_index == 0) {
-            m_full = true;
-        }
-    }
     m_buffer[m_index] = value;
     m_mean_dirty = true;
     m_stddev_dirty = true;
     m_var_dirty = true;
+    m_index = (m_index + 1) % N;
+    if (m_index == 0) {
+        m_full = true;
+    }
 }
 
 template <typename T, std::size_t N, bool Sample>

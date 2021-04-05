@@ -105,6 +105,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
     "${PROJECT_HEADER_DIR}/utility/exceptions.h"
     "${PROJECT_HEADER_DIR}/utility/coordinatemodel.h"
+    "${PROJECT_HEADER_DIR}/utility/units.h"
 
     "${PROJECT_HEADER_DIR}/analysis/dataseries.h"
     "${PROJECT_HEADER_DIR}/analysis/cachedvalue.h"

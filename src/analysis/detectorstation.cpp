@@ -2,15 +2,16 @@
 #include "messages/event.h"
 #include "supervision/state.h"
 #include "utility/log.h"
+#include "utility/units.h"
 #include "utility/utility.h"
 
 #include "supervision/station.h"
 
 namespace muonpi {
 
-constexpr double LIGHTSPEED { 0.299 }; //< velocity of light in m/ns
-constexpr double MAX_TIMING_ERROR { 1000. }; //< max allowable timing error in nanoseconds
-constexpr double MAX_LOCATION_ERROR { MAX_TIMING_ERROR * LIGHTSPEED }; //< max allowable location error in meter
+constexpr double max_timing_error { 1000.0 }; //< max allowable timing error in nanoseconds
+constexpr double max_location_error { max_timing_error * units::nanosecond * consts::c_0 }; //< max allowable location error in meter
+constexpr double extreme_timing_error { max_timing_error * 100.0 };
 constexpr double stddev_factor { 0.75 };
 
 void detector_station::enable()
@@ -29,30 +30,42 @@ detector_station::detector_station(const detector_info_t<location_t>& initial_lo
 detector_station::detector_station(const std::string& serialised, supervision::station& stationsupervisor, bool stale)
     : m_stationsupervisor { stationsupervisor }
 {
+    constexpr static std::size_t message_length { 10 };
+    constexpr static std::size_t index_hash { 0 };
+    constexpr static std::size_t index_username { 1 };
+    constexpr static std::size_t index_station_id { 2 };
+    constexpr static std::size_t index_status { 3 };
+    constexpr static std::size_t index_lat { 4 };
+    constexpr static std::size_t index_lon { 5 };
+    constexpr static std::size_t index_h { 6 };
+    constexpr static std::size_t index_h_acc { 7 };
+    constexpr static std::size_t index_v_acc { 8 };
+    constexpr static std::size_t index_dop { 9 };
+
     message_parser in { serialised, ' ' };
-    if (in.size() < 10) {
+    if (in.size() < message_length) {
         m_status = Status::Deleted;
         return;
     }
-    m_hash = std::stoul(in[0], nullptr);
-    m_userinfo.username = in[1];
-    m_userinfo.station_id = in[2];
-    if (in[3] == "created") {
+    m_hash = std::stoul(in[index_hash], nullptr);
+    m_userinfo.username = in[index_username];
+    m_userinfo.station_id = in[index_station_id];
+    if (in[index_status] == "created") {
         m_status = Status::Created;
-    } else if (in[3] == "deleted") {
+    } else if (in[index_status] == "deleted") {
         m_status = Status::Deleted;
-    } else if ((in[3] != "reliable") || (stale)) {
+    } else if ((in[index_status] != "reliable") || (stale)) {
         m_status = Status::Unreliable;
     } else {
         m_status = Status::Reliable;
     }
 
-    m_location.lat = std::stod(in[4], nullptr);
-    m_location.lon = std::stod(in[5], nullptr);
-    m_location.h = std::stod(in[6], nullptr);
-    m_location.h_acc = std::stod(in[7], nullptr);
-    m_location.v_acc = std::stod(in[8], nullptr);
-    m_location.dop = std::stod(in[9], nullptr);
+    m_location.lat = std::stod(in[index_lat], nullptr);
+    m_location.lon = std::stod(in[index_lon], nullptr);
+    m_location.h = std::stod(in[index_h], nullptr);
+    m_location.h_acc = std::stod(in[index_h_acc], nullptr);
+    m_location.v_acc = std::stod(in[index_v_acc], nullptr);
+    m_location.dop = std::stod(in[index_dop], nullptr);
 }
 
 auto detector_station::serialise() const -> std::string
@@ -98,17 +111,17 @@ auto detector_station::process(const event_t& event) -> bool
     m_last_ublox_counter = current_ublox_counter;
 
     double pulselength { static_cast<double>(event.end - event.start) };
-    if ((pulselength > 0.) && (pulselength < 1e6)) {
+    if ((pulselength > 0.0) && (pulselength < units::mega)) {
         m_pulselength.add(pulselength);
     }
     m_time_acc.add(event.time_acc);
     m_reliability_time_acc.add(event.time_acc);
 
-    if (event.time_acc > (MAX_TIMING_ERROR * 100)) {
+    if (event.time_acc > (extreme_timing_error)) {
         set_status(Status::Unreliable);
     }
 
-    return (event.time_acc <= MAX_TIMING_ERROR) && (event.fix == 1);
+    return (event.time_acc <= max_timing_error) && (event.fix == 1);
 }
 
 void detector_station::process(const detector_info_t<location_t>& info)
@@ -139,7 +152,7 @@ auto detector_station::factor() const -> double
 void detector_station::check_reliability()
 {
     const double loc_precision { m_location.dop * std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
-    if ((loc_precision > MAX_LOCATION_ERROR) || (m_reliability_time_acc.mean() > MAX_TIMING_ERROR) || (m_mean_rate.stddev() > (m_mean_rate.mean() * stddev_factor))) {
+    if ((loc_precision > max_location_error) || (m_reliability_time_acc.mean() > max_timing_error) || (m_mean_rate.stddev() > (m_mean_rate.mean() * stddev_factor))) {
         set_status(Status::Unreliable);
     } else {
         set_status(Status::Reliable);

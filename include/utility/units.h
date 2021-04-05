@@ -20,6 +20,14 @@ namespace units {
 
     static constexpr double kilometer = 1.0;
     static constexpr double meter = milli * kilometer;
+
+    static constexpr double second = 1.0;
+    static constexpr double nanosecond = nano * second;
+
+}
+
+namespace consts {
+    static constexpr double c_0 { 299'792'458.0 };
 }
 
 }

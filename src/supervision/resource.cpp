@@ -22,7 +22,9 @@ auto resource::get_data() -> data_t
 
     cpu_total += system_user + system_nice + system_system;
 
-    for (std::size_t i { 0 }; i < 7; i++) {
+    constexpr static std::size_t n_data { 7 };
+
+    for (std::size_t i { 0 }; i < n_data; i++) {
         std::size_t v {};
         total_stream >> v;
         cpu_total += v;
@@ -69,9 +71,9 @@ auto resource::get_data() -> data_t
 
     long page_size_b = sysconf(_SC_PAGE_SIZE);
 
-    float total = static_cast<float>(cpu_total - m_cpu.total_time_last);
-    float process = static_cast<float>(process_user + process_system - m_cpu.process_time_last);
-    float system = static_cast<float>(system_user + system_system + system_nice - m_cpu.system_time_last);
+    auto total = static_cast<float>(cpu_total - m_cpu.total_time_last);
+    auto process = static_cast<float>(process_user + process_system - m_cpu.process_time_last);
+    auto system = static_cast<float>(system_user + system_system + system_nice - m_cpu.system_time_last);
     m_cpu.total_time_last = cpu_total;
     m_cpu.process_time_last = process_user + process_system;
     m_cpu.system_time_last = system_user + system_system + system_nice;

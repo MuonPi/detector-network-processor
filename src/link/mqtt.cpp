@@ -14,6 +14,8 @@
 
 namespace muonpi::link {
 
+constexpr std::chrono::duration s_timeout { std::chrono::milliseconds { 10 } };
+
 auto mqtt::wait_for(Status status, std::chrono::milliseconds duration) -> bool
 {
     std::chrono::steady_clock::time_point start { std::chrono::steady_clock::now() };
@@ -21,7 +23,7 @@ auto mqtt::wait_for(Status status, std::chrono::milliseconds duration) -> bool
         if (m_status == status) {
             return true;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds { 10 });
+        std::this_thread::sleep_for(s_timeout);
     }
     return false;
 }
@@ -80,7 +82,8 @@ auto mqtt::step() -> int
             return -1;
         }
     }
-    auto status = mosquitto_loop(m_mqtt, 100, 1);
+    constexpr static int mqtt_timeout { 100 };
+    auto status = mosquitto_loop(m_mqtt, mqtt_timeout, 1);
     if (status != MOSQ_ERR_SUCCESS) {
         switch (status) {
         case MOSQ_ERR_INVAL:
@@ -112,8 +115,6 @@ auto mqtt::step() -> int
             return -1;
         }
     }
-
-    std::this_thread::sleep_for(std::chrono::microseconds { 500 });
     return 0;
 }
 
@@ -295,7 +296,8 @@ auto mqtt::connect() -> bool
         log::warning() << "Could not connect to MQTT";
         return false;
     }
-    auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, 60) };
+    constexpr static int mqtt_keepalive { 60 };
+    auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, mqtt_keepalive) };
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
@@ -325,7 +327,8 @@ auto mqtt::reconnect() -> bool
     m_tries++;
     set_status(Status::Disconnected);
 
-    if (m_tries > (s_max_tries - 8)) {
+    constexpr static std::size_t max_reconnect_tries { 8 };
+    if (m_tries > (s_max_tries - max_reconnect_tries)) {
         log::error() << "Giving up trying to reconnect to MQTT.";
         return reinitialise();
     }

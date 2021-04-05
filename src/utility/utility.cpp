@@ -93,16 +93,20 @@ auto message_parser::get() const -> std::string
     return m_content;
 }
 
+constexpr static std::uint64_t lower_bits { 0x00000000FFFFFFFF };
+constexpr static std::uint64_t upper_bits { 0xFFFFFFFF00000000 };
+
 guid::guid(std::size_t hash, std::uint64_t time)
-    : m_first { get_mac() ^ hash ^ (get_number() & 0x00000000FFFFFFFF) }
-    , m_second { time ^ (get_number() & 0xFFFFFFFF00000000) }
+    : m_first { get_mac() ^ hash ^ (get_number() & lower_bits) }
+    , m_second { time ^ (get_number() & upper_bits) }
 {
 }
 
 auto guid::to_string() const -> std::string
 {
+    constexpr static std::size_t number_width { 16 };
     std::ostringstream out {};
-    out << std::right << std::hex << std::setfill('0') << std::setw(16) << m_first << std::setw(16) << m_second;
+    out << std::right << std::hex << std::setfill('0') << std::setw(number_width) << m_first << std::setw(number_width) << m_second;
     return out.str();
 }
 
@@ -139,7 +143,8 @@ auto guid::get_mac() -> std::uint64_t
     std::ifstream iface("/sys/class/net/" + ifname + "/address");
     std::string str((std::istreambuf_iterator<char>(iface)), std::istreambuf_iterator<char>());
     if (!str.empty()) {
-        addr = std::stoull(std::regex_replace(str, std::regex(":"), ""), nullptr, 16);
+        constexpr static int base { 16 };
+        addr = std::stoull(std::regex_replace(str, std::regex(":"), ""), nullptr, base);
     }
     return addr;
 }

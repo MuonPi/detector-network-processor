@@ -78,7 +78,7 @@ auto coincidence_filter::process(event_t event) -> int
     if (matches.size() == 1) {
         event_constructor& constructor { m_constructors[matches.front()] };
         matches.pop();
-        if (constructor.event.n() == 0) {
+        if (constructor.event.n() < 2) {
             event_t e { std::move(constructor.event) };
             event_t new_e { e };
             new_e.end = e.end;
@@ -100,7 +100,7 @@ auto coincidence_filter::process(event_t event) -> int
     }
     event_constructor& constructor { m_constructors[matches.front()] };
     matches.pop();
-    if (constructor.event.n() == 0) {
+    if (constructor.event.n() < 2) {
         event_t e { constructor.event };
         event_t new_e { e };
         new_e.end = e.end;

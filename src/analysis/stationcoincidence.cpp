@@ -6,6 +6,7 @@
 #include "utility/utility.h"
 
 #include "utility/log.h"
+#include "utility/units.h"
 
 #include <algorithm>
 #include <fstream>
@@ -40,7 +41,7 @@ void station_coincidence::on_stop()
 
 void station_coincidence::get(event_t event)
 {
-    if (event.n() == 0) {
+    if ((event.n() < 2) || (m_saving)) {
         return;
     }
 
@@ -78,22 +79,21 @@ void station_coincidence::get(event_t event)
 
 void station_coincidence::save()
 {
+    m_saving = true;
     std::map<std::size_t, userinfo_t> stations{};
-    std::ofstream header_file { m_data_directory + "/stations" };
     for (const auto& [userinfo, location]: m_stations) {
-        header_file<<std::hex<<userinfo.hash()<<' '<<userinfo.username<<' '<<userinfo.station_id<<'\n';
         stations.emplace(userinfo.hash(), userinfo);
     }
-    header_file.close();
 
     for (const auto& data: m_data.data()) {
-        std::ofstream data_file { m_data_directory + "/" + stations[data.first].station_id + "_" + stations[data.second].station_id + ".dat" };
+        std::ofstream data_file { m_data_directory + "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + ".dat" };
         for (const auto& bin: data.hist.qualified_bins()) {
-            data_file<<((bin.lower + bin.upper) * 0.5)<<' '<<bin.count<<'\n';
+            data_file<<((bin.lower + bin.upper)/2)<<' '<<bin.count<<'\n';
         }
         data_file.close();
     }
     reset();
+    m_saving = false;
 }
 
 void station_coincidence::reset()
@@ -111,10 +111,10 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
     const auto x { m_data.increase() };
     m_stations.emplace_back(std::make_pair(userinfo, location));
     if (x > 0) {
-        coordinate::geodetic<double> first {location.lat, location.lon, location.h};
+        coordinate::geodetic<double> first {location.lat * units::degree, location.lon * units::degree, location.h};
         for (std::size_t y { 0 }; y < x; y++) {
             const auto& [user, loc] { m_stations.at(y) };
-            const auto time_of_flight { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, {loc.lat, loc.lon, loc.h}) / s_c };
+            const auto time_of_flight { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, {loc.lat * units::degree, loc.lon * units::degree, loc.h}) / s_c };
             const std::int32_t bin_width { static_cast<std::int32_t>(std::clamp((2.0 * time_of_flight) / static_cast<double>(s_bins), 1.0, s_total_width / static_cast<double>(s_bins))) };
             const std::int32_t min { bin_width * - static_cast<std::int32_t>(s_bins * 0.5) };
             const std::int32_t max { bin_width * static_cast<std::int32_t>(s_bins * 0.5) };

@@ -26,7 +26,7 @@ station::station(sink::base<detector_summary_t>& summary_sink, sink::base<trigge
 
 void station::get(event_t event)
 {
-    auto det_iterator { m_detectors.find(event.hash) };
+    auto det_iterator { m_detectors.find(event.data.hash) };
     if (det_iterator == m_detectors.end()) {
         return;
     }
@@ -36,11 +36,11 @@ void station::get(event_t event)
         return;
     }
 
-    event.location = det->location();
-    event.userinfo = det->user_info();
+    event.data.location = det->location();
+    event.data.userinfo = det->user_info();
 
     if (det->is(detector_station::Status::Reliable)) {
-        source::base<event_t>::put(event);
+        source::base<event_t>::put(std::move(event));
     }
 }
 

@@ -116,8 +116,8 @@ void database<event_t>::get(event_t event)
         return;
     }
 
-    const std::int64_t cluster_coinc_time = event.end - event.start;
-    guid uuid { event.hash, static_cast<std::uint64_t>(event.start) };
+    const std::int64_t cluster_coinc_time = event.duration();
+    guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
     for (auto& evt : event.events) {
         using namespace link::influx;
         if (!(m_link.measurement("L1Event")
@@ -129,7 +129,7 @@ void database<event_t>::get(event_t event)
                 << field { "coinc_level", event.n() }
                 << field { "counter", evt.ublox_counter }
                 << field { "length", evt.duration() }
-                << field { "coinc_time", evt.start - event.start }
+                << field { "coinc_time", evt.start - event.data.start }
                 << field { "cluster_coinc_time", cluster_coinc_time }
                 << field { "time_ref", evt.gnss_time_grid }
                 << field { "valid_fix", evt.fix })

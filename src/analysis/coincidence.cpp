@@ -11,11 +11,11 @@ coincidence::~coincidence() = default;
 
 auto coincidence::apply(const event_t& first, const event_t& second) const -> double
 {
-    const std::int_fast64_t t11 = first.start;
-    const std::int_fast64_t t21 = second.start;
+    const std::int_fast64_t t11 = first.data.start;
+    const std::int_fast64_t t21 = second.data.start;
 
-    const std::int_fast64_t t12 = (first.n() > 1) ? first.end : first.start;
-    const std::int_fast64_t t22 = (second.n() > 1) ? second.end : second.start;
+    const std::int_fast64_t t12 = (first.n() > 1) ? first.data.end : first.data.start;
+    const std::int_fast64_t t22 = (second.n() > 1) ? second.data.end : second.data.start;
 
     return compare(t11, t21) + compare(t11, t22) + compare(t12, t21) + compare(t12, t22);
 }

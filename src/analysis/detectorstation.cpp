@@ -97,7 +97,7 @@ auto detector_station::process(const event_t& event) -> bool
     m_mean_rate.increase_counter();
     m_current_data.incoming++;
 
-    const std::uint16_t current_ublox_counter = event.ublox_counter;
+    const std::uint16_t current_ublox_counter = event.data.ublox_counter;
     if (!m_initial) {
         std::uint16_t difference { static_cast<uint16_t>(current_ublox_counter - m_last_ublox_counter) };
 
@@ -110,18 +110,18 @@ auto detector_station::process(const event_t& event) -> bool
     }
     m_last_ublox_counter = current_ublox_counter;
 
-    double pulselength { static_cast<double>(event.end - event.start) };
+    double pulselength { static_cast<double>(event.data.end - event.data.start) };
     if ((pulselength > 0.0) && (pulselength < units::mega)) {
         m_pulselength.add(pulselength);
     }
-    m_time_acc.add(event.time_acc);
-    m_reliability_time_acc.add(event.time_acc);
+    m_time_acc.add(event.data.time_acc);
+    m_reliability_time_acc.add(event.data.time_acc);
 
-    if (event.time_acc > (extreme_timing_error)) {
+    if (event.data.time_acc > (extreme_timing_error)) {
         set_status(Status::Unreliable);
     }
 
-    return (event.time_acc <= max_timing_error) && (event.fix == 1);
+    return (event.data.time_acc <= max_timing_error) && (event.data.fix == 1);
 }
 
 void detector_station::process(const detector_info_t<location_t>& info)

@@ -61,7 +61,7 @@ auto coincidence_filter::process(event_t event) -> int
     std::queue<std::size_t> matches {};
     for (std::size_t i { 0 }; i < m_constructors.size(); i++) {
         auto& constructor { m_constructors[i] };
-        if (constructor.event.hash == event.hash) {
+        if (constructor.event.data.hash == event.data.hash) {
             continue;
         }
         if (m_criterion->maximum_false() < m_criterion->apply(event, constructor.event)) {
@@ -75,11 +75,9 @@ auto coincidence_filter::process(event_t event) -> int
         event_constructor& constructor { m_constructors[matches.front()] };
         matches.pop();
         if (constructor.event.n() < 2) {
-            event_t e { std::move(constructor.event) };
-            event_t new_e { e };
-            new_e.end = e.end;
-            new_e.emplace(std::move(e));
-            constructor.event = std::move(new_e);
+            event_t e { constructor.event };
+            constructor.event.emplace(e);
+            constructor.event.data.end = constructor.event.data.end;
         }
         constructor.event.emplace(std::move(event));
         return 0;
@@ -98,10 +96,8 @@ auto coincidence_filter::process(event_t event) -> int
     matches.pop();
     if (constructor.event.n() < 2) {
         event_t e { constructor.event };
-        event_t new_e { e };
-        new_e.end = e.end;
-        new_e.emplace(std::move(e));
-        constructor.event = std::move(new_e);
+        constructor.event.emplace(e);
+        constructor.event.data.end = constructor.event.data.end;
     }
     constructor.event.emplace(event);
     // +++ Event matches more than one constructor

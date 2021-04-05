@@ -158,8 +158,8 @@ void mqtt<event_t>::get(event_t event)
         return;
     }
 
-    const std::int64_t cluster_coinc_time = event.end - event.start;
-    guid uuid { event.hash, static_cast<std::uint64_t>(event.start) };
+    const std::int64_t cluster_coinc_time = event.data.end - event.data.start;
+    guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
     for (auto& evt : event.events) {
         location_t loc = evt.location;
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
@@ -171,7 +171,7 @@ void mqtt<event_t>::get(event_t event)
         message.add_field(std::to_string(evt.time_acc)); // station's time accuracy
         message.add_field(std::to_string(event.n())); // event multiplicity (coinc level)
         message.add_field(std::to_string(cluster_coinc_time)); // total time span of the event (last - first)
-        message.add_field(std::to_string(evt.start - event.start)); // relative time of the station within the event (referred to first detector hit)
+        message.add_field(std::to_string(evt.start - event.data.start)); // relative time of the station within the event (referred to first detector hit)
         message.add_field(std::to_string(evt.ublox_counter)); // the station's hardware event counter (16bit)
         message.add_field(std::to_string(evt.duration())); // the pulse length of the station for the hit contributing to this event
         message.add_field(std::to_string(evt.gnss_time_grid)); // the time grid to which the station was synced at the moment of the event

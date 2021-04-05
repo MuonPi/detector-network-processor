@@ -169,7 +169,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
             return Error;
         }
 
-        event_t data;
+        event_t::data_t data;
 
         std::size_t n { 0 };
         try {
@@ -190,7 +190,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
         }
         if (status == 0) {
 
-            item = data;
+            item = event_t{data};
             status = n - 1;
             return Aggregating;
         }
@@ -203,7 +203,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
         }
     }
 
-    event_t data;
+    event_t::data_t data;
 
     try {
 
@@ -234,7 +234,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
     if (data.start > data.end) {
         return Error;
     }
-    item = data;
+    item = event_t{data};
     status = 0;
     return Finished;
 }

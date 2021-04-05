@@ -6,7 +6,7 @@ namespace muonpi {
 
 auto event_t::duration() const noexcept -> std::int_fast64_t
 {
-    return end - start;
+    return data.duration();
 }
 
 auto event_t::n() const noexcept -> std::size_t
@@ -17,16 +17,21 @@ auto event_t::n() const noexcept -> std::size_t
 void event_t::emplace(event_t event) noexcept
 {
     if (event.n() > 1) {
-        for (const auto& e : event.events) {
-            emplace(e);
+        for (auto d : event.events) {
+            emplace(std::move(d));
         }
         return;
     }
 
-    if (event.start < start) {
-        start = event.start;
-    } else if (event.start > end) {
-        end = event.start;
+    emplace(std::move(event.data));
+}
+
+void event_t::emplace(data_t event) noexcept
+{
+    if (event.start < data.start) {
+        data.start = event.start;
+    } else if (event.start > data.end) {
+        data.end = event.start;
     }
 
     events.emplace_back(std::move(event));

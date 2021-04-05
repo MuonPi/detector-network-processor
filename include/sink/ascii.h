@@ -49,12 +49,12 @@ void ascii<event_t>::get(event_t event)
         return;
     }
 
-    guid uuid { event.hash, static_cast<std::uint64_t>(event.start) };
-    const std::int64_t cluster_coinc_time = event.end - event.start;
+    guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
+    const std::int64_t cluster_coinc_time = event.duration();
     std::ostringstream out {};
     out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
     for (const auto& evt : event.events) {
-        const std::int64_t evt_coinc_time = evt.start - event.start;
+        const std::int64_t evt_coinc_time = evt.start - event.data.start;
         out
             << "\n\t" << uuid.to_string() << ' ' << evt_coinc_time
             << std::hex

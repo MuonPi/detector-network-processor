@@ -16,10 +16,10 @@ timebase::timebase(sink::base<event_t>& event_sink, sink::base<timebase_t>& time
 
 void timebase::get(event_t event)
 {
-    if (event.start < m_start) {
-        m_start = event.start;
-    } else if (event.start > m_end) {
-        m_end = event.start;
+    if (event.data.start < m_start) {
+        m_start = event.data.start;
+    } else if (event.data.start > m_end) {
+        m_end = event.data.start;
     }
     pipeline::base<event_t>::put(std::move(event));
 }

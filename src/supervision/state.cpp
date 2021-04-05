@@ -8,7 +8,8 @@
 namespace muonpi::supervision {
 
 state::state(sink::base<cluster_log_t>& log_sink)
-    : source::base<cluster_log_t> { log_sink }
+    : thread_runner { "supervision::state"}
+    , source::base<cluster_log_t> { log_sink }
 {
 }
 
@@ -45,11 +46,16 @@ auto state::step() -> int
     for (auto& fwd : m_threads) {
         if (fwd.runner.state() <= thread_runner::State::Stopped) {
             log::warning() << "The thread '" + fwd.runner.name() + "' stopped: " + fwd.runner.state_string();
-            return -1;
+            m_failure = true;
+            stop();
+            return 0;
         }
     }
+
     system_clock::time_point now { system_clock::now() };
-    if ((std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() % 2) == 0) {
+
+    constexpr static int load_measure_interval { 30 };
+    if ((std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() % load_measure_interval) == 0) {
         auto data = m_resource_tracker.get_data();
         m_current_data.memory_usage = data.memory_usage;
         m_process_cpu_load.add(data.process_cpu_load);
@@ -75,7 +81,21 @@ auto state::step() -> int
         m_current_data.frequency.single_in = m_incoming_rate.mean();
         m_current_data.frequency.l1_out = m_outgoing_rate.mean();
     }
+
+    std::this_thread::sleep_for( std::chrono::milliseconds { s_rate_interval } );
     return 0;
+}
+
+auto state::post_run() -> int
+{
+    for (auto& fwd : m_threads) {
+        fwd.runner.stop();
+    }
+    int result { 0 };
+    for (auto& fwd : m_threads) {
+        result += fwd.runner.wait();
+    }
+    return m_failure ? -1 : result;
 }
 
 void state::increase_event_count(bool incoming, std::size_t n)
@@ -103,12 +123,5 @@ void state::set_queue_size(std::size_t size)
 void state::add_thread(thread_runner& thread)
 {
     m_threads.emplace_back(forward { thread });
-}
-
-void state::stop()
-{
-    for (auto& fwd : m_threads) {
-        fwd.runner.stop();
-    }
 }
 }

@@ -169,7 +169,7 @@ auto thread_runner::state_string() -> std::string
 
 void thread_runner::start()
 {
-    if (m_state > State::Initial) {
+    if ((m_state > State::Initial) || (m_thread != nullptr)) {
         log::info() << "Thread " + m_name + " already running, refusing to start.";
         return;
     }

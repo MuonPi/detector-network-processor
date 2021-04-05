@@ -37,11 +37,6 @@ void coincidence_filter::get(event_t event)
 
 auto coincidence_filter::process() -> int
 {
-    if (m_supervisor.step() != 0) {
-        log::error() << "The Supervisor stopped.";
-        return -1;
-    }
-
     auto now { std::chrono::system_clock::now() };
 
     // +++ Send finished constructors off to the event sink

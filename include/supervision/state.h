@@ -23,7 +23,7 @@ namespace muonpi::supervision {
 /**
  * @brief The state_supervisor class Supervises the program and collects metadata
  */
-class state : public source::base<cluster_log_t> {
+class state : public thread_runner, public source::base<cluster_log_t> {
 public:
     /**
      * @brief state_supervisor
@@ -45,12 +45,6 @@ public:
     void detector_status(std::size_t hash, detector_station::Status status);
 
     /**
-     * @brief step Gets called from the core class.
-     * @return 0 if everything is okay
-     */
-    [[nodiscard]] auto step() -> int;
-
-    /**
      * @brief increase_event_count gets called when an event arrives or gets processed
      * @param incoming true if the event is incoming, false if it a processed one
      * @param n The coincidence level of the event. Only used for processed events.
@@ -69,10 +63,15 @@ public:
      */
     void add_thread(thread_runner& thread);
 
+protected:
+
     /**
-     * @brief stop Signals all threads to stop execution
+     * @brief step Gets called from the core class.
+     * @return 0 if everything is okay
      */
-    void stop();
+    [[nodiscard]] auto step() -> int override;
+
+    [[nodiscard]] auto post_run() -> int override;
 
 private:
     std::map<std::size_t, detector_station::Status> m_detectors;
@@ -81,14 +80,18 @@ private:
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
     std::chrono::system_clock::time_point m_startup { std::chrono::system_clock::now() };
 
+    constexpr static int s_rate_interval { 5000 };
+
     data_series<float, 100> m_process_cpu_load {};
     data_series<float, 100> m_system_cpu_load {};
-    rate_measurement<100, 5000> m_incoming_rate {};
-    rate_measurement<100, 5000> m_outgoing_rate {};
+    rate_measurement<100, s_rate_interval> m_incoming_rate {};
+    rate_measurement<100, s_rate_interval> m_outgoing_rate {};
 
     struct forward {
         thread_runner& runner;
     };
+
+    bool m_failure { false };
 
     std::vector<forward> m_threads;
 

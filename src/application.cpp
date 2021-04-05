@@ -180,9 +180,9 @@ auto application::run() -> int
     std::signal(SIGTERM, wrapper_signal_handler);
     std::signal(SIGHUP, wrapper_signal_handler);
 
-    coincidencefilter.start_synchronuos();
+    m_supervisor->start_synchronuos();
 
-    return coincidencefilter.wait();
+    return m_supervisor->wait();
 }
 
 void application::signal_handler(int signal)

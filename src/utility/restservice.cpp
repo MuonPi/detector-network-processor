@@ -24,7 +24,7 @@ public:
 
     void do_close();
 
-    void on_read(beast::error_code ec, std::size_t bytes_transferred);
+    void on_read(beast::error_code errorcode, std::size_t bytes_transferred);
 
     void on_write(bool close, beast::error_code ec, std::size_t bytes_transferred);
 
@@ -117,18 +117,18 @@ void session::do_close()
     guard.dismiss();
 }
 
-void session::on_read(beast::error_code ec, std::size_t bytes_transferred)
+void session::on_read(beast::error_code errorcode, std::size_t bytes_transferred)
 {
     scope_guard guard { [&] { notify(); } };
     boost::ignore_unused(bytes_transferred);
 
-    if (ec == http::error::end_of_stream) {
+    if (errorcode == http::error::end_of_stream) {
         do_close();
         return;
     }
 
-    if (ec) {
-        fail(ec, "read");
+    if (errorcode) {
+        fail(errorcode, "read");
         return;
     }
 
@@ -138,7 +138,7 @@ void session::on_read(beast::error_code ec, std::size_t bytes_transferred)
     http::async_write(
         m_stream,
         *sp,
-        [&](beast::error_code ec, std::size_t bytes_transferred) { on_write(sp->need_eof(), ec, bytes_transferred); });
+        [&](beast::error_code ec, std::size_t bytes) { on_write(sp->need_eof(), ec, bytes); });
     guard.dismiss();
 }
 

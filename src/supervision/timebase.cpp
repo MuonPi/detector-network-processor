@@ -24,11 +24,11 @@ void timebase::get(event_t event)
     pipeline::base<event_t>::put(std::move(event));
 }
 
-void timebase::get(timebase_t timebase)
+void timebase::get(timebase_t tb)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < s_sample_time) {
-        timebase.base = m_current;
-        pipeline::base<timebase_t>::put(timebase);
+        tb.base = m_current;
+        pipeline::base<timebase_t>::put(tb);
         return;
     }
 
@@ -36,9 +36,9 @@ void timebase::get(timebase_t timebase)
 
     m_current = std::clamp(std::chrono::nanoseconds { m_end - m_start }, s_minimum, s_maximum);
 
-    timebase.base = m_current;
+    tb.base = m_current;
 
-    pipeline::base<timebase_t>::put(timebase);
+    pipeline::base<timebase_t>::put(tb);
 
     m_start = std::numeric_limits<std::int_fast64_t>::max();
     m_end = std::numeric_limits<std::int_fast64_t>::min();

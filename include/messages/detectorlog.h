@@ -20,7 +20,7 @@ struct detector_log_t {
      * @brief add an item of type detector_log_item to the detector_log_t object
      * @param item the item to add of type detector_log_item
     */
-    void emplace(item item);
+    void emplace(item it);
 
     /**
      * @brief Retrieves one detector_log_item from the object

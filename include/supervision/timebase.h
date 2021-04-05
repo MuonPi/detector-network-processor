@@ -18,7 +18,7 @@ public:
     timebase(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink);
 
     void get(event_t event) override;
-    void get(timebase_t timebase) override;
+    void get(timebase_t tb) override;
 
 private:
     static constexpr std::chrono::system_clock::duration s_minimum { std::chrono::milliseconds { 800 } };

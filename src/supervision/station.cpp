@@ -134,8 +134,8 @@ void station::detector_status(std::size_t hash, detector_station::Status status)
 auto station::get_stations() const -> std::vector<std::pair<userinfo_t, location_t>>
 {
     std::vector<std::pair<userinfo_t, location_t>> stations {};
-    for (const auto& [hash, station]: m_detectors) {
-        stations.emplace_back(std::make_pair(station->user_info(), station->location()));
+    for (const auto& [hash, stat]: m_detectors) {
+        stations.emplace_back(std::make_pair(stat->user_info(), stat->location()));
     }
     return stations;
 }

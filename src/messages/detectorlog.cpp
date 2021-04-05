@@ -4,16 +4,16 @@
 
 namespace muonpi {
 
-void detector_log_t::emplace(item item)
+void detector_log_t::emplace(item it)
 {
-    items.emplace(std::move(item));
+    items.emplace(std::move(it));
 }
 
 auto detector_log_t::get() -> item
 {
-    item item { items.front() };
+    item it { items.front() };
     items.pop();
-    return item;
+    return it;
 }
 
 }

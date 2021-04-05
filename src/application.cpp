@@ -251,7 +251,7 @@ auto application::parameter() -> parameters
         << parameters::definition { "c", "config", "Specify a configuration file to use", true }
         << parameters::definition { "l", "credentials", "Specify a credentials file to use", true }
         << parameters::definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
-        << parameters::definition { "o", "offline", "Do not send processed data to the servers.", true }
+        << parameters::definition { "o", "offline", "Do not send processed data to the servers." }
         << parameters::definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
 
     return params;

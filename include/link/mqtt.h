@@ -124,9 +124,9 @@ public:
      * @brief mqtt
      * @param config The configuration to use
      */
-    mqtt(Config::Mqtt config);
+    mqtt(Config::Mqtt config, const std::string& name = "muon::mqtt");
 
-    mqtt();
+    mqtt(const std::string& name = "muon::mqtt");
 
     ~mqtt() override;
 

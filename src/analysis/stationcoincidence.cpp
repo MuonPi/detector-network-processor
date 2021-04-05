@@ -14,7 +14,7 @@
 namespace muonpi {
 
 station_coincidence::station_coincidence(std::string data_directory, supervision::station& stationsupervisor)
-    : thread_runner { "station_coincidence" }
+    : thread_runner { "muon::coinc" }
     , m_stationsupervisor { stationsupervisor }
     , m_data_directory { std::move(data_directory) }
 {

@@ -8,7 +8,7 @@
 namespace muonpi::supervision {
 
 state::state(sink::base<cluster_log_t>& log_sink)
-    : thread_runner { "supervision::state"}
+    : thread_runner { "muon::state"}
     , source::base<cluster_log_t> { log_sink }
 {
 }

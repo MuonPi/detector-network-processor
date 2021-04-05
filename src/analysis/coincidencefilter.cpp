@@ -17,7 +17,7 @@ namespace muonpi {
 constexpr std::chrono::duration s_timeout { std::chrono::milliseconds { 100 } };
 
 coincidence_filter::coincidence_filter(sink::base<event_t>& event_sink, supervision::state& supervisor)
-    : sink::threaded<event_t> { "coincidence_filter", s_timeout }
+    : sink::threaded<event_t> { "muon::filter", s_timeout }
     , source::base<event_t> { event_sink }
     , m_supervisor { supervisor }
 {

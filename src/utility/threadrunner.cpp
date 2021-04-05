@@ -98,7 +98,10 @@ auto thread_runner::run() -> int
         if ((m_thread != nullptr)) {
             log::debug() << "setting name for thread " + m_name;
             auto handle { m_thread->native_handle() };
-            pthread_setname_np(handle, m_name.c_str());
+            const auto result { pthread_setname_np(handle, m_name.c_str()) };
+            if (result != 0) {
+                log::debug()<<"couldn't set name of thread " + m_name + " (" + ((result==ERANGE)?std::string{"ERANGE"}:std::to_string(result)) + ")";
+            }
         }
         m_state = State::Running;
         if (m_use_custom_run) {

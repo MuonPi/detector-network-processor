@@ -15,7 +15,7 @@ namespace muonpi::supervision {
 constexpr static std::chrono::duration s_timeout { std::chrono::milliseconds { 100 } };
 
 station::station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor)
-    : sink::threaded<detector_info_t<location_t>> { "detector_tracker", s_timeout }
+    : sink::threaded<detector_info_t<location_t>> { "muon::station", s_timeout }
     , source::base<detector_summary_t> { summary_sink }
     , source::base<trigger::detector> { trigger_sink }
     , pipeline::base<event_t> { event_sink }

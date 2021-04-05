@@ -88,8 +88,8 @@ public:
      * @brief collection A collection of multiple sinks
      * @param sinks The sinks where the items should be distributed
      */
-    collection(std::vector<base<T>*> sinks);
-    collection();
+    collection(std::vector<base<T>*> sinks, const std::string& name = "muon::sink");
+    collection(const std::string& name = "muon::sink");
 
     ~collection() override;
 
@@ -187,15 +187,15 @@ auto threaded<T>::process() -> int
 }
 
 template <typename T>
-collection<T>::collection(std::vector<base<T>*> sinks)
-    : threaded<T> { "sinkcollection" }
+collection<T>::collection(std::vector<base<T>*> sinks, const std::string& name)
+    : threaded<T> { name }
     , m_sinks { std::move(sinks) }
 {
 }
 
 template <typename T>
-collection<T>::collection()
-    : threaded<T> { "sinkcollection" }
+collection<T>::collection(const std::string& name)
+    : threaded<T> { name }
 {
 }
 

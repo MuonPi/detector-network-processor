@@ -32,14 +32,14 @@ void station::get(event_t event)
     }
     auto& det { (*det_iterator).second };
 
-    if (!det.process(event)) {
+    if (!det->process(event)) {
         return;
     }
 
-    event.data.location = det.location();
-    event.data.userinfo = det.user_info();
+    event.data.location = det->location();
+    event.data.userinfo = det->user_info();
 
-    if (det.is(detector_station::Status::Reliable)) {
+    if (det->is(detector_station::Status::Reliable)) {
         source::base<event_t>::put(std::move(event));
     }
 }
@@ -53,11 +53,11 @@ auto station::process(detector_info_t<location_t> log) -> int
 {
     auto det { m_detectors.find(log.hash) };
     if (det == m_detectors.end()) {
-        m_detectors.emplace(log.hash, detector_station{log, *this});
-        m_detectors.at(log.hash).enable();
+        m_detectors.emplace(log.hash, std::make_unique<detector_station>(log, *this));
+        m_detectors.at(log.hash)->enable();
         return 0;
     }
-    (*det).second.process(log);
+    (*det).second->process(log);
     return 0;
 }
 
@@ -69,11 +69,11 @@ auto station::process() -> int
         system_clock::time_point now { system_clock::now() };
         for (auto& [hash, det] : m_detectors) {
 
-            det.step(now);
+            det->step(now);
 
-            if (det.is(detector_station::Status::Reliable)) {
-                if (det.factor() > largest) {
-                    largest = det.factor();
+            if (det->is(detector_station::Status::Reliable)) {
+                if (det->factor() > largest) {
+                    largest = det->factor();
                 }
             }
         }
@@ -92,7 +92,7 @@ auto station::process() -> int
         m_last = now;
 
         for (auto& [hash, det] : m_detectors) {
-            source::base<detector_summary_t>::put(det.current_log_data());
+            source::base<detector_summary_t>::put(det->current_log_data());
         }
     }
     // --- push detector log messages at regular interval
@@ -102,9 +102,9 @@ auto station::process() -> int
 
 void station::detector_status(std::size_t hash, detector_station::Status status)
 {
-    auto user_info { m_detectors.at(hash).user_info() };
+    auto user_info { m_detectors.at(hash)->user_info() };
     if (status > detector_station::Status::Deleted) {
-        source::base<detector_summary_t>::put(m_detectors.at(hash).change_log_data());
+        source::base<detector_summary_t>::put(m_detectors.at(hash)->change_log_data());
     }
     m_supervisor.detector_status(hash, status);
 
@@ -136,7 +136,7 @@ auto station::get_stations() const -> std::vector<std::pair<userinfo_t, location
 {
     std::vector<std::pair<userinfo_t, location_t>> stations {};
     for (const auto& [hash, stat] : m_detectors) {
-        stations.emplace_back(std::make_pair(stat.user_info(), stat.location()));
+        stations.emplace_back(std::make_pair(stat->user_info(), stat->location()));
     }
     return stations;
 }
@@ -147,7 +147,7 @@ auto station::get_station(std::size_t hash) const -> std::pair<userinfo_t, locat
     if (it == m_detectors.end()) {
         return {};
     }
-    return std::make_pair(it->second.user_info(), it->second.location());
+    return std::make_pair(it->second->user_info(), it->second->location());
 }
 
 void station::load()
@@ -169,11 +169,11 @@ void station::load()
             stale = true;
         }
         for (; std::getline(in, line);) {
-            detector_station det { line, *this, stale };
-            if (det.is(detector_station::Status::Deleted)) {
+            auto det { std::make_unique<detector_station>(line, *this, stale) };
+            if (det->is(detector_station::Status::Deleted)) {
                 continue;
             }
-            m_detectors.emplace(det.user_info().hash(), std::move(det));
+            m_detectors.emplace(det->user_info().hash(), std::move(det));
         }
         in.close();
     } catch (...) {
@@ -192,10 +192,10 @@ void station::save()
     }
     out << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() << '\n';
     for (auto& [hash, det] : m_detectors) {
-        if (det.is(detector_station::Status::Deleted)) {
+        if (det->is(detector_station::Status::Deleted)) {
             continue;
         }
-        out << det.serialise() << '\n';
+        out << det->serialise() << '\n';
     }
     out.close();
 }

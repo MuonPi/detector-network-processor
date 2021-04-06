@@ -114,10 +114,12 @@ auto application::run() -> int
         m_ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);
         m_ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>>(std::cout);
         m_ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>>(std::cout);
+        m_ascii_trigger_sink = std::make_unique<sink::ascii<trigger::detector>>(std::cout);
 
         collection_event_sink.emplace(*m_ascii_event_sink);
         collection_clusterlog_sink.emplace(*m_ascii_clusterlog_sink);
         collection_detectorsummary_sink.emplace(*m_ascii_detectorsummary_sink);
+        collection_trigger_sink.emplace(*m_ascii_trigger_sink);
     }
 
     if (!m_parameters["o"]) {

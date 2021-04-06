@@ -151,10 +151,16 @@ auto detector_station::factor() const -> double
 
 void detector_station::check_reliability()
 {
+    constexpr static double hysteresis { 0.15 };
+
     const double loc_precision { m_location.dop * std::sqrt((m_location.h_acc * m_location.h_acc + m_location.v_acc * m_location.v_acc)) };
-    if ((loc_precision > max_location_error) || (m_reliability_time_acc.mean() > max_timing_error) || (m_mean_rate.stddev() > (m_mean_rate.mean() * stddev_factor))) {
+    const double f_location { loc_precision / max_location_error };
+    const double f_time { m_reliability_time_acc.mean() / max_timing_error };
+    const double f_rate { m_mean_rate.stddev() / (m_mean_rate.mean() * stddev_factor) };
+
+    if ((f_location > (1.0 + hysteresis)) || (f_time > (1.0 + hysteresis)) || ((f_rate > (1.0 + hysteresis)))) {
         set_status(Status::Unreliable);
-    } else {
+    } else if ((f_location < (1.0 - hysteresis)) && (f_time < (1.0 - hysteresis)) && ((f_rate < (1.0 - hysteresis)))) {
         set_status(Status::Reliable);
     }
 }

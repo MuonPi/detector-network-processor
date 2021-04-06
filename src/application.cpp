@@ -168,7 +168,9 @@ auto application::run() -> int
     m_supervisor->add_thread(stationcoincidence);
     m_supervisor->add_thread(stationsupervisor);
     m_supervisor->add_thread(coincidencefilter);
-    m_supervisor->add_thread(*m_sink_mqtt_link);
+    if (m_sink_mqtt_link != nullptr) {
+        m_supervisor->add_thread(*m_sink_mqtt_link);
+    }
     m_supervisor->add_thread(source_mqtt_link);
     m_supervisor->add_thread(collection_event_sink);
     m_supervisor->add_thread(collection_detectorsummary_sink);

@@ -162,6 +162,7 @@ auto application::run() -> int
     station_coincidence stationcoincidence { "data", stationsupervisor };
 
     collection_event_sink.emplace(stationcoincidence);
+    collection_trigger_sink.emplace(stationcoincidence);
 
     m_supervisor->add_thread(stationcoincidence);
     m_supervisor->add_thread(stationsupervisor);

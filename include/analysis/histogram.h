@@ -74,6 +74,11 @@ public:
      * @return
      */
     [[nodiscard]] auto integral() const -> std::uint64_t;
+
+    /**
+     * @brief clear reset all bins to 0
+     */
+    void clear();
 private:
     T m_lower {};
     T m_upper {};
@@ -159,6 +164,16 @@ auto histogram<N, T, C>::integral() const -> std::uint64_t
     }
     return total;
 }
+
+
+template <std::size_t N, typename T, typename C>
+void histogram<N, T, C>::clear()
+{
+    for (auto& n : m_bins) {
+        n = 0;
+    }
+}
+
 
 }
 #endif // HISTOGRAM_H

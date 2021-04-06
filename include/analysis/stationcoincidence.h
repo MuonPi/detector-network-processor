@@ -23,7 +23,7 @@ namespace supervision {
 /**
  * @brief The station_coincidence class. It stores histograms between all possible detector pairs.
  */
-class station_coincidence : public sink::base<event_t>, public thread_runner {
+class station_coincidence : public sink::base<event_t>, public sink::base<trigger::detector>, public thread_runner {
 public:
     /**
      * @brief station_coincidence
@@ -37,6 +37,12 @@ public:
      * @param event the event to process
      */
     void get(event_t event) override;
+
+    /**
+     * @brief get Reimplemented from sink::base
+     * @param trig the trigger to process
+     */
+    void get(trigger::detector trig) override;
 
 protected:
     [[nodiscard]] auto step() -> int override;
@@ -52,7 +58,7 @@ private:
 
     std::string m_data_directory {};
 
-    constexpr static std::chrono::duration s_sample_time { std::chrono::hours { 720 } };
+    constexpr static std::chrono::duration s_sample_time { std::chrono::hours { 24 } };
 
     constexpr static std::size_t s_bins { 2000 }; //<! total number of bins to use per pair
     constexpr static double s_c { consts::c_0 * units::nanosecond };
@@ -69,6 +75,9 @@ private:
         std::size_t second {};
         float distance {};
         histogram_t hist {};
+        std::uint8_t online { 2 };
+        std::chrono::system_clock::time_point last_online { std::chrono::system_clock::now() };
+        std::int32_t uptime { 0 };
     };
     std::vector<std::pair<userinfo_t, location_t>> m_stations {};
     upper_matrix<data_t> m_data { 0 };

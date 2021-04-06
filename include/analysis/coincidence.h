@@ -42,7 +42,7 @@ public:
      */
     [[nodiscard]] auto minimum_true() const -> double override
     {
-        return 3.5;
+        return 0.0;
     }
 
 private:

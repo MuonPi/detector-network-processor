@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <filesystem>
 
 namespace muonpi {
 
@@ -18,8 +19,8 @@ station_coincidence::station_coincidence(std::string data_directory, supervision
     , m_stationsupervisor { stationsupervisor }
     , m_data_directory { std::move(data_directory) }
 {
-    start();
     reset();
+    start();
 }
 
 auto station_coincidence::step() -> int
@@ -75,6 +76,40 @@ void station_coincidence::get(event_t event)
     }
 }
 
+void station_coincidence::get(trigger::detector trig)
+{
+    auto condition_1 = [&](const auto& iterator) { return iterator.first.hash() == trig.hash; };
+    auto it_1 { std::find_if(m_stations.begin(), m_stations.end(), condition_1) };
+    if (it_1 == m_stations.end()) {
+        return;
+    }
+    std::size_t index { static_cast<std::size_t>(std::distance(m_stations.begin(), it_1)) };
+
+    m_data.iterate(index, [&](data_t& data){
+        switch (trig.setting.type) {
+        case trigger::detector::setting_t::Unreliable:
+            if (data.online == 2) {
+                data.uptime += std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now() - data.last_online).count();
+            }
+            data.online--;
+            break;
+        case trigger::detector::setting_t::Reliable:
+            if (data.online == 1) {
+                data.last_online = std::chrono::system_clock::now();
+            }
+            data.online++;
+            break;
+        case trigger::detector::setting_t::Online:
+            [[fallthrough]];
+        case trigger::detector::setting_t::Offline:
+            [[fallthrough]];
+        case trigger::detector::setting_t::Invalid:
+            return;
+            break;
+        }
+    });
+}
+
 void station_coincidence::save()
 {
     m_saving = true;
@@ -83,19 +118,35 @@ void station_coincidence::save()
         stations.emplace(userinfo.hash(), userinfo);
     }
 
-    for (const auto& data : m_data.data()) {
-        std::ofstream histogram_file { m_data_directory + "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + ".hist" };
+    if (!std::filesystem::exists(m_data_directory)) {
+        std::filesystem::create_directories(m_data_directory);
+    }
+    auto now { std::chrono::system_clock::now() };
+    const std::string filename { std::to_string(std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count()) };
+    for (auto& data : m_data.data()) {
+        if (data.online == 2) {
+            data.uptime += std::chrono::duration_cast<std::chrono::minutes>(now - data.last_online).count();
+            data.last_online = now;
+        }
+        std::string directory { m_data_directory +  "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + "/"};
+        if (!std::filesystem::exists(directory)) {
+            std::filesystem::create_directories(directory);
+        }
+        std::ofstream histogram_file { directory + filename + ".hist" };
         for (const auto& bin : data.hist.qualified_bins()) {
             histogram_file << ((bin.lower + bin.upper) / 2) << ' ' << bin.count << '\n';
         }
         histogram_file.close();
-        std::ofstream metadata_file { m_data_directory + "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + ".meta" };
+        std::ofstream metadata_file { directory + filename + ".meta" };
         metadata_file
                 << "bin_width " << std::to_string(data.hist.width())<<" ns\n"
                 << "distance " << data.distance << " m\n"
-                << "total " << std::to_string(data.hist.integral()) << " 1\n";
+                << "total " << std::to_string(data.hist.integral()) << " 1\n"
+                << "uptime " << std::to_string(data.uptime) << " min\n";
+
+        data.uptime = 0;
+        data.hist.clear();
     }
-    reset();
     m_saving = false;
 }
 

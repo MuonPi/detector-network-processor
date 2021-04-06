@@ -4,6 +4,8 @@
 #include <map>
 #include <unordered_map>
 #include <vector>
+#include <functional>
+#include <cassert>
 
 namespace muonpi {
 
@@ -63,7 +65,10 @@ public:
     /**
      * @brief data Get a const reference to the underyling data.
      */
-    [[nodiscard]] auto data() const -> const std::vector<T>&;
+    [[nodiscard]] auto data() -> std::vector<T>&;
+
+
+    [[nodiscard]] auto iterate(std::size_t index, std::function<void (T &)> function);
 
 private:
     /**
@@ -74,7 +79,14 @@ private:
      */
     [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
     {
-        return (x * x - x) / 2 + y;
+        assert(x!=y);
+        assert(x<m_columns);
+        assert(y<m_columns);
+
+        const std::size_t x_c { std::max(x, y) };
+        const std::size_t y_c { std::min(x, y) };
+
+        return (x_c*x_c-x_c)/2 + y_c;
     }
 
     /**
@@ -174,9 +186,20 @@ void upper_matrix<T>::reset()
 }
 
 template <typename T>
-auto upper_matrix<T>::data() const -> const std::vector<T>&
+auto upper_matrix<T>::data() -> std::vector<T>&
 {
     return m_elements;
+}
+
+template <typename T>
+auto upper_matrix<T>::iterate(std::size_t index, std::function<void (T &)> function)
+{
+    for (std::size_t y { 0 }; y < m_columns; y++) {
+        if (y == index) {
+            continue;
+        }
+        function(m_elements.at(position(index, y)));
+    }
 }
 
 }

@@ -7,6 +7,7 @@
 #include "sink/base.h"
 
 #include "link/database.h"
+#include "link/mqtt.h"
 
 #include "messages/detectorlog.h"
 
@@ -34,6 +35,7 @@ private:
     parameters m_parameters { parameter() };
 
     std::unique_ptr<link::database> m_db_link { nullptr };
+    std::unique_ptr<link::mqtt> m_sink_mqtt_link { nullptr };
 
     template <typename T>
     using sink_ptr = std::unique_ptr<sink::base<T>>;
@@ -53,6 +55,7 @@ private:
     sink_ptr<detector_summary_t> m_ascii_detectorsummary_sink { nullptr };
 
     std::unique_ptr<supervision::state> m_supervisor { nullptr };
+
 
     static std::function<void(int)> s_shutdown_handler;
 

@@ -86,7 +86,7 @@ protected:
 private:
     supervision::state& m_supervisor;
 
-    std::map<std::size_t, std::unique_ptr<detector_station>> m_detectors {};
+    std::map<std::size_t, detector_station> m_detectors {};
 
     std::queue<std::size_t> m_delete_detectors {};
 

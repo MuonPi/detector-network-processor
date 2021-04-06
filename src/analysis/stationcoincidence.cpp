@@ -25,9 +25,7 @@ station_coincidence::station_coincidence(std::string data_directory, supervision
 auto station_coincidence::step() -> int
 {
     std::unique_lock<std::mutex> lock { m_mutex };
-    if (m_condition.wait_for(lock, s_sample_time) == std::cv_status::no_timeout) {
-        return 0;
-    }
+    m_condition.wait_for(lock, s_sample_time);
     log::debug() << "Saving histogram data.";
     save();
     return 0;

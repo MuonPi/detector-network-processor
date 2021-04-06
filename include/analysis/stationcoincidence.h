@@ -2,6 +2,7 @@
 #define STATION_COINCIDENCE_H
 
 #include "utility/threadrunner.h"
+#include "utility/units.h"
 
 #include "messages/event.h"
 #include "messages/trigger.h"
@@ -53,7 +54,7 @@ private:
 
     constexpr static std::chrono::duration s_sample_time { std::chrono::hours { 12 } };
     constexpr static std::size_t s_bins { 2000 }; //<! total number of bins to use per pair
-    constexpr static double s_c { 299'792'458.0 * 1.0e-9 };
+    constexpr static double s_c { consts::c_0 * units::nanosecond };
     constexpr static double s_total_width { 2.0 * 100000.0 };
 
     std::condition_variable m_condition {};

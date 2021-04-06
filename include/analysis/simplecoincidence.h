@@ -1,11 +1,7 @@
-#ifndef COINCIDENCE_H
-#define COINCIDENCE_H
+#ifndef SIMPLECOINCIDENCE_H
+#define SIMPLECOINCIDENCE_H
 
 #include "analysis/criterion.h"
-
-#include "utility/units.h"
-
-#include "messages/event.h"
 
 #include <chrono>
 #include <memory>
@@ -16,9 +12,9 @@ namespace muonpi {
  * @brief The Coincidence class
  * Defines the parameters for a coincidence between two events
  */
-class coincidence : public criterion {
+class simple_coincidence : public criterion {
 public:
-    ~coincidence() override;
+    ~simple_coincidence() override;
     /**
      * @brief criterion Assigns a value of type T to a pair of events
      * @param first The first event to check
@@ -33,7 +29,7 @@ public:
      */
     [[nodiscard]] auto maximum_false() const -> double override
     {
-        return 0.0;
+        return -3.5;
     }
 
     /**
@@ -51,13 +47,11 @@ private:
      * @param difference difference between both timestamps
      * @return returns a value indicating the coincidence time between the two timestamps. @see maximum_false @see minimum_true for the limits of the values.
      */
-    [[nodiscard]] auto compare(const event_t::data_t& first, const event_t::data_t& second) const -> double;
+    [[nodiscard]] auto compare(std::int_fast64_t t1, std::int_fast64_t t2) const -> double;
 
-    constexpr static double s_c { consts::c_0 * units::nanosecond };
-    constexpr static double s_maximum_distance { 100 * units::kilometer };
-    constexpr static double s_maximum_time { s_maximum_distance / s_c };
+    std::int_fast64_t m_time { 100000 };
 };
 
 }
 
-#endif // COINCIDENCE_H
+#endif // SIMPLECOINCIDENCE_H

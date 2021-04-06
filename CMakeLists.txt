@@ -58,6 +58,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
 
+    "${PROJECT_SRC_DIR}/analysis/simplecoincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidencefilter.cpp"
@@ -111,6 +112,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/analysis/cachedvalue.h"
     "${PROJECT_HEADER_DIR}/analysis/ratemeasurement.h"
     "${PROJECT_HEADER_DIR}/analysis/histogram.h"
+    "${PROJECT_HEADER_DIR}/analysis/simplecoincidence.h"
     "${PROJECT_HEADER_DIR}/analysis/coincidence.h"
     "${PROJECT_HEADER_DIR}/analysis/criterion.h"
     "${PROJECT_HEADER_DIR}/analysis/uppermatrix.h"

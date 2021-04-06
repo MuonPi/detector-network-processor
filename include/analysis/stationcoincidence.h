@@ -55,7 +55,7 @@ private:
     constexpr static std::chrono::duration s_sample_time { std::chrono::hours { 720 } };
 
     constexpr static std::size_t s_bins { 2000 }; //<! total number of bins to use per pair
-    constexpr static double s_c { consts::c_0 * 1.0e-9 }; //<! speed of light in nanoseconds
+    constexpr static double s_c { consts::c_0 * units::nanosecond };
     constexpr static double s_total_width { 2.0 * 100000.0 };
 
     std::condition_variable m_condition {};

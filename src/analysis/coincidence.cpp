@@ -1,5 +1,6 @@
 #include "analysis/coincidence.h"
 #include "messages/event.h"
+#include "utility/coordinatemodel.h"
 
 #include <cmath>
 
@@ -11,17 +12,47 @@ coincidence::~coincidence() = default;
 
 auto coincidence::apply(const event_t& first, const event_t& second) const -> double
 {
-    const std::int_fast64_t t11 = first.data.start;
-    const std::int_fast64_t t21 = second.data.start;
+    std::vector<event_t::data_t> first_data {};
+    std::vector<event_t::data_t> second_data {};
 
-    const std::int_fast64_t t12 = (first.n() > 1) ? first.data.end : first.data.start;
-    const std::int_fast64_t t22 = (second.n() > 1) ? second.data.end : second.data.start;
+    if (first.n() < 2) {
+        first_data.emplace_back(first.data);
+    } else {
+        first_data = first.events;
+    }
 
-    return compare(t11, t21) + compare(t11, t22) + compare(t12, t21) + compare(t12, t22);
+    if (second.n() < 2) {
+        second_data.emplace_back(second.data);
+    } else {
+        second_data = second.events;
+    }
+
+    double sum {};
+
+    for (const auto& data_f: first_data) {
+        for (const auto& data_s: second_data) {
+            sum += compare(data_f, data_s);
+        }
+    }
+
+    return sum;
 }
 
-auto coincidence::compare(std::int_fast64_t t1, std::int_fast64_t t2) const -> double
+
+auto coincidence::compare(const event_t::data_t& first, const event_t::data_t& second) const -> double
 {
-    return (std::abs(t1 - t2) <= m_time) ? 1.0 : -1.0;
+    const double delta { static_cast<double>(std::abs(first.start - second.start)) };
+    if (delta > s_maximum_time) {
+        return -1.0;
+    }
+    coordinate::geodetic<double> first_c { first.location.lat * units::degree, first.location.lon * units::degree, first.location.h * units::meter };
+    coordinate::geodetic<double> second_c { second.location.lat * units::degree, second.location.lon * units::degree, second.location.h  * units::meter};
+
+    const auto distance { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first_c, second_c) };
+    const double time_of_flight { std::max(distance / s_c, 1.0) };
+
+
+    return std::max(1.0 - delta/time_of_flight, -1.0);
 }
+
 }

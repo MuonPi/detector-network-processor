@@ -18,8 +18,8 @@ namespace units {
     static constexpr double radian = 1.0;
     static constexpr double degree = (pi / 180.0) * radian;
 
-    static constexpr double kilometer = 1.0;
-    static constexpr double meter = milli * kilometer;
+    static constexpr double meter = 1.0;
+    static constexpr double kilometer = kilo * meter;
 
     static constexpr double second = 1.0;
     static constexpr double nanosecond = nano * second;

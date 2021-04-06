@@ -12,6 +12,7 @@
 #include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
+#include "messages/trigger.h"
 
 #include <memory>
 #include <sstream>
@@ -54,7 +55,7 @@ template <>
 void database<cluster_log_t>::get(cluster_log_t log)
 {
     using namespace link::influx;
-    auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
+    const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     auto fields { std::move(m_link.measurement("cluster_summary")
         << tag { "cluster_id", Config::influx.cluster_id }
         << field { "timeout", log.timeout }
@@ -91,7 +92,7 @@ void database<cluster_log_t>::get(cluster_log_t log)
 template <>
 void database<detector_summary_t>::get(detector_summary_t log)
 {
-    auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
+    const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::influx;
     auto result { std::move((m_link.measurement("detector_summary")
         << tag { "cluster_id", Config::influx.cluster_id }
@@ -109,6 +110,31 @@ void database<detector_summary_t>::get(detector_summary_t log)
 
     if (!result) {
         log::warning() << "error writing detector summary item to DB";
+    }
+}
+
+template<>
+void database<trigger::detector>::get(trigger::detector trig)
+{
+    if ((trig.setting.type != trigger::detector::setting_t::Reliable) && (trig.setting.type != trigger::detector::setting_t::Unreliable)) {
+        return;
+    }
+    std::string type {};
+    if (trig.setting.type == trigger::detector::setting_t::Reliable) {
+        type = "reliable";
+    } else if (trig.setting.type == trigger::detector::setting_t::Unreliable) {
+        type = "unreliable";
+    }
+    const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
+    using namespace link::influx;
+    auto result { std::move(m_link.measurement("trigger")
+                << tag { "user", trig.setting.username }
+                << tag { "station", trig.setting.station }
+                << field { "type", type }
+                  ).commit(nanosecondsUTC)};
+
+    if (!result) {
+        log::warning() << "error writing trigger to DB";
     }
 }
 

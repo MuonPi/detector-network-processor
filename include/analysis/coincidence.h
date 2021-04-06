@@ -51,7 +51,7 @@ private:
      * @param difference difference between both timestamps
      * @return returns a value indicating the coincidence time between the two timestamps. @see maximum_false @see minimum_true for the limits of the values.
      */
-    [[nodiscard]] auto compare(const event_t::data_t& first, const event_t::data_t& second) const -> double;
+    [[nodiscard]] static auto compare(const event_t::data_t& first, const event_t::data_t& second) -> double;
 
     constexpr static double s_c { consts::c_0 * units::nanosecond };
     constexpr static double s_maximum_distance { 100 * units::kilometer };

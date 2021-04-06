@@ -39,7 +39,7 @@ auto coincidence::apply(const event_t& first, const event_t& second) const -> do
 }
 
 
-auto coincidence::compare(const event_t::data_t& first, const event_t::data_t& second) const -> double
+auto coincidence::compare(const event_t::data_t& first, const event_t::data_t& second) -> double
 {
     const double delta { static_cast<double>(std::abs(first.start - second.start)) };
     if (delta > s_maximum_time) {

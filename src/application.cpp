@@ -106,6 +106,7 @@ auto application::run() -> int
     std::unique_ptr<station_coincidence> stationcoincidence { nullptr };
 
 
+    sink_ptr<trigger::detector> mqtt_trigger_sink { nullptr };
     sink_ptr<trigger::detector> trigger_sink { nullptr };
 
     sink_ptr<event_t> event_sink { nullptr };
@@ -153,8 +154,8 @@ auto application::run() -> int
     }
 
     if (!m_parameters["o"]) {
-        trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish("muonpi/trigger"));
-        collection_trigger_sink.emplace(*trigger_sink);
+        mqtt_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish("muonpi/trigger"));
+        collection_trigger_sink.emplace(*mqtt_trigger_sink);
 
         if (!Config::meta.local_cluster) {
             db_link = std::make_unique<link::database>(Config::influx);
@@ -162,11 +163,11 @@ auto application::run() -> int
             event_sink = std::make_unique<sink::database<event_t>>(*db_link);
             clusterlog_sink = std::make_unique<sink::database<cluster_log_t>>(*db_link);
             detectorsummary_sink = std::make_unique<sink::database<detector_summary_t>>(*db_link);
-
             broadcast_event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish("muonpi/events"));
-
             detectorlog_sink = std::make_unique<sink::database<detector_log_t>>(*db_link);
+            trigger_sink = std::make_unique<sink::database<trigger::detector>>(*db_link);
 
+            collection_trigger_sink.emplace(*trigger_sink);
             collection_event_sink.emplace(*broadcast_event_sink);
 
         } else {

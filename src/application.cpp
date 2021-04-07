@@ -8,12 +8,18 @@
 #include "analysis/stationcoincidence.h"
 #include "supervision/station.h"
 
+#include "messages/detectorlog.h"
+#include "messages/trigger.h"
+
+#include "link/database.h"
+#include "link/mqtt.h"
 
 #include "source/mqtt.h"
 
 #include "sink/ascii.h"
 #include "sink/database.h"
 #include "sink/mqtt.h"
+#include "sink/base.h"
 
 #include <memory>
 
@@ -90,16 +96,40 @@ auto application::setup(std::vector<std::string> arguments) -> bool
     return true;
 }
 
+template <typename T>
+using sink_ptr = std::unique_ptr<sink::base<T>>;
+
 auto application::run() -> int
 {
+    std::unique_ptr<link::database> db_link { nullptr };
+    std::unique_ptr<link::mqtt> sink_mqtt_link { nullptr };
+    std::unique_ptr<station_coincidence> stationcoincidence { nullptr };
+
+
+    sink_ptr<trigger::detector> trigger_sink { nullptr };
+
+    sink_ptr<event_t> event_sink { nullptr };
+    sink_ptr<cluster_log_t> clusterlog_sink { nullptr };
+    sink_ptr<detector_summary_t> detectorsummary_sink { nullptr };
+
+    sink_ptr<event_t> broadcast_event_sink { nullptr };
+
+    sink_ptr<detector_log_t> detectorlog_sink { nullptr };
+
+    sink_ptr<event_t> ascii_event_sink { nullptr };
+    sink_ptr<cluster_log_t> ascii_clusterlog_sink { nullptr };
+    sink_ptr<detector_summary_t> ascii_detectorsummary_sink { nullptr };
+    sink_ptr<trigger::detector> ascii_trigger_sink { nullptr };
+
+
     link::mqtt source_mqtt_link { Config::source_mqtt, "muon::mqtt::so" };
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
 
     if (!m_parameters["o"]) {
-        m_sink_mqtt_link = std::make_unique<link::mqtt>(Config::sink_mqtt, "muon::mqtt:si");
-        if (!m_sink_mqtt_link->wait_for(link::mqtt::Status::Connected)) {
+        sink_mqtt_link = std::make_unique<link::mqtt>(Config::sink_mqtt, "muon::mqtt:si");
+        if (!sink_mqtt_link->wait_for(link::mqtt::Status::Connected)) {
             return -1;
         }
     }
@@ -111,44 +141,44 @@ auto application::run() -> int
     sink::collection<detector_log_t> collection_detectorlog_sink { "muon::sink::l" };
 
     if (m_parameters["d"]) {
-        m_ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);
-        m_ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>>(std::cout);
-        m_ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>>(std::cout);
-        m_ascii_trigger_sink = std::make_unique<sink::ascii<trigger::detector>>(std::cout);
+        ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);
+        ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>>(std::cout);
+        ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>>(std::cout);
+        ascii_trigger_sink = std::make_unique<sink::ascii<trigger::detector>>(std::cout);
 
-        collection_event_sink.emplace(*m_ascii_event_sink);
-        collection_clusterlog_sink.emplace(*m_ascii_clusterlog_sink);
-        collection_detectorsummary_sink.emplace(*m_ascii_detectorsummary_sink);
-        collection_trigger_sink.emplace(*m_ascii_trigger_sink);
+        collection_event_sink.emplace(*ascii_event_sink);
+        collection_clusterlog_sink.emplace(*ascii_clusterlog_sink);
+        collection_detectorsummary_sink.emplace(*ascii_detectorsummary_sink);
+        collection_trigger_sink.emplace(*ascii_trigger_sink);
     }
 
     if (!m_parameters["o"]) {
-        m_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(m_sink_mqtt_link->publish("muonpi/trigger"));
-        collection_trigger_sink.emplace(*m_trigger_sink);
+        trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish("muonpi/trigger"));
+        collection_trigger_sink.emplace(*trigger_sink);
 
         if (!Config::meta.local_cluster) {
-            m_db_link = std::make_unique<link::database>(Config::influx);
+            db_link = std::make_unique<link::database>(Config::influx);
 
-            m_event_sink = std::make_unique<sink::database<event_t>>(*m_db_link);
-            m_clusterlog_sink = std::make_unique<sink::database<cluster_log_t>>(*m_db_link);
-            m_detectorsummary_sink = std::make_unique<sink::database<detector_summary_t>>(*m_db_link);
+            event_sink = std::make_unique<sink::database<event_t>>(*db_link);
+            clusterlog_sink = std::make_unique<sink::database<cluster_log_t>>(*db_link);
+            detectorsummary_sink = std::make_unique<sink::database<detector_summary_t>>(*db_link);
 
-            m_broadcast_event_sink = std::make_unique<sink::mqtt<event_t>>(m_sink_mqtt_link->publish("muonpi/events"));
+            broadcast_event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish("muonpi/events"));
 
-            m_detectorlog_sink = std::make_unique<sink::database<detector_log_t>>(*m_db_link);
+            detectorlog_sink = std::make_unique<sink::database<detector_log_t>>(*db_link);
 
-            collection_event_sink.emplace(*m_broadcast_event_sink);
+            collection_event_sink.emplace(*broadcast_event_sink);
 
         } else {
-            m_event_sink = std::make_unique<sink::mqtt<event_t>>(m_sink_mqtt_link->publish("muonpi/l1data"), true);
-            m_clusterlog_sink = std::make_unique<sink::mqtt<cluster_log_t>>(m_sink_mqtt_link->publish("muonpi/cluster"));
-            m_detectorsummary_sink = std::make_unique<sink::mqtt<detector_summary_t>>(m_sink_mqtt_link->publish("muonpi/cluster"));
-            m_detectorlog_sink = std::make_unique<sink::mqtt<detector_log_t>>(m_sink_mqtt_link->publish("muonpi/log/"));
+            event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish("muonpi/l1data"), true);
+            clusterlog_sink = std::make_unique<sink::mqtt<cluster_log_t>>(sink_mqtt_link->publish("muonpi/cluster"));
+            detectorsummary_sink = std::make_unique<sink::mqtt<detector_summary_t>>(sink_mqtt_link->publish("muonpi/cluster"));
+            detectorlog_sink = std::make_unique<sink::mqtt<detector_log_t>>(sink_mqtt_link->publish("muonpi/log/"));
         }
-        collection_event_sink.emplace(*m_event_sink);
-        collection_clusterlog_sink.emplace(*m_clusterlog_sink);
-        collection_detectorsummary_sink.emplace(*m_detectorsummary_sink);
-        collection_detectorlog_sink.emplace(*m_detectorlog_sink);
+        collection_event_sink.emplace(*event_sink);
+        collection_clusterlog_sink.emplace(*clusterlog_sink);
+        collection_detectorsummary_sink.emplace(*detectorsummary_sink);
+        collection_detectorlog_sink.emplace(*detectorlog_sink);
     }
 
     m_supervisor = std::make_unique<supervision::state>(collection_clusterlog_sink);
@@ -162,16 +192,19 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    station_coincidence stationcoincidence { "data", stationsupervisor };
+    if (m_parameters["h"]) {
+        stationcoincidence = std::make_unique<station_coincidence>( m_parameters["h"].value, stationsupervisor );
 
-    collection_event_sink.emplace(stationcoincidence);
-    collection_trigger_sink.emplace(stationcoincidence);
+        collection_event_sink.emplace(*stationcoincidence);
+        collection_trigger_sink.emplace(*stationcoincidence);
 
-    m_supervisor->add_thread(stationcoincidence);
+        m_supervisor->add_thread(*stationcoincidence);
+    }
+
     m_supervisor->add_thread(stationsupervisor);
     m_supervisor->add_thread(coincidencefilter);
-    if (m_sink_mqtt_link != nullptr) {
-        m_supervisor->add_thread(*m_sink_mqtt_link);
+    if (sink_mqtt_link != nullptr) {
+        m_supervisor->add_thread(*sink_mqtt_link);
     }
     m_supervisor->add_thread(source_mqtt_link);
     m_supervisor->add_thread(collection_event_sink);
@@ -258,6 +291,7 @@ auto application::parameter() -> parameters
         << parameters::definition { "l", "credentials", "Specify a credentials file to use", true }
         << parameters::definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
         << parameters::definition { "o", "offline", "Do not send processed data to the servers." }
+        << parameters::definition { "h", "histogram", "Track and store histograms. The parameter is the save directory", true}
         << parameters::definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
 
     return params;

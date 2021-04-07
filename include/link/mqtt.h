@@ -222,7 +222,7 @@ private:
     std::condition_variable m_connect_condition {};
 
     std::size_t m_tries { 0 };
-    static constexpr std::size_t s_max_tries { 4 };
+    static constexpr std::size_t s_max_tries { 10 };
 
     /**
      * @brief callback_connected Gets called by mosquitto client

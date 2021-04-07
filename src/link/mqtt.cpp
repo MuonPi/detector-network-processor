@@ -281,7 +281,7 @@ auto mqtt::connect() -> bool
     std::mutex mx;
     std::unique_lock<std::mutex> lock { mx };
 
-    if (m_connect_condition.wait_for(lock, std::chrono::seconds { 1 * m_tries * m_tries }) == std::cv_status::no_timeout) {
+    if (m_connect_condition.wait_for(lock, std::chrono::seconds { m_tries }) == std::cv_status::no_timeout) {
         return false;
     }
 

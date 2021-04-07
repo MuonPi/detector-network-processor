@@ -193,18 +193,6 @@ private:
      */
     auto disconnect() -> bool;
 
-    /**
-     * @brief reconnect attempt a reconnect after the connection was lost.
-     * @return true if the reconnect was successful.
-     */
-    [[nodiscard]] auto reconnect() -> bool;
-
-    /**
-     * @brief reconnect attempt a reconnect after the connection was lost.
-     * @return true if the reconnect was successful.
-     */
-    [[nodiscard]] auto reinitialise() -> bool;
-
     [[nodiscard]] auto check_connection() -> bool;
 
     auto p_subscribe(const std::string& topic) -> bool;

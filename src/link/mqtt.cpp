@@ -66,6 +66,10 @@ mqtt::~mqtt()
 
 auto mqtt::pre_run() -> int
 {
+    if (m_mqtt == nullptr) {
+        return -1;
+    }
+    mosquitto_loop_start(m_mqtt);
     if (!connect()) {
         return -1;
     }
@@ -77,41 +81,11 @@ auto mqtt::pre_run() -> int
 
 auto mqtt::step() -> int
 {
-    if ((m_status != Status::Connected) && (m_status != Status::Connecting)) {
-        if (!reconnect()) {
-            return -1;
-        }
-    }
-    constexpr static int mqtt_timeout { 100 };
-    auto status = mosquitto_loop(m_mqtt, mqtt_timeout, 1);
-    if (status != MOSQ_ERR_SUCCESS) {
-        switch (status) {
-        case MOSQ_ERR_INVAL:
-            log::error() << "mqtt could not execute step: invalid";
-            return -1;
-        case MOSQ_ERR_NOMEM:
-            log::error() << "mqtt could not execute step: memory exceeded";
-            return -1;
-        case MOSQ_ERR_NO_CONN:
-            log::error() << "mqtt could not execute step: not connected";
-            if (!connect()) {
-                return -1;
-            }
-            break;
-        case MOSQ_ERR_CONN_LOST:
-            log::error() << "mqtt could not execute step: lost connection";
-            if (!reconnect()) {
-                return -1;
-            }
-            break;
-        case MOSQ_ERR_PROTOCOL:
-            log::error() << "mqtt could not execute step: protocol error";
-            return -1;
-        case MOSQ_ERR_ERRNO:
-            log::error() << "mqtt could not execute step: system call error";
-            return -1;
-        default:
-            log::error() << "mqtt could not execute step:unspecified error";
+    std::mutex mx;
+    std::unique_lock<std::mutex> lock { mx };
+    m_condition.wait(lock);
+    if (!m_quit) {
+        if (!connect()) {
             return -1;
         }
     }
@@ -122,13 +96,10 @@ void mqtt::callback_connected(int result)
 {
     if (result == 1) {
         log::warning() << "mqtt connection failed: Wrong protocol version";
-        set_status(Status::Error);
     } else if (result == 2) {
         log::warning() << "mqtt connection failed: Credentials rejected";
-        set_status(Status::Error);
     } else if (result == 3) {
         log::warning() << "mqtt connection failed: Broker unavailable";
-        set_status(Status::Error);
     } else if (result > 3) {
         log::warning() << "mqtt connection failed: Other reason";
     } else if (result == 0) {
@@ -140,12 +111,15 @@ void mqtt::callback_connected(int result)
         }
         return;
     }
+    set_status(Status::Error);
+    stop();
 }
 
 void mqtt::callback_disconnected(int result)
 {
     if (result != 0) {
         log::warning() << "mqtt disconnected unexpectedly.";
+        m_condition.notify_all();
         set_status(Status::Error);
     } else {
         set_status(Status::Disconnected);
@@ -172,6 +146,7 @@ auto mqtt::post_run() -> int
     if (!disconnect()) {
         return -1;
     }
+    mosquitto_loop_stop(m_mqtt, true);
     if (m_mqtt != nullptr) {
         mosquitto_destroy(m_mqtt);
         m_mqtt = nullptr;
@@ -281,7 +256,10 @@ auto mqtt::subscribe(const std::string& topic) -> subscriber&
 
 auto mqtt::connect() -> bool
 {
-    std::this_thread::sleep_for(std::chrono::seconds { 1 * m_tries });
+    if (check_connection()) {
+        log::notice()<<"Mqtt already connected.";
+        return true;
+    }
 
     log::info() << "Trying to connect to MQTT.";
     m_tries++;
@@ -302,6 +280,9 @@ auto mqtt::connect() -> bool
         return true;
     }
     log::warning() << "Could not connect to MQTT: " + std::string { strerror(result) };
+
+    std::this_thread::sleep_for(std::chrono::seconds { 1 * m_tries });
+
     return connect();
 }
 
@@ -318,57 +299,6 @@ auto mqtt::disconnect() -> bool
     }
     log::error() << "Could not disconnect from MQTT: " + std::to_string(result);
     return false;
-}
-
-auto mqtt::reconnect() -> bool
-{
-    std::this_thread::sleep_for(std::chrono::seconds { 1 * m_tries });
-
-    m_tries++;
-    set_status(Status::Disconnected);
-
-    constexpr static std::size_t max_reconnect_tries { 8 };
-    if (m_tries > (s_max_tries - max_reconnect_tries)) {
-        log::error() << "Giving up trying to reconnect to MQTT.";
-        return reinitialise();
-    }
-
-    log::info() << "Trying to reconnect to MQTT.";
-    auto result { mosquitto_reconnect(m_mqtt) };
-    if (result == MOSQ_ERR_SUCCESS) {
-        return true;
-    }
-    log::error() << "Could not reconnect to MQTT: " + std::to_string(result);
-    return reconnect();
-}
-
-auto mqtt::reinitialise() -> bool
-{
-    if (m_tries > s_max_tries) {
-        set_status(Status::Error);
-        log::error() << "Giving up trying to reinitialise connection.";
-        return false;
-    }
-
-    log::info() << "Trying to reinitialise MQTT connection.";
-
-    if (m_mqtt != nullptr) {
-        mosquitto_destroy(m_mqtt);
-        m_mqtt = nullptr;
-        mosquitto_lib_cleanup();
-    }
-
-    m_mqtt = init(client_id().c_str());
-
-    mosquitto_connect_callback_set(m_mqtt, wrapper_callback_connected);
-    mosquitto_disconnect_callback_set(m_mqtt, wrapper_callback_disconnected);
-    mosquitto_message_callback_set(m_mqtt, wrapper_callback_message);
-
-    if (!connect()) {
-        return reinitialise();
-    }
-
-    return true;
 }
 
 void mqtt::set_status(Status status)

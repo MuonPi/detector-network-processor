@@ -129,7 +129,8 @@ void database<trigger::detector>::get(trigger::detector trig)
     using namespace link::influx;
     auto result { std::move(m_link.measurement("trigger")
                 << tag { "user", trig.setting.username }
-                << tag { "station", trig.setting.station }
+                << tag { "detector", trig.setting.station }
+                << tag { "site_id", trig.setting.username + trig.setting.station }
                 << field { "type", type }
                   ).commit(nanosecondsUTC)};
 

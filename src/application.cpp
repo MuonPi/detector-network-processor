@@ -192,8 +192,8 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    if (m_parameters["h"]) {
-        stationcoincidence = std::make_unique<station_coincidence>( m_parameters["h"].value, stationsupervisor );
+    if (m_parameters["hist"]) {
+        stationcoincidence = std::make_unique<station_coincidence>( m_parameters["hist"].value, stationsupervisor );
 
         collection_event_sink.emplace(*stationcoincidence);
         collection_trigger_sink.emplace(*stationcoincidence);
@@ -291,7 +291,7 @@ auto application::parameter() -> parameters
         << parameters::definition { "l", "credentials", "Specify a credentials file to use", true }
         << parameters::definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
         << parameters::definition { "o", "offline", "Do not send processed data to the servers." }
-        << parameters::definition { "h", "histogram", "Track and store histograms. The parameter is the save directory", true}
+        << parameters::definition { "hist", "histogram", "Track and store histograms. The parameter is the save directory", true}
         << parameters::definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
 
     return params;

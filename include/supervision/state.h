@@ -81,8 +81,8 @@ private:
 
     constexpr static int s_rate_interval { 5000 };
 
-    data_series<float, 100> m_process_cpu_load {};
-    data_series<float, 100> m_system_cpu_load {};
+    data_series<float, 10> m_process_cpu_load {};
+    data_series<float, 10> m_system_cpu_load {};
     rate_measurement<100, s_rate_interval> m_incoming_rate {};
     rate_measurement<100, s_rate_interval> m_outgoing_rate {};
 

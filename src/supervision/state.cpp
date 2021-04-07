@@ -54,7 +54,8 @@ auto state::step() -> int
 
     system_clock::time_point now { system_clock::now() };
 
-    constexpr static int load_measure_interval { 30 };
+    constexpr static int load_measure_interval { 6 };
+
     if ((std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count() % load_measure_interval) == 0) {
         auto data = m_resource_tracker.get_data();
         m_current_data.memory_usage = data.memory_usage;

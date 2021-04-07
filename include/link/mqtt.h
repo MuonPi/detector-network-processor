@@ -166,6 +166,8 @@ protected:
      */
     [[nodiscard]] auto post_run() -> int override;
 
+    void on_stop() override;
+
 private:
     /**
      * @brief set_status Set the status for this mqtt
@@ -215,8 +217,12 @@ private:
     std::map<std::string, std::unique_ptr<publisher>> m_publishers {};
     std::map<std::string, std::unique_ptr<subscriber>> m_subscribers {};
 
+    std::promise<bool> m_connect_promise {};
+    std::future<bool> m_connect_future {};
+    std::condition_variable m_connect_condition {};
+
     std::size_t m_tries { 0 };
-    static constexpr std::size_t s_max_tries { 10 };
+    static constexpr std::size_t s_max_tries { 4 };
 
     /**
      * @brief callback_connected Gets called by mosquitto client

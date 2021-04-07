@@ -94,31 +94,48 @@ auto mqtt::step() -> int
 
 void mqtt::callback_connected(int result)
 {
-    if (result == 1) {
-        log::warning() << "mqtt connection failed: Wrong protocol version";
-    } else if (result == 2) {
-        log::warning() << "mqtt connection failed: Credentials rejected";
-    } else if (result == 3) {
-        log::warning() << "mqtt connection failed: Broker unavailable";
-    } else if (result > 3) {
-        log::warning() << "mqtt connection failed: Other reason";
-    } else if (result == 0) {
+    if (result == 0) {
+    }
+    if (!m_connect_future.valid()) {
+        return;
+    }
+    switch (result) {
+    case MOSQ_ERR_SUCCESS:
         log::info() << "Connected to mqtt.";
         set_status(Status::Connected);
         m_tries = 0;
         for (auto& [topic, sub] : m_subscribers) {
             p_subscribe(topic);
         }
+        m_connect_promise.set_value(true);
         return;
-    }
+    case MOSQ_ERR_PROTOCOL:
+        log::warning() << "mqtt connection failed: Protocol Error";
+        break;
+    case MOSQ_ERR_INVAL:
+        log::warning() << "mqtt connection failed: invalid value provided";
+        break;
+    case MOSQ_ERR_CONN_REFUSED:
+        log::warning() << "mqtt connection failed: Connection refused";
+        break;
+    case MOSQ_ERR_AUTH:
+        log::warning() << "mqtt connection failed: Authentication";
+        break;
+    default:
+        log::warning() << "mqtt connection failed: Other reason: " + std::to_string(result);
+        break;
+    };
     set_status(Status::Error);
-    stop();
+    m_connect_promise.set_value(false);
 }
 
 void mqtt::callback_disconnected(int result)
 {
     if (result != 0) {
-        log::warning() << "mqtt disconnected unexpectedly.";
+        if ((m_status == Status::Error) || (m_status == Status::Disconnected)) {
+            return;
+        }
+        log::warning() << "mqtt disconnected unexpectedly: " + std::to_string(result);
         m_condition.notify_all();
         set_status(Status::Error);
     } else {
@@ -153,6 +170,11 @@ auto mqtt::post_run() -> int
     }
     mosquitto_lib_cleanup();
     return 0;
+}
+
+void mqtt::on_stop()
+{
+    m_connect_condition.notify_all();
 }
 
 auto mqtt::publish(const std::string& topic, const std::string& content) -> bool
@@ -256,10 +278,18 @@ auto mqtt::subscribe(const std::string& topic) -> subscriber&
 
 auto mqtt::connect() -> bool
 {
+    std::mutex mx;
+    std::unique_lock<std::mutex> lock { mx };
+
+    if (m_connect_condition.wait_for(lock, std::chrono::seconds { 1 * m_tries * m_tries }) == std::cv_status::no_timeout) {
+        return false;
+    }
+
     if (check_connection()) {
         log::notice()<<"Mqtt already connected.";
         return true;
     }
+
 
     log::info() << "Trying to connect to MQTT.";
     m_tries++;
@@ -271,23 +301,20 @@ auto mqtt::connect() -> bool
         return false;
     }
     if (mosquitto_username_pw_set(m_mqtt, m_config.login.username.c_str(), m_config.login.password.c_str()) != MOSQ_ERR_SUCCESS) {
-        log::warning() << "Could not connect to MQTT";
+        log::warning() << "Could not set MQTT username and password.";
         return false;
     }
     constexpr static int mqtt_keepalive { 60 };
     auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, mqtt_keepalive) };
     if (result == MOSQ_ERR_SUCCESS) {
-        return true;
+        m_connect_promise = std::promise<bool>{};
+        m_connect_future = m_connect_promise.get_future();
+        if ((m_connect_future.wait_for(std::chrono::seconds{10}) == std::future_status::ready) && m_connect_future.get()) {
+            return true;
+        }
+    } else {
+        log::warning() << "Could not connect to MQTT: " + std::string { strerror(result) };
     }
-    log::warning() << "Could not connect to MQTT: " + std::string { strerror(result) };
-
-    std::mutex mx;
-    std::unique_lock<std::mutex> lock { mx };
-
-    if (m_condition.wait_for(lock, std::chrono::seconds { 1 * m_tries }) == std::cv_status::no_timeout) {
-        return false;
-    }
-
     return connect();
 }
 

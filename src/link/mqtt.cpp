@@ -281,7 +281,12 @@ auto mqtt::connect() -> bool
     }
     log::warning() << "Could not connect to MQTT: " + std::string { strerror(result) };
 
-    std::this_thread::sleep_for(std::chrono::seconds { 1 * m_tries });
+    std::mutex mx;
+    std::unique_lock<std::mutex> lock { mx };
+
+    if (m_condition.wait_for(lock, std::chrono::seconds { 1 * m_tries }) == std::cv_status::no_timeout) {
+        return false;
+    }
 
     return connect();
 }

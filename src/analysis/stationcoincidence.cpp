@@ -110,6 +110,13 @@ void station_coincidence::get(trigger::detector trig)
 
 void station_coincidence::save()
 {
+    auto now { std::chrono::system_clock::now() };
+    constexpr static double grace_factor { 0.9 };
+    if ((now - m_last_save) < (s_sample_time * grace_factor)) {
+        log::warning() << "Last histogram store was too recent. Refusing to save now.";
+        return;
+    }
+    m_last_save = now;
     log::debug() << "Saving histogram data.";
     m_saving = true;
     std::map<std::size_t, userinfo_t> stations {};
@@ -120,7 +127,6 @@ void station_coincidence::save()
     if (!std::filesystem::exists(m_data_directory)) {
         std::filesystem::create_directories(m_data_directory);
     }
-    auto now { std::chrono::system_clock::now() };
     const std::string filename { std::to_string(std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count()) };
     for (auto& data : m_data.data()) {
         if (data.online == 2) {

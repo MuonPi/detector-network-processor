@@ -100,22 +100,19 @@ auto database::send_string(const std::string& query) const -> bool
     const int version { 11 };
 
     net::io_context ioc;
-    ssl::context ctx(ssl::context::tlsv12_client);
-    ctx.set_verify_mode(ssl::verify_none);
     tcp::resolver resolver(ioc);
-    beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
-    if (!SSL_set_tlsext_host_name(stream.native_handle(), host)) {
-        beast::error_code ec { static_cast<int>(::ERR_get_error()), net::error::get_ssl_category() };
-        log::warning() << "Could not write to database: " + ec.message();
-        return false;
-    }
+    beast::tcp_stream stream(ioc);
     auto const results = resolver.resolve(host, port);
-    beast::get_lowest_layer(stream).connect(results);
-    stream.handshake(ssl::stream_base::client);
+    stream.connect(results);
+
     http::request<http::string_body> req { http::verb::post, target.str(), version };
     req.set(http::field::host, host);
-    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-    req.set(http::field::body, query);
+    req.set(http::field::user_agent, "muondetector-cluster");
+    req.set(http::field::content_type, "application/x-www-form-urlencoded");
+    req.set(http::field::accept, "*/*");
+    req.set(http::field::content_length, std::to_string(query.size()));
+    req.body() = query;
+
     http::write(stream, req);
     beast::flat_buffer buffer;
     http::response<http::string_body> res;
@@ -126,7 +123,7 @@ auto database::send_string(const std::string& query) const -> bool
         return false;
     }
     beast::error_code ec;
-    stream.shutdown(ec);
+    stream.socket().shutdown(tcp::socket::shutdown_both, ec);
     if (ec && (ec != net::error::eof)) { // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
         log::warning() << "Could not write to database: " + ec.message();
         return false;

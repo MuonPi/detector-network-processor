@@ -25,16 +25,19 @@ station_coincidence::station_coincidence(std::string data_directory, supervision
 
 auto station_coincidence::step() -> int
 {
-    std::unique_lock<std::mutex> lock { m_mutex };
+    std::mutex mx;
+    std::unique_lock<std::mutex> lock { mx };
     m_condition.wait_for(lock, s_sample_time);
-    log::debug() << "Saving histogram data.";
-    save();
+    if (!m_quit) {
+        save();
+    }
     return 0;
 }
 
-void station_coincidence::on_stop()
+auto station_coincidence::post_run() -> int
 {
-    m_condition.notify_all();
+    save();
+    return 0;
 }
 
 void station_coincidence::get(event_t event)
@@ -99,19 +102,15 @@ void station_coincidence::get(trigger::detector trig)
             }
             data.online++;
             break;
-        case trigger::detector::setting_t::Online:
-            [[fallthrough]];
-        case trigger::detector::setting_t::Offline:
-            [[fallthrough]];
-        case trigger::detector::setting_t::Invalid:
+        default:
             return;
-            break;
         }
     });
 }
 
 void station_coincidence::save()
 {
+    log::debug() << "Saving histogram data.";
     m_saving = true;
     std::map<std::size_t, userinfo_t> stations {};
     for (const auto& [userinfo, location] : m_stations) {

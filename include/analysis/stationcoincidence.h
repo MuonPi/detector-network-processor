@@ -47,7 +47,7 @@ public:
 protected:
     [[nodiscard]] auto step() -> int override;
 
-    void on_stop() override;
+    [[nodiscard]] auto post_run() -> int override;
 
 private:
     void save();
@@ -64,8 +64,6 @@ private:
     constexpr static double s_c { consts::c_0 * units::nanosecond };
     constexpr static double s_total_width { 2.0 * 100000.0 };
 
-    std::condition_variable m_condition {};
-    std::mutex m_mutex {};
 
     std::atomic<bool> m_saving { false };
 

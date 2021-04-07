@@ -9,11 +9,8 @@
 
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/error.hpp>
-#include <boost/asio/ssl/stream.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
 #include <boost/beast/version.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -84,7 +81,6 @@ auto database::send_string(const std::string& query) const -> bool
     namespace beast = boost::beast;
     namespace http = beast::http;
     namespace net = boost::asio;
-    namespace ssl = net::ssl;
     using tcp = net::ip::tcp;
 
     std::ostringstream target {};
@@ -117,9 +113,9 @@ auto database::send_string(const std::string& query) const -> bool
     beast::flat_buffer buffer;
     http::response<http::string_body> res;
     http::read(stream, buffer, res);
-    unsigned http_code { static_cast<unsigned>(res.result()) };
-    if ((http_code / 100) != 2) {
-        log::warning() << "Couldn't write to database: " + std::to_string(http_code) + ": " + res.body();
+
+    if (res.result() != http::status::no_content) {
+        log::warning() << "Couldn't write to database: " + std::to_string(static_cast<unsigned>(res.result())) + ": " + res.body();
         return false;
     }
     beast::error_code ec;

@@ -110,9 +110,10 @@ void station_coincidence::get(trigger::detector trig)
 
 void station_coincidence::save()
 {
-    auto now { std::chrono::system_clock::now() };
+    const auto now { std::chrono::system_clock::now() };
     constexpr static double grace_factor { 0.9 };
-    if ((now - m_last_save) < (s_sample_time * grace_factor)) {
+    const auto duration { now - m_last_save };
+    if (duration < (s_sample_time * grace_factor)) {
         log::warning() << "Last histogram store was too recent. Refusing to save now.";
         return;
     }
@@ -159,7 +160,9 @@ void station_coincidence::save()
                 << "bin_width " << std::to_string(data.hist.width())<<" ns\n"
                 << "distance " << data.distance << " m\n"
                 << "total " << std::to_string(data.hist.integral()) << " 1\n"
-                << "uptime " << std::to_string(data.uptime) << " min\n";
+                << "uptime " << std::to_string(data.uptime) << " min\n"
+                <<  "sample_time " << std::to_string(std::chrono::duration_cast<std::chrono::minutes>(duration).count()) << "min\n"
+        ;
         metadata_file.close();
         data.uptime = 0;
         data.hist.clear();

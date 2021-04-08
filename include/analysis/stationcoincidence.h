@@ -64,7 +64,6 @@ private:
     constexpr static double s_c { consts::c_0 * units::nanosecond };
     constexpr static double s_total_width { 2.0 * 100000.0 };
 
-
     std::atomic<bool> m_saving { false };
 
     using histogram_t = histogram<s_bins, std::int32_t, std::uint32_t>;

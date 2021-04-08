@@ -29,15 +29,14 @@ auto coincidence::apply(const event_t& first, const event_t& second) const -> do
 
     double sum {};
 
-    for (const auto& data_f: first_data) {
-        for (const auto& data_s: second_data) {
+    for (const auto& data_f : first_data) {
+        for (const auto& data_s : second_data) {
             sum += compare(data_f, data_s);
         }
     }
 
     return sum;
 }
-
 
 auto coincidence::compare(const event_t::data_t& first, const event_t::data_t& second) -> double
 {
@@ -46,13 +45,12 @@ auto coincidence::compare(const event_t::data_t& first, const event_t::data_t& s
         return -1.0;
     }
     coordinate::geodetic<double> first_c { first.location.lat * units::degree, first.location.lon * units::degree, first.location.h * units::meter };
-    coordinate::geodetic<double> second_c { second.location.lat * units::degree, second.location.lon * units::degree, second.location.h  * units::meter};
+    coordinate::geodetic<double> second_c { second.location.lat * units::degree, second.location.lon * units::degree, second.location.h * units::meter };
 
     const auto distance { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first_c, second_c) };
     const double time_of_flight { std::max(distance / s_c, 1.0) };
 
-
-    return std::max(1.0 - delta/time_of_flight, -1.0);
+    return std::max(1.0 - delta / time_of_flight, -1.0);
 }
 
 }

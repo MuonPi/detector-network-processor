@@ -9,8 +9,8 @@
 #include "utility/units.h"
 
 #include <algorithm>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
 namespace muonpi {
 
@@ -88,7 +88,7 @@ void station_coincidence::get(trigger::detector trig)
     }
     std::size_t index { static_cast<std::size_t>(std::distance(m_stations.begin(), it_1)) };
 
-    m_data.iterate(index, [&](data_t& data){
+    m_data.iterate(index, [&](data_t& data) {
         switch (trig.setting.type) {
         case trigger::detector::setting_t::Unreliable:
             if (data.online == 2) {
@@ -135,19 +135,19 @@ void station_coincidence::save()
             data.last_online = now;
         }
         std::ostringstream dir_stream {};
-        dir_stream<<m_data_directory<<'/';
+        dir_stream << m_data_directory << '/';
         if (data.first < data.second) {
-            dir_stream<<stations[data.first].site_id();
-            dir_stream<<stations[data.second].site_id();
+            dir_stream << stations[data.first].site_id();
+            dir_stream << stations[data.second].site_id();
         } else {
-            dir_stream<<stations[data.second].site_id();
-            dir_stream<<stations[data.first].site_id();
+            dir_stream << stations[data.second].site_id();
+            dir_stream << stations[data.first].site_id();
         }
-        dir_stream<<'/';
+        dir_stream << '/';
         if (!std::filesystem::exists(dir_stream.str())) {
             std::filesystem::create_directories(dir_stream.str());
         }
-        dir_stream<<filename;
+        dir_stream << filename;
 
         std::ofstream histogram_file { dir_stream.str() + ".hist" };
         for (const auto& bin : data.hist.qualified_bins()) {
@@ -157,12 +157,11 @@ void station_coincidence::save()
 
         std::ofstream metadata_file { dir_stream.str() + ".meta" };
         metadata_file
-                << "bin_width " << std::to_string(data.hist.width())<<" ns\n"
-                << "distance " << data.distance << " m\n"
-                << "total " << std::to_string(data.hist.integral()) << " 1\n"
-                << "uptime " << std::to_string(data.uptime) << " min\n"
-                <<  "sample_time " << std::to_string(std::chrono::duration_cast<std::chrono::minutes>(duration).count()) << "min\n"
-        ;
+            << "bin_width " << std::to_string(data.hist.width()) << " ns\n"
+            << "distance " << data.distance << " m\n"
+            << "total " << std::to_string(data.hist.integral()) << " 1\n"
+            << "uptime " << std::to_string(data.uptime) << " min\n"
+            << "sample_time " << std::to_string(std::chrono::duration_cast<std::chrono::minutes>(duration).count()) << "min\n";
         metadata_file.close();
         data.uptime = 0;
         data.hist.clear();

@@ -286,10 +286,9 @@ auto mqtt::connect() -> bool
     }
 
     if (check_connection()) {
-        log::notice()<<"Mqtt already connected.";
+        log::notice() << "Mqtt already connected.";
         return true;
     }
-
 
     log::info() << "Trying to connect to MQTT.";
     m_tries++;
@@ -307,9 +306,9 @@ auto mqtt::connect() -> bool
     constexpr static int mqtt_keepalive { 60 };
     auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, mqtt_keepalive) };
     if (result == MOSQ_ERR_SUCCESS) {
-        m_connect_promise = std::promise<bool>{};
+        m_connect_promise = std::promise<bool> {};
         m_connect_future = m_connect_promise.get_future();
-        if ((m_connect_future.wait_for(std::chrono::seconds{10}) == std::future_status::ready) && m_connect_future.get()) {
+        if ((m_connect_future.wait_for(std::chrono::seconds { 10 }) == std::future_status::ready) && m_connect_future.get()) {
             return true;
         }
     } else {

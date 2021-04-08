@@ -1,11 +1,11 @@
 #ifndef UPPERMATRIX_H
 #define UPPERMATRIX_H
 
+#include <cassert>
+#include <functional>
 #include <map>
 #include <unordered_map>
 #include <vector>
-#include <functional>
-#include <cassert>
 
 namespace muonpi {
 
@@ -67,8 +67,7 @@ public:
      */
     [[nodiscard]] auto data() -> std::vector<T>&;
 
-
-    [[nodiscard]] auto iterate(std::size_t index, std::function<void (T &)> function);
+    [[nodiscard]] auto iterate(std::size_t index, std::function<void(T&)> function);
 
 private:
     /**
@@ -79,14 +78,14 @@ private:
      */
     [[nodiscard]] inline auto position(std::size_t x, std::size_t y) const -> std::size_t
     {
-        assert(x!=y);
-        assert(x<m_columns);
-        assert(y<m_columns);
+        assert(x != y);
+        assert(x < m_columns);
+        assert(y < m_columns);
 
         const std::size_t x_c { std::max(x, y) };
         const std::size_t y_c { std::min(x, y) };
 
-        return (x_c*x_c-x_c)/2 + y_c;
+        return (x_c * x_c - x_c) / 2 + y_c;
     }
 
     /**
@@ -192,7 +191,7 @@ auto upper_matrix<T>::data() -> std::vector<T>&
 }
 
 template <typename T>
-auto upper_matrix<T>::iterate(std::size_t index, std::function<void (T &)> function)
+auto upper_matrix<T>::iterate(std::size_t index, std::function<void(T&)> function)
 {
     for (std::size_t y { 0 }; y < m_columns; y++) {
         if (y == index) {

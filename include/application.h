@@ -25,9 +25,7 @@ private:
 
     parameters m_parameters { parameter() };
 
-
     std::unique_ptr<supervision::state> m_supervisor { nullptr };
-
 
     static std::function<void(int)> s_shutdown_handler;
 

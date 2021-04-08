@@ -2,9 +2,9 @@
 #define COINCIDENCEFILTER_H
 
 #include "analysis/coincidence.h"
-#include "analysis/simplecoincidence.h"
 #include "analysis/detectorstation.h"
 #include "analysis/eventconstructor.h"
+#include "analysis/simplecoincidence.h"
 #include "messages/clusterlog.h"
 #include "supervision/state.h"
 #include "supervision/timebase.h"

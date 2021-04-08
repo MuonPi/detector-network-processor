@@ -79,6 +79,7 @@ public:
      * @brief clear reset all bins to 0
      */
     void clear();
+
 private:
     T m_lower {};
     T m_upper {};
@@ -154,7 +155,6 @@ auto histogram<N, T, C>::width() const -> T
     return m_width;
 }
 
-
 template <std::size_t N, typename T, typename C>
 auto histogram<N, T, C>::integral() const -> std::uint64_t
 {
@@ -165,7 +165,6 @@ auto histogram<N, T, C>::integral() const -> std::uint64_t
     return total;
 }
 
-
 template <std::size_t N, typename T, typename C>
 void histogram<N, T, C>::clear()
 {
@@ -173,7 +172,6 @@ void histogram<N, T, C>::clear()
         n = 0;
     }
 }
-
 
 }
 #endif // HISTOGRAM_H

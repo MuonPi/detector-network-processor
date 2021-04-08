@@ -113,7 +113,7 @@ void database<detector_summary_t>::get(detector_summary_t log)
     }
 }
 
-template<>
+template <>
 void database<trigger::detector>::get(trigger::detector trig)
 {
     if ((trig.setting.type != trigger::detector::setting_t::Reliable) && (trig.setting.type != trigger::detector::setting_t::Unreliable)) {
@@ -128,11 +128,11 @@ void database<trigger::detector>::get(trigger::detector trig)
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::influx;
     auto result { std::move(m_link.measurement("trigger")
-                << tag { "user", trig.setting.username }
-                << tag { "detector", trig.setting.station }
-                << tag { "site_id", trig.setting.username + trig.setting.station }
-                << field { "type", type }
-                  ).commit(nanosecondsUTC)};
+        << tag { "user", trig.setting.username }
+        << tag { "detector", trig.setting.station }
+        << tag { "site_id", trig.setting.username + trig.setting.station }
+        << field { "type", type })
+                      .commit(nanosecondsUTC) };
 
     if (!result) {
         log::warning() << "error writing trigger to DB";

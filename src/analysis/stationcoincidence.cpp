@@ -133,22 +133,34 @@ void station_coincidence::save()
             data.uptime += std::chrono::duration_cast<std::chrono::minutes>(now - data.last_online).count();
             data.last_online = now;
         }
-        std::string directory { m_data_directory +  "/" + stations[data.first].site_id() + "_" + stations[data.second].site_id() + "/"};
-        if (!std::filesystem::exists(directory)) {
-            std::filesystem::create_directories(directory);
+        std::ostringstream dir_stream {};
+        dir_stream<<m_data_directory<<'/';
+        if (data.first < data.second) {
+            dir_stream<<stations[data.first].site_id();
+            dir_stream<<stations[data.second].site_id();
+        } else {
+            dir_stream<<stations[data.second].site_id();
+            dir_stream<<stations[data.first].site_id();
         }
-        std::ofstream histogram_file { directory + filename + ".hist" };
+        dir_stream<<'/';
+        if (!std::filesystem::exists(dir_stream.str())) {
+            std::filesystem::create_directories(dir_stream.str());
+        }
+        dir_stream<<filename;
+
+        std::ofstream histogram_file { dir_stream.str() + ".hist" };
         for (const auto& bin : data.hist.qualified_bins()) {
             histogram_file << ((bin.lower + bin.upper) / 2) << ' ' << bin.count << '\n';
         }
         histogram_file.close();
-        std::ofstream metadata_file { directory + filename + ".meta" };
+
+        std::ofstream metadata_file { dir_stream.str() + ".meta" };
         metadata_file
                 << "bin_width " << std::to_string(data.hist.width())<<" ns\n"
                 << "distance " << data.distance << " m\n"
                 << "total " << std::to_string(data.hist.integral()) << " 1\n"
                 << "uptime " << std::to_string(data.uptime) << " min\n";
-
+        metadata_file.close();
         data.uptime = 0;
         data.hist.clear();
     }

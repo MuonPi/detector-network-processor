@@ -194,7 +194,7 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
         for (std::size_t y { 0 }; y < x; y++) {
             const auto& [user, loc] { m_stations.at(y) };
             const auto distance { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, { loc.lat * units::degree, loc.lon * units::degree, loc.h }) };
-            const auto time_of_flight { distance / s_c };
+            const auto time_of_flight { distance / consts::c_0 };
             const std::int32_t bin_width { static_cast<std::int32_t>(std::clamp((2.0 * time_of_flight) / static_cast<double>(s_bins), 1.0, s_total_width / static_cast<double>(s_bins))) };
             const std::int32_t min { bin_width * -static_cast<std::int32_t>(s_bins * 0.5) };
             const std::int32_t max { bin_width * static_cast<std::int32_t>(s_bins * 0.5) };

@@ -9,8 +9,8 @@
 
 namespace muonpi {
 
-constexpr double max_timing_error { 1000.0 }; //< max allowable timing error in nanoseconds
-constexpr double max_location_error { max_timing_error * units::nanosecond * consts::c_0 }; //< max allowable location error in meter
+constexpr double max_timing_error { 1000.0 * units::nanosecond }; //< max allowable timing error in nanoseconds
+constexpr double max_location_error { max_timing_error * consts::c_0 }; //< max allowable location error in meter
 constexpr double extreme_timing_error { max_timing_error * 100.0 };
 constexpr double stddev_factor { 0.75 };
 

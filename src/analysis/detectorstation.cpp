@@ -182,7 +182,8 @@ void detector_station::step(const std::chrono::system_clock::time_point& now)
     if (m_current_rate.step(now)) {
         m_mean_rate.step(now);
         if (m_current_rate.mean() < (m_mean_rate.mean() - m_mean_rate.stddev())) {
-            m_factor = ((m_mean_rate.mean() - m_current_rate.mean()) / (m_mean_rate.stddev()) + 1.0) * 2.0;
+            constexpr static double scale { 2.0 };
+            m_factor = ((m_mean_rate.mean() - m_current_rate.mean()) / (m_mean_rate.stddev()) + 1.0) * scale;
         } else {
             m_factor = 1.0;
         }

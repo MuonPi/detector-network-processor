@@ -304,11 +304,12 @@ auto mqtt::connect() -> bool
         return false;
     }
     constexpr static int mqtt_keepalive { 60 };
+    constexpr static std::chrono::duration connect_wait_timeout { std::chrono::seconds{ 10 } };
     auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, mqtt_keepalive) };
     if (result == MOSQ_ERR_SUCCESS) {
         m_connect_promise = std::promise<bool> {};
         m_connect_future = m_connect_promise.get_future();
-        if ((m_connect_future.wait_for(std::chrono::seconds { 10 }) == std::future_status::ready) && m_connect_future.get()) {
+        if ((m_connect_future.wait_for(connect_wait_timeout) == std::future_status::ready) && m_connect_future.get()) {
             return true;
         }
     } else {

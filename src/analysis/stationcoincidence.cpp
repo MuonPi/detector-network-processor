@@ -136,12 +136,18 @@ void station_coincidence::save()
         }
         std::ostringstream dir_stream {};
         dir_stream << m_data_directory << '/';
+        std::string first_site { stations[data.first].site_id()};
+        std::string second_site { stations[data.second].site_id()};
+
+        std::replace(first_site.begin(), first_site.end(), '/', '-');
+        std::replace(second_site.begin(), second_site.end(), '/', '-');
+
         if (data.first < data.second) {
-            dir_stream << stations[data.first].site_id();
-            dir_stream << stations[data.second].site_id();
+            dir_stream << first_site;
+            dir_stream << second_site;
         } else {
-            dir_stream << stations[data.second].site_id();
-            dir_stream << stations[data.first].site_id();
+            dir_stream << second_site;
+            dir_stream << first_site;
         }
         dir_stream << '/';
         if (!std::filesystem::exists(dir_stream.str())) {

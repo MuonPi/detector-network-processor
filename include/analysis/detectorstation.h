@@ -124,6 +124,9 @@ protected:
     void set_status(detector_status::status status, detector_status::reason reason = detector_status::reason::miscellaneous);
 
 private:
+    /**
+     * @brief check_reliability Checks and sets the reliability of this detector object
+     */
     void check_reliability();
 
     detector_status::status m_status { detector_status::unreliable };

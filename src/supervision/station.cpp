@@ -39,7 +39,7 @@ void station::get(event_t event)
     event.data.location = det->location();
     event.data.userinfo = det->user_info();
 
-    if (det->is(detector_station::Status::Reliable)) {
+    if (det->is(detector_status::reliable)) {
         source::base<event_t>::put(std::move(event));
     }
 }
@@ -71,7 +71,7 @@ auto station::process() -> int
 
             det->step(now);
 
-            if (det->is(detector_station::Status::Reliable)) {
+            if (det->is(detector_status::reliable)) {
                 if (det->factor() > largest) {
                     largest = det->factor();
                 }
@@ -100,36 +100,17 @@ auto station::process() -> int
     return 0;
 }
 
-void station::detector_status(std::size_t hash, detector_station::Status status)
+void station::on_detector_status(std::size_t hash, detector_status::status status, detector_status::reason reason)
 {
-    auto user_info { m_detectors.at(hash)->user_info() };
-    if (status > detector_station::Status::Deleted) {
+    if (status > detector_status::deleted) {
         source::base<detector_summary_t>::put(m_detectors.at(hash)->change_log_data());
     }
-    m_supervisor.detector_status(hash, status);
+    m_supervisor.on_detector_status(hash, status);
 
-    trigger::detector trigger {};
-
-    trigger.hash = hash;
-    trigger.setting.username = user_info.username;
-    trigger.setting.station = user_info.station_id;
-
-    switch (status) {
-    case detector_station::Status::Deleted:
+    if (status == detector_status::deleted) {
         m_delete_detectors.push(hash);
-        trigger.setting.type = trigger::detector::setting_t::Type::Offline;
-        break;
-    case detector_station::Status::Created:
-        trigger.setting.type = trigger::detector::setting_t::Type::Online;
-        break;
-    case detector_station::Status::Reliable:
-        trigger.setting.type = trigger::detector::setting_t::Type::Reliable;
-        break;
-    case detector_station::Status::Unreliable:
-        trigger.setting.type = trigger::detector::setting_t::Type::Unreliable;
-        break;
     }
-    source::base<trigger::detector>::put(std::move(trigger));
+    source::base<trigger::detector>::put(trigger::detector{hash, m_detectors.at(hash)->user_info(), status, reason});
 }
 
 auto station::get_stations() const -> std::vector<std::pair<userinfo_t, location_t>>
@@ -170,7 +151,7 @@ void station::load()
         }
         for (; std::getline(in, line);) {
             auto det { std::make_unique<detector_station>(line, *this, stale) };
-            if (det->is(detector_station::Status::Deleted)) {
+            if (det->is(detector_status::deleted)) {
                 continue;
             }
             m_detectors.emplace(det->user_info().hash(), std::move(det));
@@ -192,7 +173,7 @@ void station::save()
     }
     out << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() << '\n';
     for (auto& [hash, det] : m_detectors) {
-        if (det->is(detector_station::Status::Deleted)) {
+        if (det->is(detector_status::deleted)) {
             continue;
         }
         out << det->serialise() << '\n';

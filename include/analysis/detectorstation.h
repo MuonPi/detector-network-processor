@@ -4,6 +4,7 @@
 #include "defaults.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
+#include "messages/detectorstatus.h"
 #include "messages/userinfo.h"
 #include "utility/threadrunner.h"
 
@@ -34,12 +35,6 @@ private:
     static constexpr std::size_t s_time_interval { 30000 };
 
 public:
-    enum class Status {
-        Created,
-        Deleted,
-        Unreliable,
-        Reliable
-    };
 
     /**
      * @brief enable Enable the detector_station object so it has the status Enabled
@@ -78,7 +73,7 @@ public:
      * @param status The status to compare against
      * @return true if the detector has the status asked for in the parameter
      */
-    [[nodiscard]] auto is(Status status) const -> bool;
+    [[nodiscard]] auto is(detector_status::status status) const -> bool;
 
     /**
      * @brief factor The current factor from the event supervisor
@@ -126,12 +121,12 @@ protected:
      * @brief set_status Sets the status of this detector and sends the status to the listener if it has changed.
      * @param status The status to set
      */
-    void set_status(Status status);
+    void set_status(detector_status::status status, detector_status::reason reason = detector_status::reason::miscellaneous);
 
 private:
     void check_reliability();
 
-    Status m_status { Status::Unreliable };
+    detector_status::status m_status { detector_status::unreliable };
 
     bool m_initial { true };
 

@@ -19,10 +19,10 @@ void state::time_status(std::chrono::milliseconds timebase, std::chrono::millise
     m_timeout = timeout;
 }
 
-void state::detector_status(std::size_t hash, detector_station::Status status)
+void state::on_detector_status(std::size_t hash, detector_status::status status)
 {
     m_detectors[hash] = status;
-    if (status == detector_station::Status::Deleted) {
+    if (status == detector_status::deleted) {
         if (m_detectors.find(hash) != m_detectors.end()) {
             m_detectors.erase(hash);
         }
@@ -30,7 +30,7 @@ void state::detector_status(std::size_t hash, detector_station::Status status)
 
     std::size_t reliable { 0 };
     for (auto& [h, detector] : m_detectors) {
-        if (detector == detector_station::Status::Reliable) {
+        if (detector == detector_status::reliable) {
             reliable++;
         }
     }

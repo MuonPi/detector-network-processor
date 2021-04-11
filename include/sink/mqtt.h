@@ -195,24 +195,41 @@ void mqtt<trigger::detector>::get(trigger::detector trigger)
     std::ostringstream stream {};
     stream
         << std::put_time(std::gmtime(&time), "%F_%H-%M-%S %Z");
-    switch (trigger.setting.type) {
-    case trigger::detector::setting_t::Offline:
+    switch (trigger.status) {
+    case detector_status::deleted:
         stream << " offline";
         break;
-    case trigger::detector::setting_t::Online:
+    case detector_status::created:
         stream << " online";
         break;
-    case trigger::detector::setting_t::Unreliable:
+    case detector_status::unreliable:
         stream << " unreliable";
         break;
-    case trigger::detector::setting_t::Reliable:
+    case detector_status::reliable:
         stream << " reliable";
         break;
-    case trigger::detector::setting_t::Invalid:
+    case detector_status::invalid:
         return;
     }
+    switch (trigger.reason) {
+    case detector_status::reason::miscellaneous:
+        stream << " miscellaneous";
+        break;
+    case detector_status::reason::location_precision:
+        stream << " location_precision";
+        break;
+    case detector_status::reason::rate_unstable:
+        stream << " rate_unstable";
+        break;
+    case detector_status::reason::time_accuracy:
+        stream << " time_accuracy";
+        break;
+    case detector_status::reason::time_accuracy_extreme:
+        stream << " time_accuracy_extreme";
+        break;
+    }
 
-    if (!m_link.publish(trigger.setting.username + "/" + trigger.setting.station, stream.str())) {
+    if (!m_link.publish(trigger.userinfo.username + "/" + trigger.userinfo.station_id, stream.str())) {
         log::warning() << "Could not publish MQTT message.";
     }
 }

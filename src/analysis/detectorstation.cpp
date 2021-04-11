@@ -16,7 +16,7 @@ constexpr double stddev_factor { 0.75 };
 
 void detector_station::enable()
 {
-    set_status(Status::Created);
+    set_status(detector_status::created);
 }
 
 detector_station::detector_station(const detector_info_t<location_t>& initial_log, supervision::station& stationsupervisor)
@@ -44,20 +44,20 @@ detector_station::detector_station(const std::string& serialised, supervision::s
 
     message_parser in { serialised, ' ' };
     if (in.size() < message_length) {
-        m_status = Status::Deleted;
+        m_status = detector_status::deleted;
         return;
     }
     m_hash = std::stoul(in[index_hash], nullptr);
     m_userinfo.username = in[index_username];
     m_userinfo.station_id = in[index_station_id];
     if (in[index_status] == "created") {
-        m_status = Status::Created;
+        m_status = detector_status::created;
     } else if (in[index_status] == "deleted") {
-        m_status = Status::Deleted;
+        m_status = detector_status::deleted;
     } else if ((in[index_status] != "reliable") || (stale)) {
-        m_status = Status::Unreliable;
+        m_status = detector_status::unreliable;
     } else {
-        m_status = Status::Reliable;
+        m_status = detector_status::reliable;
     }
 
     m_location.lat = std::stod(in[index_lat], nullptr);
@@ -73,17 +73,20 @@ auto detector_station::serialise() const -> std::string
     std::ostringstream out {};
     out << m_hash << ' ' << m_userinfo.username << ' ' << m_userinfo.station_id << ' ';
     switch (m_status) {
-    case Status::Created:
+    case detector_status::created:
         out << "created";
         break;
-    case Status::Deleted:
+    case detector_status::deleted:
         out << "deleted";
         break;
-    case Status::Reliable:
+    case detector_status::reliable:
         out << "reliable";
         break;
-    case Status::Unreliable:
+    case detector_status::unreliable:
         out << "unreliable";
+        break;
+    case detector_status::invalid:
+        out << "invalid";
         break;
     }
     out << ' ' << m_location.lat << ' ' << m_location.lon << ' ' << m_location.h << ' ' << m_location.h_acc << ' ' << m_location.v_acc << ' ' << m_location.dop;
@@ -118,7 +121,7 @@ auto detector_station::process(const event_t& event) -> bool
     m_reliability_time_acc.add(event.data.time_acc);
 
     if (event.data.time_acc > (extreme_timing_error)) {
-        set_status(Status::Unreliable);
+        set_status(detector_status::unreliable);
     }
 
     return (event.data.time_acc <= max_timing_error) && (event.data.fix == 1);
@@ -131,15 +134,15 @@ void detector_station::process(const detector_info_t<location_t>& info)
     check_reliability();
 }
 
-void detector_station::set_status(Status status)
+void detector_station::set_status(detector_status::status status, detector_status::reason reason)
 {
     if (m_status != status) {
-        m_stationsupervisor.detector_status(m_hash, status);
+        m_stationsupervisor.on_detector_status(m_hash, std::move(status), std::move(reason));
     }
     m_status = status;
 }
 
-auto detector_station::is(Status status) const -> bool
+auto detector_station::is(detector_status::status status) const -> bool
 {
     return m_status == status;
 }
@@ -158,10 +161,14 @@ void detector_station::check_reliability()
     const double f_time { m_reliability_time_acc.mean() / max_timing_error };
     const double f_rate { m_mean_rate.stddev() / (m_mean_rate.mean() * stddev_factor) };
 
-    if ((f_location > (1.0 + hysteresis)) || (f_time > (1.0 + hysteresis)) || ((f_rate > (1.0 + hysteresis)))) {
-        set_status(Status::Unreliable);
+    if (f_location > (1.0 + hysteresis)) {
+        set_status(detector_status::unreliable, detector_status::reason::location_precision);
+    } else if (f_time > (1.0 + hysteresis)) {
+        set_status(detector_status::unreliable, detector_status::reason::time_accuracy);
+    } else if (f_rate > (1.0 + hysteresis)) {
+        set_status(detector_status::unreliable, detector_status::reason::rate_unstable);
     } else if ((f_location < (1.0 - hysteresis)) && (f_time < (1.0 - hysteresis)) && ((f_rate < (1.0 - hysteresis)))) {
-        set_status(Status::Reliable);
+        set_status(detector_status::reliable);
     }
 }
 
@@ -170,10 +177,10 @@ void detector_station::step(const std::chrono::system_clock::time_point& now)
     auto diff { now - std::chrono::system_clock::time_point { m_last_log } };
     if (diff > s_log_interval) {
         if (diff > s_quit_interval) {
-            set_status(Status::Deleted);
+            set_status(detector_status::deleted);
             return;
         }
-        set_status(Status::Unreliable);
+        set_status(detector_status::unreliable);
 
     } else {
         check_reliability();

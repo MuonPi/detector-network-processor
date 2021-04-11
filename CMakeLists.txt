@@ -94,6 +94,7 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/messages/clusterlog.h"
     "${PROJECT_HEADER_DIR}/messages/userinfo.h"
     "${PROJECT_HEADER_DIR}/messages/trigger.h"
+    "${PROJECT_HEADER_DIR}/messages/detectorstatus.h"
 
     "${PROJECT_HEADER_DIR}/utility/threadrunner.h"
     "${PROJECT_HEADER_DIR}/utility/log.h"

@@ -3,6 +3,7 @@
 
 #include "analysis/detectorstation.h"
 #include "messages/clusterlog.h"
+#include "messages/detectorstatus.h"
 #include "sink/base.h"
 
 #include "analysis/dataseries.h"
@@ -42,7 +43,7 @@ public:
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, detector_station::Status status);
+    void on_detector_status(std::size_t hash, detector_status::status status);
 
     /**
      * @brief increase_event_count gets called when an event arrives or gets processed
@@ -73,7 +74,7 @@ protected:
     [[nodiscard]] auto post_run() -> int override;
 
 private:
-    std::map<std::size_t, detector_station::Status> m_detectors;
+    std::map<std::size_t, detector_status::status> m_detectors;
     std::chrono::milliseconds m_timeout {};
     std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };

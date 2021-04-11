@@ -44,7 +44,7 @@ public:
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, detector_station::Status status);
+    void on_detector_status(std::size_t hash, detector_status::status status, detector_status::reason reason);
 
     /**
      * @brief get Reimplemented from sink::base

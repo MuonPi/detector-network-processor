@@ -16,14 +16,14 @@
 #include <unistd.h>
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
-MessageConstructor::MessageConstructor(char delimiter)
+message_constructor::message_constructor(char delimiter)
     : m_delimiter { delimiter }
 {
 }
 
-void MessageConstructor::add_field(const std::string& field)
+void message_constructor::add_field(const std::string& field)
 {
     if (!m_message.empty()) {
         m_message += m_delimiter;
@@ -31,12 +31,12 @@ void MessageConstructor::add_field(const std::string& field)
     m_message += field;
 }
 
-auto MessageConstructor::get_string() const -> std::string
+auto message_constructor::get_string() const -> std::string
 {
     return m_message;
 }
 
-MessageParser::MessageParser(std::string message, char delimiter)
+message_parser::message_parser(std::string message, char delimiter)
     : m_content { std::move(message) }
     , m_iterator { m_content.begin() }
     , m_delimiter { delimiter }
@@ -46,14 +46,14 @@ MessageParser::MessageParser(std::string message, char delimiter)
     }
 }
 
-void MessageParser::skip_delimiter()
+void message_parser::skip_delimiter()
 {
     while ((*m_iterator == m_delimiter) && (m_iterator != m_content.end())) {
         m_iterator++;
     }
 }
 
-void MessageParser::read_field()
+void message_parser::read_field()
 {
     skip_delimiter();
     std::string::iterator start { m_iterator };
@@ -67,55 +67,59 @@ void MessageParser::read_field()
     }
 }
 
-auto MessageParser::at_end() -> bool
+auto message_parser::at_end() -> bool
 {
     skip_delimiter();
     return m_iterator == m_content.end();
 }
 
-auto MessageParser::size() const -> std::size_t
+auto message_parser::size() const -> std::size_t
 {
     return m_fields.size();
 }
 
-auto MessageParser::empty() const -> bool
+auto message_parser::empty() const -> bool
 {
     return m_fields.empty();
 }
 
-auto MessageParser::operator[](std::size_t i) const -> std::string
+auto message_parser::operator[](std::size_t i) const -> std::string
 {
     return std::string { m_fields[i].first, m_fields[i].second };
 }
 
-auto MessageParser::get() const -> std::string
+auto message_parser::get() const -> std::string
 {
     return m_content;
 }
 
-GUID::GUID(std::size_t hash, std::uint64_t time)
-    : m_first { get_mac() ^ hash ^ (get_number() & 0x00000000FFFFFFFF) }
-    , m_second { time ^ (get_number() & 0xFFFFFFFF00000000) }
+constexpr static std::uint64_t lower_bits { 0x00000000FFFFFFFF };
+constexpr static std::uint64_t upper_bits { 0xFFFFFFFF00000000 };
+
+guid::guid(std::size_t hash, std::uint64_t time)
+    : m_first { get_mac() ^ hash ^ (get_number() & lower_bits) }
+    , m_second { time ^ (get_number() & upper_bits) }
 {
 }
 
-auto GUID::to_string() const -> std::string
+auto guid::to_string() const -> std::string
 {
+    constexpr static std::size_t number_width { 16 };
     std::ostringstream out {};
-    out << std::right << std::hex << std::setfill('0') << std::setw(16) << m_first << std::setw(16) << m_second;
+    out << std::right << std::hex << std::setfill('0') << std::setw(number_width) << m_first << std::setw(number_width) << m_second;
     return out.str();
 }
 
-auto GUID::get_mac() -> std::uint64_t
+auto guid::get_mac() -> std::uint64_t
 {
     static std::uint64_t addr { 0 };
     if (addr != 0) {
         return addr;
     }
 
-    ifaddrs* ifaddr;
+    ifaddrs* ifaddr { nullptr };
     if (getifaddrs(&ifaddr) == -1) {
-        Log::error() << "Could not get MAC address.";
+        log::error() << "Could not get MAC address.";
         return {};
     }
 
@@ -132,19 +136,20 @@ auto GUID::get_mac() -> std::uint64_t
     }
     freeifaddrs(ifaddr);
     if (ifname.empty()) {
-        Log::error() << "Could not get MAC address.";
+        log::error() << "Could not get MAC address.";
         return {};
     }
 
     std::ifstream iface("/sys/class/net/" + ifname + "/address");
     std::string str((std::istreambuf_iterator<char>(iface)), std::istreambuf_iterator<char>());
     if (!str.empty()) {
-        addr = std::stoull(std::regex_replace(str, std::regex(":"), ""), nullptr, 16);
+        constexpr static int base { 16 };
+        addr = std::stoull(std::regex_replace(str, std::regex(":"), ""), nullptr, base);
     }
     return addr;
 }
 
-auto GUID::get_number() -> std::uint64_t
+auto guid::get_number() -> std::uint64_t
 {
     static std::mt19937 gen { static_cast<std::size_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count()) };
     static std::uniform_int_distribution<std::uint64_t> distribution { 0, std::numeric_limits<std::uint64_t>::max() };

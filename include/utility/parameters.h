@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-namespace MuonPi {
-class Parameters {
+namespace muonpi {
+class parameters {
 public:
-    struct Definition {
+    struct definition {
         const std::string abbreviation {};
         const std::string full {};
         const std::string description {};
@@ -15,7 +15,7 @@ public:
         const bool required { false };
     };
 
-    struct State {
+    struct state_t {
         bool set { false };
         std::string value {};
 
@@ -25,30 +25,30 @@ public:
         }
     };
 
-    Parameters(std::string name, std::string description);
+    parameters(std::string name, std::string description);
 
-    [[nodiscard]] auto get(const std::string& name) const -> State;
-    [[nodiscard]] auto operator[](const std::string& name) const -> State;
+    [[nodiscard]] auto get(const std::string& name) const -> state_t;
+    [[nodiscard]] auto operator[](const std::string& name) const -> state_t;
 
-    void add(const Definition& argument);
-    auto operator<<(const Definition& argument) -> Parameters&;
+    void add(const definition& argument);
+    auto operator<<(const definition& argument) -> parameters&;
 
-    auto start(int argc, char* argv[]) -> bool;
+    auto start(std::vector<std::string> arguments) -> bool;
 
     void print_help() const;
 
 private:
-    struct Commandline {
-        Definition def;
-        State state;
+    struct commandline {
+        definition def;
+        state_t state;
     };
 
-    int m_required { 0 };
+    std::size_t m_required { 0 };
 
     std::string m_name {};
     std::string m_description {};
 
-    std::vector<Commandline> m_arguments;
+    std::vector<commandline> m_arguments;
 };
 }
 #endif // PARAMETERS_H

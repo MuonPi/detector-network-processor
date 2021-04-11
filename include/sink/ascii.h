@@ -11,22 +11,26 @@
 #include <iostream>
 #include <memory>
 
-namespace MuonPi::Sink {
+namespace muonpi::sink {
 
 template <typename T>
 /**
- * @brief The AsciiSink class
+ * @brief The asciisink class
  */
-class Ascii : public Base<T> {
+class ascii : public base<T> {
 public:
     /**
-     * @brief AsciiEventSink
+     * @brief asciievent_tsink
      * @param a_ostream The stream to which the output should be written
      */
-    Ascii(std::ostream& a_ostream);
+    ascii(std::ostream& a_ostream);
 
-    ~Ascii() override;
+    ~ascii() override;
 
+    /**
+     * @brief get Reimplemented from sink::base
+     * @param message
+     */
     void get(T message) override;
 
 private:
@@ -34,116 +38,135 @@ private:
 };
 
 template <typename T>
-Ascii<T>::Ascii(std::ostream& ostream)
+ascii<T>::ascii(std::ostream& ostream)
     : m_ostream { ostream }
 {
 }
 
 template <typename T>
-Ascii<T>::~Ascii() = default;
+ascii<T>::~ascii() = default;
 
 template <>
-void Ascii<Event>::get(Event event)
+void ascii<event_t>::get(event_t event)
 {
-    if (event.n() > 1) {
-        GUID guid { event.hash(), static_cast<std::uint64_t>(event.start()) };
-        const std::int64_t cluster_coinc_time = event.end() - event.start();
-        std::ostringstream out {};
-        out << "Combined Event: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
-        for (const auto& evt : event.events()) {
-            const std::int64_t evt_coinc_time = evt.start() - event.start();
-            out
-                << "\n\t" << guid.to_string() << ' ' << evt_coinc_time
-                << std::hex
-                << ' ' << evt.data().user
-                << ' ' << evt.data().station_id
-                << ' ' << std::dec << evt.data().start
-                << ' ' << (evt.data().end - evt.data().start)
-                << ' ' << std::hex << evt.data().time_acc
-                << ' ' << evt.data().ublox_counter
-                << ' ' << static_cast<std::uint16_t>(evt.data().fix)
-                << ' ' << static_cast<std::uint16_t>(evt.data().utc)
-                << ' ' << static_cast<std::uint16_t>(evt.data().gnss_time_grid);
-        }
-
-        out << '\n';
-
-        m_ostream << out.str() << std::flush;
-        /*    } else {
-
-        std::ostringstream out {};
-        out << "Event"
-            <<std::hex
-            <<' '<<event.data().user
-            <<' '<<event.data().station_id
-            <<' '<<std::dec<<event.data().start
-            <<' '<<(event.data().end - event.data().start)
-            <<' '<<std::hex<<event.data().time_acc
-            <<' '<<event.data().ublox_counter
-            <<' '<<static_cast<std::uint16_t>(event.data().fix)
-            <<' '<<static_cast<std::uint16_t>(event.data().utc)
-            <<' '<<static_cast<std::uint16_t>(event.data().gnss_time_grid)
-            <<'\n';
-
-        m_ostream<<out.str()<<std::flush;*/
+    if (event.n() < 2) {
+        return;
     }
-}
 
-template <>
-void Ascii<ClusterLog>::get(ClusterLog log)
-{
-    auto data { log.data() };
+    guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
+    const std::int64_t cluster_coinc_time = event.duration();
     std::ostringstream out {};
-
-    out
-        << "Cluster Log:"
-        << "\n\ttimeout: " << data.timeout << " ms"
-        << "\n\ttimebase: " << data.timebase << " ms"
-        << "\n\tuptime: " << data.uptime << " ms"
-        << "\n\tin: " << data.frequency.single_in << " Hz"
-        << "\n\tout: " << data.frequency.l1_out << " Hz"
-        << "\n\tbuffer: " << data.buffer_length
-        << "\n\tevents in interval: " << data.incoming
-        << "\n\tcpu load: " << data.system_cpu_load
-        << "\n\tprocess cpu load: " << data.process_cpu_load
-        << "\n\tmemory usage: " << data.memory_usage
-        << "\n\tout in interval: ";
-
-    for (auto& [n, i] : data.outgoing) {
-        out << "(" << n << ":" << i << ") ";
+    out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
+    for (const auto& evt : event.events) {
+        const std::int64_t evt_coinc_time = evt.start - event.data.start;
+        out
+            << "\n\t" << std::hex << uuid.to_string() << std::dec << ' ' << evt_coinc_time
+            << ' ' << evt.user
+            << ' ' << evt.station_id
+            << ' ' << evt.start
+            << ' ' << evt.duration()
+            << ' ' << evt.time_acc
+            << ' ' << evt.ublox_counter
+            << ' ' << static_cast<std::uint16_t>(evt.fix)
+            << ' ' << static_cast<std::uint16_t>(evt.utc)
+            << ' ' << static_cast<std::uint16_t>(evt.gnss_time_grid);
     }
 
-    out
-        << "\n\tdetectors: " << data.total_detectors << "(" << data.reliable_detectors << ")"
-        << "\n\tmaximum n: " << data.maximum_n << '\n';
+    out << '\n';
 
     m_ostream << out.str() << std::flush;
 }
 
 template <>
-void Ascii<DetectorSummary>::get(DetectorSummary log)
+void ascii<cluster_log_t>::get(cluster_log_t log)
 {
-    auto data { log.data() };
     std::ostringstream out {};
 
     out
-        << "Detector Summary: " << log.user_info().site_id()
-        << "\n\teventrate: " << data.mean_eventrate
-        << "\n\teventrate stddev: " << data.stddev_eventrate
-        << "\n\tpulselength: " << data.mean_pulselength
-        << "\n\tincoming: " << data.incoming
-        << "\n\tublox counter progess: " << data.ublox_counter_progress
-        << "\n\tdeadtime factor: " << data.deadtime
+        << "Cluster Log:"
+        << "\n\ttimeout: " << log.timeout << " ms"
+        << "\n\ttimebase: " << log.timebase << " ms"
+        << "\n\tuptime: " << log.uptime << " min"
+        << "\n\tin: " << log.frequency.single_in << " Hz"
+        << "\n\tout: " << log.frequency.l1_out << " Hz"
+        << "\n\tbuffer: " << log.buffer_length
+        << "\n\tevents in interval: " << log.incoming
+        << "\n\tcpu load: " << log.system_cpu_load
+        << "\n\tprocess cpu load: " << log.process_cpu_load
+        << "\n\tmemory usage: " << log.memory_usage
+        << "\n\tout in interval: ";
+
+    for (auto& [n, i] : log.outgoing) {
+        out << "(" << n << ":" << i << ") ";
+    }
+
+    out
+        << "\n\tdetectors: " << log.total_detectors << "(" << log.reliable_detectors << ")"
+        << "\n\tmaximum n: " << log.maximum_n << '\n';
+
+    m_ostream << out.str() << std::flush;
+}
+
+template <>
+void ascii<detector_summary_t>::get(detector_summary_t log)
+{
+    std::ostringstream out {};
+
+    out
+        << "Detector Summary: " << log.userinfo.site_id()
+        << "\n\teventrate: " << log.mean_eventrate
+        << "\n\teventrate stddev: " << log.stddev_eventrate
+        << "\n\tpulselength: " << log.mean_pulselength
+        << "\n\tincoming: " << log.incoming
+        << "\n\tublox counter progess: " << log.ublox_counter_progress
+        << "\n\tdeadtime factor: " << log.deadtime
         << '\n';
 
     m_ostream << out.str() << std::flush;
 }
 
 template <>
-void Ascii<Trigger::Detector>::get(Trigger::Detector trigger)
+void ascii<trigger::detector>::get(trigger::detector trigger)
 {
-    m_ostream << "trigger: " + trigger.setting.to_string(' ') + '\n'
-              << std::flush;
+
+    std::ostringstream stream {};
+    stream<<trigger.userinfo.username<<' '<<trigger.userinfo.station_id;
+    switch (trigger.status) {
+    case detector_status::deleted:
+        stream << " offline";
+        break;
+    case detector_status::created:
+        stream << " online";
+        break;
+    case detector_status::unreliable:
+        stream << " unreliable";
+        break;
+    case detector_status::reliable:
+        stream << " reliable";
+        break;
+    case detector_status::invalid:
+        return;
+    }
+    switch (trigger.reason) {
+    case detector_status::reason::miscellaneous:
+        stream << " miscellaneous";
+        break;
+    case detector_status::reason::location_precision:
+        stream << " location_precision";
+        break;
+    case detector_status::reason::rate_unstable:
+        stream << " rate_unstable";
+        break;
+    case detector_status::reason::time_accuracy:
+        stream << " time_accuracy";
+        break;
+    case detector_status::reason::time_accuracy_extreme:
+        stream << " time_accuracy_extreme";
+        break;
+    }
+
+
+    m_ostream << stream.str() << std::flush;
 }
 
 }

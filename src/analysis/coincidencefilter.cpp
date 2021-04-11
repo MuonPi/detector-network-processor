@@ -1,50 +1,49 @@
-﻿#include "coincidencefilter.h"
+﻿#include "analysis/coincidencefilter.h"
+
 #include "utility/log.h"
 
+#include "analysis/criterion.h"
 #include "messages/clusterlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
 #include "sink/base.h"
 #include "source/base.h"
 #include "supervision/timebase.h"
-#include "utility/criterion.h"
-#include "utility/eventconstructor.h"
 
 #include <cinttypes>
 
-namespace MuonPi {
+namespace muonpi {
 
-CoincidenceFilter::CoincidenceFilter(Sink::Base<Event>& event_sink, StateSupervisor& supervisor)
-    : Sink::Threaded<Event> { "CoincidenceFilter", std::chrono::milliseconds { 100 } }
-    , Source::Base<Event> { event_sink }
+constexpr std::chrono::duration s_timeout { std::chrono::milliseconds { 100 } };
+
+coincidence_filter::coincidence_filter(sink::base<event_t>& event_sink, supervision::state& supervisor)
+    : sink::threaded<event_t> { "muon::filter", s_timeout }
+    , source::base<event_t> { event_sink }
     , m_supervisor { supervisor }
 {
 }
 
-void CoincidenceFilter::get(TimeBase timebase)
+void coincidence_filter::get(timebase_t timebase)
 {
     using namespace std::chrono;
     m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
     m_supervisor.time_status(duration_cast<milliseconds>(timebase.base), duration_cast<milliseconds>(m_timeout));
 }
 
-void CoincidenceFilter::get(Event event)
+void coincidence_filter::get(event_t event)
 {
-    Threaded<Event>::internal_get(event);
+    threaded<event_t>::internal_get(event);
 }
 
-auto CoincidenceFilter::process() -> int
+auto coincidence_filter::process() -> int
 {
-    if (m_supervisor.step() != 0) {
-        Log::error() << "The Supervisor stopped.";
-        return -1;
-    }
+    auto now { std::chrono::system_clock::now() };
 
     // +++ Send finished constructors off to the event sink
     for (ssize_t i { static_cast<ssize_t>(m_constructors.size()) - 1 }; i >= 0; i--) {
         auto& constructor { m_constructors[static_cast<std::size_t>(i)] };
         constructor.set_timeout(m_timeout);
-        if (constructor.timed_out()) {
+        if (constructor.timed_out(now)) {
             m_supervisor.increase_event_count(false, constructor.event.n());
             put(constructor.event);
             m_constructors.erase(m_constructors.begin() + i);
@@ -55,17 +54,17 @@ auto CoincidenceFilter::process() -> int
     return 0;
 }
 
-auto CoincidenceFilter::process(Event event) -> int
+auto coincidence_filter::process(event_t event) -> int
 {
     m_supervisor.increase_event_count(true);
 
     std::queue<std::size_t> matches {};
     for (std::size_t i { 0 }; i < m_constructors.size(); i++) {
         auto& constructor { m_constructors[i] };
-        if (constructor.event.hash() == event.hash()) {
+        if (constructor.event.data.hash == event.data.hash) {
             continue;
         }
-        if (m_criterion->maximum_false() < m_criterion->criterion(event, constructor.event)) {
+        if (m_criterion->maximum_false() < m_criterion->apply(event, constructor.event)) {
             matches.push(i);
         }
     }
@@ -73,36 +72,38 @@ auto CoincidenceFilter::process(Event event) -> int
 
     // +++ Event matches exactly one existing constructor
     if (matches.size() == 1) {
-        EventConstructor& constructor { m_constructors[matches.front()] };
+        event_constructor& constructor { m_constructors[matches.front()] };
         matches.pop();
-        if (constructor.event.n() == 1) {
-            Event e { constructor.event };
-            constructor.event = Event { e, true };
+        if (constructor.event.n() < 2) {
+            event_t e { constructor.event };
+            constructor.event.data.end = constructor.event.data.start;
+            constructor.event.emplace(e);
         }
-        constructor.event.add_event(event);
+        constructor.event.emplace(std::move(event));
         return 0;
     }
     // --- Event matches exactly one existing constructor
 
     // +++ Event matches either no, or more than one constructor
     if (matches.empty()) {
-        EventConstructor constructor {};
+        event_constructor constructor {};
         constructor.event = event;
         constructor.timeout = m_timeout;
-        m_constructors.push_back(std::move(constructor));
+        m_constructors.emplace_back(std::move(constructor));
         return 0;
     }
-    EventConstructor& constructor { m_constructors[matches.front()] };
+    event_constructor& constructor { m_constructors[matches.front()] };
     matches.pop();
-    if (constructor.event.n() == 1) {
-        Event e { constructor.event };
-        constructor.event = Event { e, true };
+    if (constructor.event.n() < 2) {
+        event_t e { constructor.event };
+        constructor.event.data.end = constructor.event.data.start;
+        constructor.event.emplace(e);
     }
-    constructor.event.add_event(event);
+    constructor.event.emplace(event);
     // +++ Event matches more than one constructor
     // Combines all contesting constructors into one contesting coincience
     while (!matches.empty()) {
-        constructor.event.add_event(m_constructors[matches.front()].event);
+        constructor.event.emplace(m_constructors[matches.front()].event);
         m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(matches.front()));
         matches.pop();
     }

@@ -19,7 +19,7 @@ namespace detector_status {
         location_precision,
         rate_unstable
     };
-};
+}
 }
 
 #endif // DETECTORSTATUS_H

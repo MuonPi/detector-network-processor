@@ -48,7 +48,6 @@ set(CLUSTER_SOURCE_FILES
 
     "${PROJECT_SRC_DIR}/messages/event.cpp"
     "${PROJECT_SRC_DIR}/messages/detectorlog.cpp"
-    "${PROJECT_SRC_DIR}/messages/trigger.cpp"
 
     "${PROJECT_SRC_DIR}/utility/threadrunner.cpp"
     "${PROJECT_SRC_DIR}/utility/log.cpp"

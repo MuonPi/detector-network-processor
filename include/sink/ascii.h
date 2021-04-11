@@ -128,8 +128,45 @@ void ascii<detector_summary_t>::get(detector_summary_t log)
 template <>
 void ascii<trigger::detector>::get(trigger::detector trigger)
 {
-    m_ostream << "trigger: " + trigger.setting.to_string(' ') + '\n'
-              << std::flush;
+
+    std::ostringstream stream {};
+    stream<<trigger.userinfo.username<<' '<<trigger.userinfo.station_id;
+    switch (trigger.status) {
+    case detector_status::deleted:
+        stream << " offline";
+        break;
+    case detector_status::created:
+        stream << " online";
+        break;
+    case detector_status::unreliable:
+        stream << " unreliable";
+        break;
+    case detector_status::reliable:
+        stream << " reliable";
+        break;
+    case detector_status::invalid:
+        return;
+    }
+    switch (trigger.reason) {
+    case detector_status::reason::miscellaneous:
+        stream << " miscellaneous";
+        break;
+    case detector_status::reason::location_precision:
+        stream << " location_precision";
+        break;
+    case detector_status::reason::rate_unstable:
+        stream << " rate_unstable";
+        break;
+    case detector_status::reason::time_accuracy:
+        stream << " time_accuracy";
+        break;
+    case detector_status::reason::time_accuracy_extreme:
+        stream << " time_accuracy_extreme";
+        break;
+    }
+
+
+    m_ostream << stream.str() << std::flush;
 }
 
 }

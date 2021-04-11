@@ -89,14 +89,14 @@ void station_coincidence::get(trigger::detector trig)
     std::size_t index { static_cast<std::size_t>(std::distance(m_stations.begin(), it_1)) };
 
     m_data.iterate(index, [&](data_t& data) {
-        switch (trig.setting.type) {
-        case trigger::detector::setting_t::Unreliable:
+        switch (trig.status) {
+        case detector_status::unreliable:
             if (data.online == 2) {
                 data.uptime += std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now() - data.last_online).count();
             }
             data.online--;
             break;
-        case trigger::detector::setting_t::Reliable:
+        case detector_status::reliable:
             if (data.online == 1) {
                 data.last_online = std::chrono::system_clock::now();
             }

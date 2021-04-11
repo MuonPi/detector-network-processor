@@ -116,23 +116,42 @@ void database<detector_summary_t>::get(detector_summary_t log)
 template <>
 void database<trigger::detector>::get(trigger::detector trig)
 {
-    if ((trig.setting.type != trigger::detector::setting_t::Reliable) && (trig.setting.type != trigger::detector::setting_t::Unreliable)) {
+    std::string type {};
+    if (trig.status == detector_status::reliable) {
+        type = "reliable";
+    } else if (trig.status == detector_status::reliable) {
+        type = "unreliable";
+    } else {
         return;
     }
-    std::string type {};
-    if (trig.setting.type == trigger::detector::setting_t::Reliable) {
-        type = "reliable";
-    } else if (trig.setting.type == trigger::detector::setting_t::Unreliable) {
-        type = "unreliable";
+    std::string reason {};
+    switch (trig.reason) {
+    case detector_status::reason::miscellaneous:
+        reason = "miscellaneous";
+        break;
+    case detector_status::reason::location_precision:
+        reason = "location_precision";
+        break;
+    case detector_status::reason::rate_unstable:
+        reason = "rate_unstable";
+        break;
+    case detector_status::reason::time_accuracy:
+        reason = "time_accuracy";
+        break;
+    case detector_status::reason::time_accuracy_extreme:
+        reason = "time_accuracy_extreme";
+        break;
     }
+
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using namespace link::influx;
     auto result { std::move(m_link.measurement("trigger")
-        << tag { "user", trig.setting.username }
-        << tag { "detector", trig.setting.station }
-        << tag { "site_id", trig.setting.username + trig.setting.station }
-        << field { "type", type })
-                      .commit(nanosecondsUTC) };
+        << tag { "user", trig.userinfo.username }
+        << tag { "detector", trig.userinfo.station_id }
+        << tag { "site_id", trig.userinfo.site_id() }
+        << field { "type", type }
+        << field { "reason", reason })
+        .commit(nanosecondsUTC) };
 
     if (!result) {
         log::warning() << "error writing trigger to DB";

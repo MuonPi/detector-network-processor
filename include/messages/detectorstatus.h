@@ -17,7 +17,8 @@ namespace detector_status {
         time_accuracy,
         time_accuracy_extreme,
         location_precision,
-        rate_unstable
+        rate_unstable,
+        missed_log_interval
     };
 }
 }

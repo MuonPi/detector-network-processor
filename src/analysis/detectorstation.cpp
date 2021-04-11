@@ -121,7 +121,7 @@ auto detector_station::process(const event_t& event) -> bool
     m_reliability_time_acc.add(event.data.time_acc);
 
     if (event.data.time_acc > (extreme_timing_error)) {
-        set_status(detector_status::unreliable);
+        set_status(detector_status::unreliable, detector_status::reason::time_accuracy_extreme);
     }
 
     return (event.data.time_acc <= max_timing_error) && (event.data.fix == 1);
@@ -177,10 +177,10 @@ void detector_station::step(const std::chrono::system_clock::time_point& now)
     auto diff { now - std::chrono::system_clock::time_point { m_last_log } };
     if (diff > s_log_interval) {
         if (diff > s_quit_interval) {
-            set_status(detector_status::deleted);
+            set_status(detector_status::deleted, detector_status::reason::missed_log_interval);
             return;
         }
-        set_status(detector_status::unreliable);
+        set_status(detector_status::unreliable, detector_status::reason::missed_log_interval);
 
     } else {
         check_reliability();

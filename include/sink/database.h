@@ -141,6 +141,9 @@ void database<trigger::detector>::get(trigger::detector trig)
     case detector_status::reason::time_accuracy_extreme:
         reason = "time_accuracy_extreme";
         break;
+    case detector_status::reason::missed_log_interval:
+        reason = "missed_log_interval";
+        break;
     }
 
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };

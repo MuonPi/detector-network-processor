@@ -227,6 +227,9 @@ void mqtt<trigger::detector>::get(trigger::detector trigger)
     case detector_status::reason::time_accuracy_extreme:
         stream << " time_accuracy_extreme";
         break;
+    case detector_status::reason::missed_log_interval:
+        stream << " missed_log_interval";
+        break;
     }
 
     if (!m_link.publish(trigger.userinfo.username + "/" + trigger.userinfo.station_id, stream.str())) {

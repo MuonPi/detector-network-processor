@@ -169,7 +169,7 @@ void ascii<trigger::detector>::get(trigger::detector trigger)
     }
 
 
-    m_ostream << stream.str() << std::flush;
+    m_ostream << stream.str() << '\n' << std::flush;
 }
 
 }

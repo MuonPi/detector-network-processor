@@ -231,10 +231,10 @@ auto detector_status::to_string(status s) -> std::string
 {
     switch (s) {
     case detector_status::created:
-        return "created";
+        return "online";
         break;
     case detector_status::deleted:
-        return "deleted";
+        return "offline";
         break;
     case detector_status::reliable:
         return "reliable";

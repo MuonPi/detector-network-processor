@@ -1,6 +1,8 @@
 #ifndef DETECTORSTATUS_H
 #define DETECTORSTATUS_H
 
+#include <string>
+
 namespace muonpi {
 
 namespace detector_status {
@@ -20,6 +22,9 @@ namespace detector_status {
         rate_unstable,
         missed_log_interval
     };
+
+    [[nodiscard]] auto to_string(status s) -> std::string;
+    [[nodiscard]] auto to_string(reason r) -> std::string;
 }
 }
 

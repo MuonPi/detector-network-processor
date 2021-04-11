@@ -71,25 +71,18 @@ detector_station::detector_station(const std::string& serialised, supervision::s
 auto detector_station::serialise() const -> std::string
 {
     std::ostringstream out {};
-    out << m_hash << ' ' << m_userinfo.username << ' ' << m_userinfo.station_id << ' ';
-    switch (m_status) {
-    case detector_status::created:
-        out << "created";
-        break;
-    case detector_status::deleted:
-        out << "deleted";
-        break;
-    case detector_status::reliable:
-        out << "reliable";
-        break;
-    case detector_status::unreliable:
-        out << "unreliable";
-        break;
-    case detector_status::invalid:
-        out << "invalid";
-        break;
-    }
-    out << ' ' << m_location.lat << ' ' << m_location.lon << ' ' << m_location.h << ' ' << m_location.h_acc << ' ' << m_location.v_acc << ' ' << m_location.dop;
+    out
+            << m_hash
+            << ' ' << m_userinfo.username
+            << ' ' << m_userinfo.station_id
+            << ' ' << detector_status::to_string(m_status)
+            << ' ' << m_location.lat
+            << ' ' << m_location.lon
+            << ' ' << m_location.h
+            << ' ' << m_location.h_acc
+            << ' ' << m_location.v_acc
+            << ' ' << m_location.dop
+    ;
 
     return out.str();
 }
@@ -137,7 +130,7 @@ void detector_station::process(const detector_info_t<location_t>& info)
 void detector_station::set_status(detector_status::status status, detector_status::reason reason)
 {
     if (m_status != status) {
-        m_stationsupervisor.on_detector_status(m_hash, std::move(status), std::move(reason));
+        m_stationsupervisor.on_detector_status(m_hash, status, reason);
     }
     m_status = status;
 }
@@ -233,5 +226,51 @@ auto detector_station::location() const -> location_t
 {
     return m_location;
 }
+
+auto detector_status::to_string(status s) -> std::string
+{
+    switch (s) {
+    case detector_status::created:
+        return "created";
+        break;
+    case detector_status::deleted:
+        return "deleted";
+        break;
+    case detector_status::reliable:
+        return "reliable";
+        break;
+    case detector_status::unreliable:
+        return "unreliable";
+        break;
+    case detector_status::invalid:
+        return "invalid";
+        break;
+    }
+}
+
+auto detector_status::to_string(reason r) -> std::string
+{
+    switch (r) {
+    case detector_status::reason::miscellaneous:
+        return "miscellaneous";
+        break;
+    case detector_status::reason::location_precision:
+        return "location_precision";
+        break;
+    case detector_status::reason::rate_unstable:
+        return "rate_unstable";
+        break;
+    case detector_status::reason::time_accuracy:
+        return "time_accuracy";
+        break;
+    case detector_status::reason::time_accuracy_extreme:
+        return "time_accuracy_extreme";
+        break;
+    case detector_status::reason::missed_log_interval:
+        return "missed_log_interval";
+        break;
+    }
+}
+
 
 }

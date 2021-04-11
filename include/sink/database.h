@@ -116,34 +116,8 @@ void database<detector_summary_t>::get(detector_summary_t log)
 template <>
 void database<trigger::detector>::get(trigger::detector trig)
 {
-    std::string type {};
-    if (trig.status == detector_status::reliable) {
-        type = "reliable";
-    } else if (trig.status == detector_status::reliable) {
-        type = "unreliable";
-    } else {
+    if ((trig.status != detector_status::reliable) && (trig.status != detector_status::unreliable)) {
         return;
-    }
-    std::string reason {};
-    switch (trig.reason) {
-    case detector_status::reason::miscellaneous:
-        reason = "miscellaneous";
-        break;
-    case detector_status::reason::location_precision:
-        reason = "location_precision";
-        break;
-    case detector_status::reason::rate_unstable:
-        reason = "rate_unstable";
-        break;
-    case detector_status::reason::time_accuracy:
-        reason = "time_accuracy";
-        break;
-    case detector_status::reason::time_accuracy_extreme:
-        reason = "time_accuracy_extreme";
-        break;
-    case detector_status::reason::missed_log_interval:
-        reason = "missed_log_interval";
-        break;
     }
 
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
@@ -152,8 +126,8 @@ void database<trigger::detector>::get(trigger::detector trig)
         << tag { "user", trig.userinfo.username }
         << tag { "detector", trig.userinfo.station_id }
         << tag { "site_id", trig.userinfo.site_id() }
-        << field { "type", type }
-        << field { "reason", reason })
+        << field { "type", detector_status::to_string(trig.status) }
+        << field { "reason", detector_status::to_string(trig.reason) })
         .commit(nanosecondsUTC) };
 
     if (!result) {
@@ -165,7 +139,6 @@ template <>
 void database<event_t>::get(event_t event)
 {
     if (event.n() < 2) {
-        // by default, don't write the single events to the db
         return;
     }
 

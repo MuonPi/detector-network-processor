@@ -61,7 +61,23 @@ auto coincidence_filter::process(event_t event) -> int
     std::queue<std::size_t> matches {};
     for (std::size_t i { 0 }; i < m_constructors.size(); i++) {
         auto& constructor { m_constructors[i] };
-        if (constructor.event.data.hash == event.data.hash) {
+        bool skip { false };
+        auto check_e_hash { [](const event_t::data_t& data, const event_t& e){
+                if (e.n() < 2) {
+                    return data.hash == e.data.hash;
+                }
+                return std::any_of(e.events.begin(), e.events.end(), [&](const event_t::data_t& d){return d.hash == data.hash;});
+            }};
+        if (constructor.event.n() > 1) {
+            skip = std::any_of(constructor.event.events.begin(), constructor.event.events.end(), [&](const event_t::data_t& d){return check_e_hash(d, event);});
+        } else if (event.n() > 1) {
+            skip = std::any_of(event.events.begin(), event.events.end(), [&](const event_t::data_t& d){return check_e_hash(d, constructor.event);});
+        } else {
+            if (constructor.event.data.hash == event.data.hash) {
+                skip = true;
+            }
+        }
+        if (skip) {
             continue;
         }
         if (m_criterion->maximum_false() < m_criterion->apply(event, constructor.event)) {

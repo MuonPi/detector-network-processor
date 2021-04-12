@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 
+#define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
 #cmakedefine CLUSTER_DISABLE_SSL
 
 namespace muonpi::Version {

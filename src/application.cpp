@@ -21,6 +21,9 @@
 #include "sink/database.h"
 #include "sink/mqtt.h"
 
+#include "utility/exceptions.h"
+
+#include <exception>
 #include <memory>
 
 namespace muonpi {
@@ -34,6 +37,7 @@ void wrapper_signal_handler(int signal)
 
 auto application::setup(std::vector<std::string> arguments) -> bool
 {
+    std::set_terminate(error::terminate_handler);
 
     if (!m_parameters.start(std::move(arguments))) {
         return false;

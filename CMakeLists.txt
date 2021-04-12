@@ -145,6 +145,8 @@ target_include_directories(source-files PUBLIC
 
 add_executable(muondetector-cluster "${PROJECT_SRC_DIR}/main.cpp")
 
+add_executable(aggregation "${PROJECT_SRC_DIR}/aggregation.cpp")
+
 if (CMAKE_BUILD_TYPE STREQUAL Release)
     add_custom_command(TARGET muondetector-cluster POST_BUILD
             COMMAND ${CMAKE_STRIP} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/muondetector-cluster")

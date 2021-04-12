@@ -242,7 +242,7 @@ auto detector_status::to_string(status s) -> std::string
     case detector_status::unreliable:
         return "unreliable";
         break;
-    case detector_status::invalid:
+    default:
         return "invalid";
         break;
     }
@@ -251,9 +251,6 @@ auto detector_status::to_string(status s) -> std::string
 auto detector_status::to_string(reason r) -> std::string
 {
     switch (r) {
-    case detector_status::reason::miscellaneous:
-        return "miscellaneous";
-        break;
     case detector_status::reason::location_precision:
         return "location_precision";
         break;
@@ -268,6 +265,9 @@ auto detector_status::to_string(reason r) -> std::string
         break;
     case detector_status::reason::missed_log_interval:
         return "missed_log_interval";
+        break;
+    default:
+        return "miscellaneous";
         break;
     }
 }

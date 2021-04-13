@@ -26,6 +26,7 @@ private:
     std::uint32_t m_bin_width {};
     std::uint32_t m_n {};
     std::uint32_t m_uptime {};
+    std::uint32_t m_sample_time {};
 
     std::vector<std::string> m_input_files {};
 };
@@ -152,6 +153,8 @@ void aggregator::fill()
                 m_uptime += std::stoul(cont.at(1));
             } else if (cont.at(0) == "bin_width") {
                 m_bin_width += std::stoul(cont.at(1));
+            } else if (cont.at(0) == "sample_time") {
+                m_sample_time += std::stoul(cont.at(1));
             }
         }
         input_meta.close();
@@ -180,6 +183,7 @@ auto aggregator::save(std::string_view filename) -> bool
             <<"distance "<<std::to_string(m_distance)<<" m\n"
             <<"total "<<std::to_string(m_n)<<" 1\n"
             <<"uptime "<<std::to_string(m_uptime)<<" min\n"
+            <<"sample_time "<<std::to_string(m_sample_time)<<" min\n"
     ;
     std::cout << m_directory << ' ' << std::to_string(m_n) << ' ' << std::to_string(m_distance) << '\n';
     output_meta.close();

@@ -143,11 +143,13 @@ void station_coincidence::save()
         std::replace(second_site.begin(), second_site.end(), '/', '-');
 
         if (data.first < data.second) {
-            dir_stream << first_site;
-            dir_stream << second_site;
+            dir_stream << first_site
+            << "_"
+            << second_site;
         } else {
-            dir_stream << second_site;
-            dir_stream << first_site;
+            dir_stream << second_site
+            << "_"
+            << first_site;
         }
         dir_stream << '/';
         if (!std::filesystem::exists(dir_stream.str())) {

@@ -4,16 +4,20 @@
 #include <chrono>
 #include <string>
 
-namespace MuonPi::Version {
+#define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
+#cmakedefine CLUSTER_DISABLE_SSL
+
+namespace muonpi::Version {
 constexpr int major { @PROJECT_VERSION_MAJOR@ };
 constexpr int minor { @PROJECT_VERSION_MINOR@ };
 constexpr int patch { @PROJECT_VERSION_PATCH@ };
+constexpr const char* additional { "@PROJECT_VERSION_ADDITIONAL@" };
 
-auto string() -> std::string;
+[[nodiscard]] auto string() -> std::string;
 
 }
 
-namespace MuonPi::Config {
+namespace muonpi::Config {
 
 
 struct Interval {
@@ -48,10 +52,13 @@ struct Ldap {
         std::string password {};
     } login;
 };
+struct Trigger {
+    std::string save_file {};
+};
 
 struct Rest {
     int port {};
-    std::string save_file {};
+    std::string address {};
     std::string cert {};
     std::string privkey {};
     std::string fullchain {};
@@ -73,7 +80,8 @@ static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/mu
 static Mqtt mqtt{"", 1883, {}};
 static Influx influx{"", {"", ""}, "", ""};
 static Ldap ldap{"ldaps://muonpi.org", {"", ""}};
-static Rest rest{1983, "/var/muondetector/cluster_trigger", "file://", "file://", "file://"};
+static Rest rest{1983, "0.0.0.0", "file://", "file://", "file://"};
+static Trigger trigger{"/var/muondetector/cluster_trigger"};
 static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}};
 static Meta meta {false, 6};
 }
@@ -84,6 +92,7 @@ static Mqtt sink_mqtt { Default::mqtt };
 static Influx influx { Default::influx };
 static Ldap ldap { Default::ldap };
 static Rest rest { Default::rest };
+static Trigger trigger { Default::trigger };
 static Interval interval { Default::interval };
 static ConfigFiles files { Default::files };
 static Meta meta { Default::meta };

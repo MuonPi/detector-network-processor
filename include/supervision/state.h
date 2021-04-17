@@ -1,11 +1,15 @@
 #ifndef STATESUPERVISOR_H
 #define STATESUPERVISOR_H
 
-#include "detector.h"
+#include "analysis/detectorstation.h"
 #include "messages/clusterlog.h"
+#include "messages/detectorstatus.h"
 #include "sink/base.h"
-#include "utility/resourcetracker.h"
-#include "utility/utility.h"
+
+#include "analysis/dataseries.h"
+#include "analysis/ratemeasurement.h"
+
+#include "supervision/resource.h"
 
 #include "source/base.h"
 
@@ -15,18 +19,18 @@
 #include <map>
 #include <vector>
 
-namespace MuonPi {
+namespace muonpi::supervision {
 
 /**
- * @brief The StateSupervisor class Supervises the program and collects metadata
+ * @brief The state_supervisor class Supervises the program and collects metadata
  */
-class StateSupervisor : public Source::Base<ClusterLog> {
+class state : public thread_runner, public source::base<cluster_log_t> {
 public:
     /**
-     * @brief StateSupervisor
+     * @brief state_supervisor
      * @param log_sink The specific log sinks to send metadata to
      */
-    StateSupervisor(Sink::Base<ClusterLog>& log_sink);
+    state(sink::base<cluster_log_t>& log_sink);
 
     /**
      * @brief time_status Update the current timeout used
@@ -39,13 +43,7 @@ public:
      * @param hash The hashed detector identifier
      * @param status The new status of the detector
      */
-    void detector_status(std::size_t hash, Detector::Status status);
-
-    /**
-     * @brief step Gets called from the core class.
-     * @return 0 if everything is okay
-     */
-    [[nodiscard]] auto step() -> int;
+    void on_detector_status(std::size_t hash, detector_status::status status);
 
     /**
      * @brief increase_event_count gets called when an event arrives or gets processed
@@ -64,28 +62,43 @@ public:
      * @brief add_thread Add a thread to supervise. If this thread quits or has an error state, the main event loop will stop.
      * @param thread Pointer to the thread to supervise
      */
-    void add_thread(ThreadRunner* thread);
+    void add_thread(thread_runner& thread);
 
-    void stop();
+protected:
+    /**
+     * @brief step Gets called from the core class.
+     * @return 0 if everything is okay
+     */
+    [[nodiscard]] auto step() -> int override;
+
+    [[nodiscard]] auto post_run() -> int override;
 
 private:
-    std::map<std::size_t, Detector::Status> m_detectors;
+    std::map<std::size_t, detector_status::status> m_detectors;
     std::chrono::milliseconds m_timeout {};
     std::chrono::milliseconds m_timebase {};
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
     std::chrono::system_clock::time_point m_startup { std::chrono::system_clock::now() };
 
-    Ringbuffer<float, 100> m_process_cpu_load {};
-    Ringbuffer<float, 100> m_system_cpu_load {};
-    RateMeasurement<100, 5000> m_incoming_rate {};
-    RateMeasurement<100, 5000> m_outgoing_rate {};
+    constexpr static int s_rate_interval { 5000 };
 
-    std::vector<ThreadRunner*> m_threads;
+    data_series<float, 10> m_process_cpu_load {};
+    data_series<float, 10> m_system_cpu_load {};
+    rate_measurement<100, s_rate_interval> m_incoming_rate {};
+    rate_measurement<100, s_rate_interval> m_outgoing_rate {};
 
-    ClusterLog::Data m_current_data;
-    std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
+    struct forward {
+        thread_runner& runner;
+    };
 
-    ResourceTracker m_resource_tracker {};
+    bool m_failure { false };
+
+    std::vector<forward> m_threads;
+
+    cluster_log_t m_current_data;
+    std::chrono::system_clock::time_point m_last { std::chrono::system_clock::now() };
+
+    resource m_resource_tracker {};
 };
 
 }

@@ -6,14 +6,14 @@
 #include <chrono>
 #include <memory>
 
-namespace MuonPi {
+namespace muonpi {
 
-class Event;
-class Criterion;
+struct event_t;
+class criterion;
 /**
- * @brief The EventConstructor class
+ * @brief The event_constructor class
  */
-class EventConstructor {
+class event_constructor {
 public:
     enum class Type {
         NoMatch,
@@ -22,7 +22,7 @@ public:
     };
 
     /**
-     * @brief set_timeout Set a new timeout for the EventConstructor. Only accepts longer timeouts.
+     * @brief set_timeout Set a new timeout for the event_constructor. Only accepts longer timeouts.
      * @param timeout The timeout to set.
      */
     void set_timeout(std::chrono::system_clock::duration timeout);
@@ -31,9 +31,9 @@ public:
      * @brief timed_out Check whether the timeout has been reached
      * @return true if the constructor timed out.
      */
-    [[nodiscard]] auto timed_out() const -> bool;
+    [[nodiscard]] auto timed_out(std::chrono::system_clock::time_point now) const -> bool;
 
-    Event event;
+    event_t event;
     std::chrono::system_clock::duration timeout { std::chrono::minutes { 1 } };
 
 private:

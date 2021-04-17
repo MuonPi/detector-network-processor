@@ -15,20 +15,26 @@ With these messages it calculates coincidences and depending on the context
 publishes them to another mqtt topic or writes them to a database.
 .SH "OPTIONS"
 .TP
-\fB-h, --help\fP
+\fB-h	--help\fP
 Displays a help page.
 .TP
-\fB-c, --config\fP
-Specify a configuration file to use.
+\fB-c	--config (value)\fP
+Specify a configuration file to use
 .TP
-\fB-l, --credentials\fP
-Specify a credentials file to use.
+\fB-l	--credentials (value)\fP
+Specify a credentials file to use
 .TP
-\fB-s, --setup\fP
+\fB-s	--setup (value)\fP
 Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.
 .TP
-\fB-d, --debug\fP
-Additionally to the normal sinks use Ascii sinks for debugging. Also enables the log output to stderr.
+\fB-o	--offline\fP
+Do not send processed data to the servers.
+.TP
+\fB-hist	--histogram (value)\fP
+Track and store histograms. The parameter is the save directory
+.TP
+\fB-d	--debug\fP
+Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr.
 .SH "EXIT STATUS"
 Default
 .SH "BUGS"

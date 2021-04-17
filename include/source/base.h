@@ -9,21 +9,21 @@
 #include <memory>
 #include <queue>
 
-namespace MuonPi::Source {
+namespace muonpi::source {
 
 template <typename T>
 /**
- * @brief The Base class
- * Represents a canonical Source for items of type T.
+ * @brief The base class
+ * Represents a canonical source for items of type T.
  */
-class Base {
+class base {
 public:
-    Base(Sink::Base<T>& sink);
+    base(sink::base<T>& sink);
 
     /**
-     * @brief ~Base The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
+     * @brief ~base The destructor. If this gets called while the event loop is still running, it will tell the loop to finish and wait for it to be done.
      */
-    virtual ~Base();
+    virtual ~base();
 
 protected:
     /**
@@ -33,20 +33,20 @@ protected:
     void put(T item);
 
 private:
-    Sink::Base<T>& m_sink;
+    sink::base<T>& m_sink;
 };
 
 template <typename T>
-Base<T>::Base(Sink::Base<T>& sink)
+base<T>::base(sink::base<T>& sink)
     : m_sink { sink }
 {
 }
 
 template <typename T>
-Base<T>::~Base() = default;
+base<T>::~base() = default;
 
 template <typename T>
-void Base<T>::put(T item)
+void base<T>::put(T item)
 {
     m_sink.get(std::move(item));
 }

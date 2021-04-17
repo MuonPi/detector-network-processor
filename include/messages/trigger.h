@@ -1,38 +1,21 @@
 #ifndef TRIGGER_H
 #define TRIGGER_H
 
+#include "messages/userinfo.h"
+#include "messages/detectorstatus.h"
+#include "analysis/detectorstation.h"
+
 #include <cinttypes>
 #include <string>
 
-namespace MuonPi::Trigger {
+namespace muonpi::trigger {
 
-struct Detector {
-    struct Setting {
-        enum Type {
-            Invalid,
-            Online,
-            Offline,
-            Reliable,
-            Unreliable
-        } type { Invalid };
+struct detector {
+    std::size_t hash {};
 
-        std::string username;
-        std::string station;
-
-        [[nodiscard]] auto to_string(char delimiter = 0) const -> std::string;
-
-        [[nodiscard]] auto id() const -> std::size_t;
-
-        [[nodiscard]] static auto from_string(const std::string& string) -> Setting;
-    } setting;
-
-    struct Action {
-        enum Type {
-            Activate,
-            Deactivate
-        } type;
-        Setting setting;
-    };
+    userinfo_t userinfo {};
+    detector_status::status status { detector_status::invalid };
+    detector_status::reason reason { detector_status::reason::miscellaneous };
 };
 
 }

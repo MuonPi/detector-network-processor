@@ -1,21 +1,29 @@
 ﻿#include "link/database.h"
 
 #include "utility/log.h"
+#include "utility/scopeguard.h"
 
 #include <type_traits>
 #include <utility>
 #include <variant>
 
-#include <curl/curl.h>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
-namespace MuonPi::Link {
-Database::Entry::Entry(const std::string& measurement, Database& link)
+namespace muonpi::link {
+database::entry::entry(const std::string& measurement, database& link)
     : m_link { link }
 {
     m_tags << measurement;
 }
 
-auto Database::Entry::operator<<(const Influx::Tag& tag) -> Entry&
+auto database::entry::operator<<(const influx::tag& tag) -> entry&
 {
     m_tags << ',' << tag.name << '=' << tag.field;
     return *this;
@@ -28,7 +36,7 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
+auto database::entry::operator<<(const influx::field& field) -> entry&
 {
     std::visit(overloaded {
                    [this, field](const std::string& value) { m_fields << ',' << field.name << "=\"" << value << '"'; },
@@ -43,7 +51,7 @@ auto Database::Entry::operator<<(const Influx::Field& field) -> Entry&
     return *this;
 }
 
-auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
+auto database::entry::commit(std::int_fast64_t timestamp) -> bool
 {
     if (m_fields.str().empty()) {
         return false;
@@ -54,68 +62,69 @@ auto Database::Entry::commit(std::int_fast64_t timestamp) -> bool
     return m_link.send_string(m_tags.str());
 }
 
-Database::Database(Config::Influx config)
+database::database(Config::Influx config)
     : m_config { std::move(config) }
 {
 }
 
-Database::Database() = default;
+database::database() = default;
 
-Database::~Database() = default;
+database::~database() = default;
 
-auto Database::measurement(const std::string& measurement) -> Entry
+auto database::measurement(const std::string& measurement) -> entry
 {
-    return Entry { measurement, *this };
+    return entry { measurement, *this };
 }
 
-auto Database::send_string(const std::string& query) -> bool
+auto database::send_string(const std::string& query) const -> bool
 {
-    CURL* curl { curl_easy_init() };
+    namespace beast = boost::beast;
+    namespace http = beast::http;
+    namespace net = boost::asio;
+    using tcp = net::ip::tcp;
 
-    if (curl != nullptr) {
-        class CurlGuard {
-        public:
-            explicit CurlGuard(CURL* curl)
-                : m_curl { curl }
-            {
-            }
-            ~CurlGuard() { curl_easy_cleanup(m_curl); }
+    std::ostringstream target {};
+    target
+        << "/write?db="
+        << m_config.database
+        << "&u=" << m_config.login.username
+        << "&p=" << m_config.login.password
+        << "&epoch=ms";
 
-        private:
-            CURL* m_curl { nullptr };
-        } curl_guard { curl };
+    const auto* const host { m_config.host.c_str() };
+    auto const port { std::to_string(s_port) };
+    const int version { 11 };
 
-        std::ostringstream url {};
-        url
-            << m_config.host
-            << "/write?db="
-            << m_config.database
-            << "&u=" << m_config.login.username
-            << "&p=" << m_config.login.password
-            << "&epoch=ms";
+    net::io_context ioc;
+    tcp::resolver resolver(ioc);
+    beast::tcp_stream stream(ioc);
+    auto const results = resolver.resolve(host, port);
+    stream.connect(results);
 
-        curl_easy_setopt(curl, CURLOPT_URL, url.str().c_str());
-        curl_easy_setopt(curl, CURLOPT_PORT, s_port);
+    http::request<http::string_body> req { http::verb::post, target.str(), version };
+    req.set(http::field::host, host);
+    req.set(http::field::user_agent, "muondetector-cluster");
+    req.set(http::field::content_type, "application/x-www-form-urlencoded");
+    req.set(http::field::accept, "*/*");
+    req.set(http::field::content_length, std::to_string(query.size()));
+    req.body() = query;
 
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    http::write(stream, req);
+    beast::flat_buffer buffer;
+    http::response<http::string_body> res;
+    http::read(stream, buffer, res);
 
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, query.c_str());
-
-        CURLcode res { curl_easy_perform(curl) };
-
-        long http_code { 0 };
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-        if (res != CURLE_OK) {
-            Log::warning() << "Couldn't write to Database: " + std::to_string(http_code) + ": " + std::string { curl_easy_strerror(res) };
-            return false;
-        }
-        if ((http_code / 100) != 2) {
-            Log::warning() << "Couldn't write to Database: " + std::to_string(http_code);
-            return false;
-        }
+    if (res.result() != http::status::no_content) {
+        log::warning() << "Couldn't write to database: " + std::to_string(static_cast<unsigned>(res.result())) + ": " + res.body();
+        return false;
+    }
+    beast::error_code ec;
+    stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+    if (ec && (ec != net::error::eof)) { // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
+        log::warning() << "Could not write to database: " + ec.message();
+        return false;
     }
     return true;
 }
 
-} // namespace MuonPi
+} // namespace muonpi

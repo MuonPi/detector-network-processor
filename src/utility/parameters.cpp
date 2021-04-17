@@ -5,16 +5,16 @@
 #include <sstream>
 #include <utility>
 
-namespace MuonPi {
+namespace muonpi {
 
-Parameters::Parameters(std::string name, std::string description)
+parameters::parameters(std::string name, std::string description)
     : m_name { std::move(name) }
     , m_description { std::move(description) }
 {
     add({ "h", "help", "Print this help" });
 }
 
-auto Parameters::get(const std::string& name) const -> State
+auto parameters::get(const std::string& name) const -> state_t
 {
     for (const auto& cmd : m_arguments) {
         if (name.compare(cmd.def.abbreviation) * name.compare(cmd.def.full) == 0) {
@@ -24,12 +24,12 @@ auto Parameters::get(const std::string& name) const -> State
     return {};
 }
 
-auto Parameters::operator[](const std::string& name) const -> State
+auto parameters::operator[](const std::string& name) const -> state_t
 {
     return get(name);
 }
 
-void Parameters::add(const Definition& argument)
+void parameters::add(const definition& argument)
 {
     if (argument.required) {
         m_required++;
@@ -37,39 +37,40 @@ void Parameters::add(const Definition& argument)
     m_arguments.push_back({ argument, {} });
 }
 
-auto Parameters::operator<<(const Definition& argument) -> Parameters&
+auto parameters::operator<<(const definition& argument) -> parameters&
 {
     add(argument);
     return *this;
 }
 
-auto Parameters::start(int argc, char* argv[]) -> bool
+auto parameters::start(std::vector<std::string> arguments) -> bool
 {
     if (m_required > 0) {
-        if (argc < (1 + m_required)) {
+        if (arguments.size() < (1 + m_required)) {
             print_help();
             return false;
         }
     }
-    if (argc <= 1) {
+    if (arguments.size() <= 1) {
         return true;
     }
-    int required { 0 };
-    for (int j { 1 }; j < argc; j++) {
-        std::string arg { argv[j] };
+    std::size_t required { 0 };
+    for (std::size_t j { 1 }; j < arguments.size(); j++) {
+        std::string arg { arguments[j] };
         bool found { false };
         for (auto& cmd : m_arguments) {
+
             if (arg.compare("-" + cmd.def.abbreviation) * arg.compare("--" + cmd.def.full) == 0) {
                 if (cmd.def.required) {
                     required++;
                 }
                 if (cmd.def.value) {
-                    if ((++j >= argc) || (argv[j][0] == '-')) {
+                    if ((++j >= arguments.size()) || (arguments[j][0] == '-')) {
                         std::cout << "expected name after " << arg << "\n";
                         print_help();
                         return false;
                     }
-                    cmd.state.value = argv[j];
+                    cmd.state.value = arguments[j];
                 }
                 cmd.state.set = true;
                 found = true;
@@ -92,7 +93,7 @@ auto Parameters::start(int argc, char* argv[]) -> bool
     return true;
 }
 
-void Parameters::print_help() const
+void parameters::print_help() const
 {
     std::ostringstream out {};
     out << m_name << " v" << Version::string() << "\n"

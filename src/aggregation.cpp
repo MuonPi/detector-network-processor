@@ -152,7 +152,7 @@ void aggregator::fill()
             } else if (cont.at(0) == "uptime") {
                 m_uptime += std::stoul(cont.at(1));
             } else if (cont.at(0) == "bin_width") {
-                m_bin_width += std::stoul(cont.at(1));
+                m_bin_width = std::stoul(cont.at(1));
             } else if (cont.at(0) == "sample_time") {
                 m_sample_time += std::stoul(cont.at(1));
             }

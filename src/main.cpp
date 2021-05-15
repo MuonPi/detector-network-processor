@@ -4,14 +4,9 @@
 
 auto main(int argc, const char* argv[]) -> int
 {
-    std::vector<std::string> args {};
-    for (int i { 0 }; i < argc; i++) {
-        args.emplace_back(argv[i]);
-    }
-
     muonpi::application application {};
 
-    if (!application.setup(args)) {
+    if (!application.setup(std::move(argc), std::move(argv))) {
         return 1;
     }
 

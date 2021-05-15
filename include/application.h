@@ -1,29 +1,45 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "utility/configuration.h"
-#include "utility/parameters.h"
-
 #include "supervision/state.h"
 
 #include <csignal>
 #include <functional>
 
+#include <boost/program_options.hpp>
+
 namespace muonpi {
 
 class application {
 public:
-    [[nodiscard]] auto setup(std::vector<std::string> arguments) -> bool;
+    [[nodiscard]] auto setup(int argc, const char* argv[]) -> bool;
     [[nodiscard]] auto run() -> int;
 
     void signal_handler(int signal);
 
 private:
-    [[nodiscard]] static auto credentials(std::string filename, bool encrypted = false) -> configuration;
-    [[nodiscard]] static auto config(std::string filename) -> configuration;
-    [[nodiscard]] static auto parameter() -> parameters;
+    boost::program_options::variables_map m_options {};
 
-    parameters m_parameters { parameter() };
+    [[nodiscard]] inline auto option_set(std::string name) const -> bool
+    {
+        return m_options.find(std::move(name)) != m_options.end();
+    }
+
+    template <typename T>
+    [[nodiscard]] inline auto get_option(std::string name) const -> T
+    {
+        return m_options[std::move(name)].as<T>();
+    }
+
+    template <typename T>
+    auto check_option(std::string name, T& option) const -> bool
+    {
+        if (!option_set(name)) {
+            return false;
+        }
+        option = get_option<T>(std::move(name));
+        return true;
+    }
 
     std::unique_ptr<supervision::state> m_supervisor { nullptr };
 

@@ -31,7 +31,6 @@ struct Mqtt {
     struct Login {
         std::string username {};
         std::string password {};
-        std::string station_id {};
     } login;
 };
 
@@ -42,16 +41,16 @@ struct Influx {
         std::string password {};
     } login;
     std::string database {};
-    std::string cluster_id {};
 };
 
 struct Ldap {
-    std::string server {};
+    std::string host {};
     struct Login {
         std::string bind_dn {};
         std::string password {};
     } login;
 };
+
 struct Trigger {
     std::string save_file {};
 };
@@ -65,25 +64,25 @@ struct Rest {
 };
 struct ConfigFiles {
     std::string config {};
-    std::string credentials {};
     std::string state {};
 };
 
 struct Meta {
     bool local_cluster {};
     int max_geohash_length {};
+    std::string station {};
 };
 
 namespace Default {
-static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster", "/var/muondetector/muondetector-cluster.state"};
+static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster.state"};
 
 static Mqtt mqtt{"", 1883, {}};
-static Influx influx{"", {"", ""}, "", ""};
+static Influx influx{"", {"", ""}, ""};
 static Ldap ldap{"ldaps://muonpi.org", {"", ""}};
 static Rest rest{1983, "0.0.0.0", "file://", "file://", "file://"};
 static Trigger trigger{"/var/muondetector/cluster_trigger"};
 static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}};
-static Meta meta {false, 6};
+static Meta meta {false, 6, "muondetector_cluster"};
 }
 
 

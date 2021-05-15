@@ -43,9 +43,10 @@ void wrapper_callback_message(mosquitto* /*mqtt*/, void* object, const mosquitto
     reinterpret_cast<mqtt*>(object)->callback_message(message);
 }
 
-mqtt::mqtt(Config::Mqtt config, const std::string& name)
+mqtt::mqtt(Config::Mqtt config, std::string station_id, const std::string& name)
     : thread_runner { name }
     , m_config { std::move(config) }
+    , m_station_id { std::move(station_id) }
     , m_mqtt { init(client_id().c_str()) }
 {
     mosquitto_connect_callback_set(m_mqtt, wrapper_callback_connected);
@@ -55,8 +56,9 @@ mqtt::mqtt(Config::Mqtt config, const std::string& name)
     start();
 }
 
-mqtt::mqtt(const std::string& name)
+mqtt::mqtt(std::string station_id, const std::string& name)
     : thread_runner { name }
+    , m_station_id { std::move(station_id) }
     , m_mqtt { init(client_id().c_str()) }
 {
 }
@@ -374,7 +376,7 @@ auto mqtt::client_id() const -> std::string
 {
     CryptoPP::SHA1 sha1;
 
-    std::string source { std::string { m_config.login.username } + m_config.login.station_id };
+    std::string source { std::string { m_config.login.username } + m_station_id };
     std::string id {};
     CryptoPP::StringSource give_me_a_name { source, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(reinterpret_cast<CryptoPP::BufferedTransformation*>(new CryptoPP::StringSink(id)))) };
     return id;

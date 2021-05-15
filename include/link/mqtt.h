@@ -124,9 +124,9 @@ public:
      * @brief mqtt
      * @param config The configuration to use
      */
-    mqtt(Config::Mqtt config, const std::string& name = "muon::mqtt");
+    mqtt(Config::Mqtt config, std::string station_id, const std::string& name = "muon::mqtt");
 
-    mqtt(const std::string& name = "muon::mqtt");
+    mqtt(std::string station_id, const std::string& name = "muon::mqtt");
 
     ~mqtt() override;
 
@@ -210,6 +210,7 @@ private:
     }
 
     Config::Mqtt m_config {};
+    std::string m_station_id {};
     mosquitto* m_mqtt { nullptr };
 
     Status m_status { Status::Invalid };

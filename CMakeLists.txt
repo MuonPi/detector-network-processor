@@ -37,7 +37,7 @@ find_library(DL dl REQUIRED)
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
 
-find_package(Boost 1.71 COMPONENTS system REQUIRED)
+find_package(Boost 1.71 COMPONENTS system program_options REQUIRED)
 
 
 
@@ -53,8 +53,6 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/threadrunner.cpp"
     "${PROJECT_SRC_DIR}/utility/log.cpp"
     "${PROJECT_SRC_DIR}/utility/utility.cpp"
-    "${PROJECT_SRC_DIR}/utility/parameters.cpp"
-    "${PROJECT_SRC_DIR}/utility/configuration.cpp"
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
 
@@ -100,8 +98,6 @@ set(CLUSTER_HEADER_FILES
     "${PROJECT_HEADER_DIR}/utility/log.h"
     "${PROJECT_HEADER_DIR}/utility/utility.h"
     "${PROJECT_HEADER_DIR}/utility/geohash.h"
-    "${PROJECT_HEADER_DIR}/utility/parameters.h"
-    "${PROJECT_HEADER_DIR}/utility/configuration.h"
     "${PROJECT_HEADER_DIR}/utility/restservice.h"
     "${PROJECT_HEADER_DIR}/utility/base64.h"
     "${PROJECT_HEADER_DIR}/utility/scopeguard.h"
@@ -166,6 +162,7 @@ target_link_libraries(muondetector-cluster
     sasl2
     ldap
     boost_system
+    boost_program_options
     ssl
     crypto
     dl
@@ -180,6 +177,7 @@ target_link_libraries(muondetector-cluster
     ldap
     stdc++fs
     boost_system
+    boost_program_options
     ssl
     crypto
     dl

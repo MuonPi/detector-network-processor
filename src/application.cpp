@@ -26,6 +26,7 @@
 #include <exception>
 #include <memory>
 
+
 namespace muonpi {
 
 std::function<void(int)> application::s_shutdown_handler;
@@ -35,67 +36,101 @@ void wrapper_signal_handler(int signal)
     application::s_shutdown_handler(signal);
 }
 
-auto application::setup(std::vector<std::string> arguments) -> bool
+auto application::setup(int argc, const char* argv[]) -> bool
 {
-    std::set_terminate(error::terminate_handler);
+    namespace po = boost::program_options;
 
-    if (!m_parameters.start(std::move(arguments))) {
+    po::options_description desc("General options");
+    desc.add_options()
+            ("help,h", "produce help message")
+            ("offline,o", "Do not send processed data to the servers.")
+            ("debug,d", "Use the ascii sinks for debugging.")
+            ("local,l", "Run the cluser as a local instance")
+            ("config,c", po::value<std::string>()->default_value(Config::Default::files.config), "Specify a configuration file to use")
+    ;
+
+    po::options_description file_options("Config file options");
+    file_options.add_options()
+            ("station_id", po::value<std::string>(), "Base station ID")
+
+            ("source_mqtt_user", po::value<std::string>(), "MQTT User to use for the source")
+            ("source_mqtt_password", po::value<std::string>(), "MQTT password to use for the source")
+            ("source_mqtt_host", po::value<std::string>(), "MQTT hostname for the source")
+            ("source_mqtt_port", po::value<int>(), "MQTT port for the source")
+
+            ("sink_mqtt_user", po::value<std::string>(), "MQTT User to use for the sink")
+            ("sink_mqtt_password", po::value<std::string>(), "MQTT password to use for the sink")
+            ("sink_mqtt_host", po::value<std::string>(), "MQTT hostname for the sink")
+            ("sink_mqtt_port", po::value<int>(), "MQTT port for the sink")
+
+            ("influx_user", po::value<std::string>(), "InfluxDb Username")
+            ("influx_password", po::value<std::string>(), "InfluxDb Password")
+            ("influx_database", po::value<std::string>(), "InfluxDb Database")
+            ("influx_host", po::value<std::string>(), "InfluxDB Hostname")
+
+            ("ldap_bind_dn", po::value<std::string>(), "LDAP Bind DN")
+            ("ldap_password", po::value<std::string>(), "LDAP Bind Password")
+            ("ldap_host", po::value<std::string>(), "LDAP Hostname")
+
+            ("histogram,hist", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")
+            ("geohash_length", po::value<int>()->default_value(Config::Default::meta.max_geohash_length), "Geohash length to use")
+    ;
+
+    po::store(po::parse_command_line(argc, argv, desc), m_options);
+    if (option_set("help")) {
+        std::cout<<"muondetector-cluster " << Version::string()<<"\n\n"<<desc<<'\n';
         return false;
     }
-    if (m_parameters["d"]) {
+    if (option_set("config"))
+    {
+        std::ifstream ifs { get_option<std::string>("config") };
+        if (ifs) {
+            po::store(po::parse_config_file(ifs, file_options), m_options);
+        } else {
+            std::cerr<<"Could not open configuration file.\n";
+        }
+    }
+    po::notify(m_options);
+
+
+    std::set_terminate(error::terminate_handler);
+
+    if (option_set("debug")) {
         log::manager::singleton()->add_sink(std::make_shared<log::stream_sink>(std::cerr));
     } else {
         log::manager::singleton()->add_sink(std::make_shared<log::syslog_sink>());
     }
 
+    if (option_set("offline")) {
+        log::info()<<"Starting in offline mode.";
+    }
+
     log::info() << "muondetector-cluster " + Version::string();
 
-    if (m_parameters["l"]) {
-        Config::files.credentials = m_parameters["l"].value;
-    }
-    if (m_parameters["c"]) {
-        Config::files.config = m_parameters["c"].value;
-    }
+    check_option("config", Config::files.config);
 
-    if (m_parameters["s"]) {
-        if (!m_parameters["l"]) {
-            std::cout << "No credentials location given, using default.\n";
-        }
+    check_option("station_id", Config::meta.station);
 
-        configuration credents { credentials(m_parameters["s"].value) };
+    check_option("source_mqtt_user", Config::source_mqtt.login.username);
+    check_option("source_mqtt_password", Config::source_mqtt.login.password);
+    check_option("source_mqtt_host", Config::source_mqtt.host);
+    check_option("source_mqtt_port", Config::source_mqtt.port);
 
-        if (!credents.read()) {
-            std::cout << "Could not read input file.\n";
-            return false;
-        }
+    check_option("sink_mqtt_user", Config::sink_mqtt.login.username);
+    check_option("sink_mqtt_password", Config::sink_mqtt.login.password);
+    check_option("sink_mqtt_host", Config::sink_mqtt.host);
+    check_option("sink_mqtt_port", Config::sink_mqtt.port);
 
-        credents.set_encrypted(true);
-        credents.set_filename(Config::files.credentials);
+    check_option("influx_user", Config::influx.login.username);
+    check_option("influx_password", Config::influx.login.password);
+    check_option("influx_database", Config::influx.database);
+    check_option("influx_host", Config::influx.host);
 
-        if (credents.write()) {
-            std::cout << "Wrote credentials file.\n";
-            return false;
-        }
-        std::cout << "Could not write credentials file.\n";
-        return false;
-    }
+    check_option("ldap_bind_dn", Config::ldap.login.bind_dn);
+    check_option("ldap_password", Config::ldap.login.password);
+    check_option("ldap_host", Config::ldap.host);
 
-    configuration cfg { config(Config::files.config) };
-
-    if (!m_parameters["l"]) {
-        cfg << configuration::definition { "credentials_file", &Config::files.credentials };
-    }
-    if (!cfg.read()) {
-        log::error() << "Could not read configuration file.\n";
-        return false;
-    }
-
-    configuration credents { credentials(Config::files.credentials, true) };
-
-    if (!credents.read()) {
-        log::error() << "Could not read credentials file.\n";
-        return false;
-    }
+    check_option("geohash_length", Config::meta.max_geohash_length);
 
     return true;
 }
@@ -125,13 +160,13 @@ auto application::run() -> int
     sink_ptr<detector_summary_t> ascii_detectorsummary_sink { nullptr };
     sink_ptr<trigger::detector> ascii_trigger_sink { nullptr };
 
-    link::mqtt source_mqtt_link { Config::source_mqtt, "muon::mqtt::so" };
+    link::mqtt source_mqtt_link { Config::source_mqtt, Config::meta.station + "_sink", "muon::mqtt::so" };
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
 
-    if (!m_parameters["o"]) {
-        sink_mqtt_link = std::make_unique<link::mqtt>(Config::sink_mqtt, "muon::mqtt:si");
+    if (!option_set("offline")) {
+        sink_mqtt_link = std::make_unique<link::mqtt>(Config::sink_mqtt, Config::meta.station + "_sink", "muon::mqtt:si");
         if (!sink_mqtt_link->wait_for(link::mqtt::Status::Connected)) {
             return -1;
         }
@@ -143,7 +178,7 @@ auto application::run() -> int
     sink::collection<trigger::detector> collection_trigger_sink { "muon::sink::t" };
     sink::collection<detector_log_t> collection_detectorlog_sink { "muon::sink::l" };
 
-    if (m_parameters["d"]) {
+    if (option_set("debug")) {
         ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);
         ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>>(std::cout);
         ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>>(std::cout);
@@ -155,7 +190,7 @@ auto application::run() -> int
         collection_trigger_sink.emplace(*ascii_trigger_sink);
     }
 
-    if (!m_parameters["o"]) {
+    if (!option_set("offline")) {
         mqtt_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish("muonpi/trigger"));
         collection_trigger_sink.emplace(*mqtt_trigger_sink);
 
@@ -195,8 +230,8 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    if (m_parameters["hist"]) {
-        stationcoincidence = std::make_unique<station_coincidence>(m_parameters["hist"].value, stationsupervisor);
+    if (option_set("histogram")) {
+        stationcoincidence = std::make_unique<station_coincidence>(get_option<std::string>("histogram"), stationsupervisor);
 
         collection_event_sink.emplace(*stationcoincidence);
         collection_trigger_sink.emplace(*stationcoincidence);
@@ -233,71 +268,6 @@ void application::signal_handler(int signal)
         log::notice() << "Received signal: " + std::to_string(signal) + ". Exiting.";
         m_supervisor->stop();
     }
-}
-
-auto application::credentials(std::string filename, bool encrypted) -> configuration
-{
-    configuration credentials { std::move(filename), encrypted };
-    credentials
-        << configuration::definition { "source_mqtt_user", &Config::source_mqtt.login.username }
-        << configuration::definition { "source_mqtt_password", &Config::source_mqtt.login.password }
-        << configuration::definition { "source_mqtt_station_id", &Config::source_mqtt.login.station_id }
-
-        << configuration::definition { "sink_mqtt_user", &Config::sink_mqtt.login.username }
-        << configuration::definition { "sink_mqtt_password", &Config::sink_mqtt.login.password }
-        << configuration::definition { "sink_mqtt_station_id", &Config::sink_mqtt.login.station_id }
-
-        << configuration::definition { "influx_user", &Config::influx.login.username }
-        << configuration::definition { "influx_password", &Config::influx.login.password }
-        << configuration::definition { "influx_database", &Config::influx.database }
-
-        << configuration::definition { "ldap_bind_dn", &Config::ldap.login.bind_dn }
-        << configuration::definition { "ldap_password", &Config::ldap.login.password };
-
-    return credentials;
-}
-
-auto application::config(std::string filename) -> configuration
-{
-    configuration cfg { std::move(filename) };
-    cfg
-        << configuration::definition { "source_mqtt_host", &Config::source_mqtt.host }
-        << configuration::definition { "source_mqtt_port", &Config::source_mqtt.port }
-
-        << configuration::definition { "sink_mqtt_host", &Config::sink_mqtt.host }
-        << configuration::definition { "sink_mqtt_port", &Config::sink_mqtt.port }
-
-        << configuration::definition { "influx_host", &Config::influx.host }
-        << configuration::definition { "influx_cluster_id", &Config::influx.cluster_id }
-
-        << configuration::definition { "ldap_host", &Config::ldap.server }
-
-        << configuration::definition { "rest_port", &Config::rest.port }
-        << configuration::definition { "rest_bind_address", &Config::rest.address }
-        << configuration::definition { "rest_trigger_file", &Config::trigger.save_file }
-        << configuration::definition { "rest_cert", &Config::rest.cert }
-        << configuration::definition { "rest_privkey", &Config::rest.privkey }
-        << configuration::definition { "rest_fullchain", &Config::rest.fullchain }
-
-        << configuration::definition { "run_local_cluster", &Config::meta.local_cluster }
-        << configuration::definition { "max_geohash_length", &Config::meta.max_geohash_length };
-
-    return cfg;
-}
-
-auto application::parameter() -> parameters
-{
-    parameters params { "muondetector-custer", "Calculate coincidences for the muonpi network" };
-
-    params
-        << parameters::definition { "c", "config", "Specify a configuration file to use", true }
-        << parameters::definition { "l", "credentials", "Specify a credentials file to use", true }
-        << parameters::definition { "s", "setup", "Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.", true }
-        << parameters::definition { "o", "offline", "Do not send processed data to the servers." }
-        << parameters::definition { "hist", "histogram", "Track and store histograms. The parameter is the save directory", true }
-        << parameters::definition { "d", "debug", "Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr." };
-
-    return params;
 }
 
 }

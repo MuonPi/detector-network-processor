@@ -124,4 +124,4 @@ void state::add_thread(thread_runner& thread)
 {
     m_threads.emplace_back(forward { thread });
 }
-}
+} // namespace muonpi::supervision

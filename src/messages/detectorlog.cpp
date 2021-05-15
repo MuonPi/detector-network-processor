@@ -16,4 +16,4 @@ auto detector_log_t::get() -> item
     return it;
 }
 
-}
+} // namespace muonpi

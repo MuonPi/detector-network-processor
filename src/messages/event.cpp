@@ -37,4 +37,4 @@ void event_t::emplace(data_t event) noexcept
     events.emplace_back(std::move(event));
 }
 
-}
+} // namespace muonpi

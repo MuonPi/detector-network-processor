@@ -23,4 +23,4 @@ auto scope_guard::dissolve() -> std::function<void()>
     return std::move(m_cleanup);
 }
 
-}
+} // namespace muonpi

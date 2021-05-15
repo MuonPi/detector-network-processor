@@ -42,4 +42,4 @@ auto emergency() -> logger<Level::Emergency>
     return {};
 }
 
-}
+} // namespace muonpi::log

@@ -127,4 +127,4 @@ auto database::send_string(const std::string& query) const -> bool
     return true;
 }
 
-} // namespace muonpi
+} // namespace muonpi::link

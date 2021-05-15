@@ -271,4 +271,4 @@ auto detector_status::to_string(reason r) -> std::string
     }
 }
 
-}
+} // namespace muonpi

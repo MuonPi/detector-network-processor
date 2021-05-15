@@ -180,4 +180,4 @@ void station::save()
     }
     out.close();
 }
-}
+} // namespace muonpi::supervision

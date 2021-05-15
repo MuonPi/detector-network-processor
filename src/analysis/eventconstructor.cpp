@@ -17,4 +17,4 @@ auto event_constructor::timed_out(std::chrono::system_clock::time_point now) con
     return (now - m_start) >= timeout;
 }
 
-}
+} // namespace muonpi

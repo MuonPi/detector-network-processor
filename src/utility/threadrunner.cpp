@@ -13,10 +13,7 @@ thread_runner::thread_runner(std::string name, bool use_custom_run)
 {
 }
 
-thread_runner::~thread_runner()
-{
-    finish();
-}
+thread_runner::~thread_runner() = default;
 
 void thread_runner::stop()
 {
@@ -187,4 +184,4 @@ void thread_runner::start_synchronuos()
     exec();
 }
 
-}
+} // namespace muonpi

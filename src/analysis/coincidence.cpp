@@ -53,4 +53,4 @@ auto coincidence::compare(const event_t::data_t& first, const event_t::data_t& s
     return std::max(1.0 - delta / time_of_flight, -1.0);
 }
 
-}
+} // namespace muonpi

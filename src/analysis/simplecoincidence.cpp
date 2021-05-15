@@ -24,4 +24,4 @@ auto simple_coincidence::compare(std::int_fast64_t t1, std::int_fast64_t t2) con
 {
     return (std::abs(t1 - t2) <= m_time) ? 1.0 : -1.0;
 }
-}
+} // namespace muonpi

@@ -128,4 +128,4 @@ auto coincidence_filter::process(event_t event) -> int
     return 0;
 }
 
-}
+} // namespace muonpi

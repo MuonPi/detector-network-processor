@@ -93,4 +93,4 @@ auto resource::get_data() -> data_t
     return data;
 }
 
-}
+} // namespace muonpi::supervision

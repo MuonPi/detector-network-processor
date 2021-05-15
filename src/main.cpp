@@ -6,7 +6,7 @@ auto main(int argc, const char* argv[]) -> int
 {
     muonpi::application application {};
 
-    if (!application.setup(std::move(argc), std::move(argv))) {
+    if (!application.setup(argc, argv)) {
         return 1;
     }
 

@@ -26,17 +26,17 @@ auto mqtt::wait_for(Status status, std::chrono::milliseconds duration) -> bool
 
 void wrapper_callback_connected(mosquitto* /*mqtt*/, void* object, int result)
 {
-    reinterpret_cast<mqtt*>(object)->callback_connected(result);
+    static_cast<mqtt*>(object)->callback_connected(result);
 }
 
 void wrapper_callback_disconnected(mosquitto* /*mqtt*/, void* object, int result)
 {
-    reinterpret_cast<mqtt*>(object)->callback_disconnected(result);
+    static_cast<mqtt*>(object)->callback_disconnected(result);
 }
 
 void wrapper_callback_message(mosquitto* /*mqtt*/, void* object, const mosquitto_message* message)
 {
-    reinterpret_cast<mqtt*>(object)->callback_message(message);
+    static_cast<mqtt*>(object)->callback_message(message);
 }
 
 mqtt::mqtt(Config::Mqtt config, std::string station_id, const std::string& name)
@@ -148,7 +148,7 @@ void mqtt::callback_message(const mosquitto_message* message)
         bool result {};
         mosquitto_topic_matches_sub2(topic.c_str(), topic.length(), message_topic.c_str(), message_topic.length(), &result);
         if (result) {
-            sub->push_message({ message_topic, std::string { reinterpret_cast<char*>(message->payload) } });
+            sub->push_message({ message_topic, std::string { static_cast<char*>(message->payload) } });
         }
     }
 }
@@ -180,7 +180,7 @@ auto mqtt::publish(const std::string& topic, const std::string& content) -> bool
     if (!check_connection()) {
         return false;
     }
-    auto result { mosquitto_publish(m_mqtt, nullptr, topic.c_str(), static_cast<int>(content.size()), reinterpret_cast<const void*>(content.c_str()), 1, false) };
+    auto result { mosquitto_publish(m_mqtt, nullptr, topic.c_str(), static_cast<int>(content.size()), static_cast<const void*>(content.c_str()), 1, false) };
     if (result == MOSQ_ERR_SUCCESS) {
         return true;
     }
@@ -376,4 +376,4 @@ auto mqtt::client_id() const -> std::string
 
     return out.str();
 }
-}
+} // namespace muonpi::link

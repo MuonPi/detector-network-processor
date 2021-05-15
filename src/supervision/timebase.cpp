@@ -43,4 +43,4 @@ void timebase::get(timebase_t tb)
     m_start = std::numeric_limits<std::int_fast64_t>::max();
     m_end = std::numeric_limits<std::int_fast64_t>::min();
 }
-}
+} // namespace muonpi::supervision

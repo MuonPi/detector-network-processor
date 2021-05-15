@@ -28,7 +28,7 @@
 
 namespace muonpi {
 
-std::shared_ptr<config> config::s_singleton { std::make_shared<config>() };
+const std::shared_ptr<config> config::s_singleton { std::make_shared<config>() };
 
 auto config::singleton() -> std::shared_ptr<config>
 {
@@ -256,4 +256,4 @@ void application::signal_handler(int signal)
     }
 }
 
-}
+} // namespace muonpi

@@ -339,4 +339,4 @@ void fail(beast::error_code ec, const std::string& what)
     log::warning() << what << ": " << ec.message();
 }
 
-}
+} // namespace muonpi::rest

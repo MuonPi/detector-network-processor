@@ -239,4 +239,4 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
     }
 }
 
-}
+} // namespace muonpi

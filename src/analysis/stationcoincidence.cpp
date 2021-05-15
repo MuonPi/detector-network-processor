@@ -27,7 +27,7 @@ auto station_coincidence::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> lock { mx };
-    m_condition.wait_for(lock, s_sample_time);
+    m_condition.wait_for(lock, Config::interval.histogram_sample_time);
     if (!m_quit) {
         save();
     }
@@ -113,7 +113,7 @@ void station_coincidence::save()
     const auto now { std::chrono::system_clock::now() };
     constexpr static double grace_factor { 0.9 };
     const auto duration { now - m_last_save };
-    if (duration < (s_sample_time * grace_factor)) {
+    if (duration < (Config::interval.histogram_sample_time * grace_factor)) {
         log::warning() << "Last histogram store was too recent. Refusing to save now.";
         return;
     }

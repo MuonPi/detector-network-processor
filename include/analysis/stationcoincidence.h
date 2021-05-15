@@ -58,8 +58,6 @@ private:
 
     std::string m_data_directory {};
 
-    constexpr static std::chrono::duration s_sample_time { std::chrono::hours { 24 } };
-
     constexpr static std::size_t s_bins { 2000 }; //<! total number of bins to use per pair
     constexpr static double s_total_width { 2.0 * 100000.0 };
 

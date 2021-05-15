@@ -72,7 +72,8 @@ auto application::setup(int argc, const char* argv[]) -> bool
             ("ldap_password", po::value<std::string>(), "LDAP Bind Password")
             ("ldap_host", po::value<std::string>(), "LDAP Hostname")
 
-            ("histogram,hist", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")
+            ("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")
+            ("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(Config::Default::interval.histogram_sample_time).count()), "histogram sample time to use. In hours.")
             ("geohash_length", po::value<int>()->default_value(Config::Default::meta.max_geohash_length), "Geohash length to use")
     ;
 
@@ -103,6 +104,10 @@ auto application::setup(int argc, const char* argv[]) -> bool
 
     if (option_set("offline")) {
         log::info()<<"Starting in offline mode.";
+    }
+
+    if (option_set("histogram_sample_time")) {
+        Config::interval.histogram_sample_time = std::chrono::hours { get_option<int>("histogram_sample_time")};
     }
 
     log::info() << "muondetector-cluster " + Version::string();

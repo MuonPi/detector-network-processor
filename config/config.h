@@ -23,6 +23,7 @@ namespace muonpi::Config {
 struct Interval {
     std::chrono::steady_clock::duration clusterlog {};
     std::chrono::steady_clock::duration detectorsummary {};
+    std::chrono::system_clock::duration histogram_sample_time {};
 };
 
 struct Mqtt {
@@ -81,8 +82,8 @@ static Influx influx{"", {"", ""}, ""};
 static Ldap ldap{"ldaps://muonpi.org", {"", ""}};
 static Rest rest{1983, "0.0.0.0", "file://", "file://", "file://"};
 static Trigger trigger{"/var/muondetector/cluster_trigger"};
-static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}};
-static Meta meta {false, 6, "muondetector_cluster"};
+static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}, std::chrono::hours{24}};
+static Meta meta {false, 6, "muondetector_cluster" };
 }
 
 

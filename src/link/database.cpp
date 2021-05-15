@@ -115,13 +115,13 @@ auto database::send_string(const std::string& query) const -> bool
     http::read(stream, buffer, res);
 
     if (res.result() != http::status::no_content) {
-        log::warning() << "Couldn't write to database: " + std::to_string(static_cast<unsigned>(res.result())) + ": " + res.body();
+        log::warning() << "Couldn't write to database: " << std::to_string(static_cast<unsigned>(res.result())) << ": " << res.body();
         return false;
     }
     beast::error_code ec;
     stream.socket().shutdown(tcp::socket::shutdown_both, ec);
     if (ec && (ec != net::error::eof)) { // http://stackoverflow.com/questions/25587403/boost-asio-ssl-async-shutdown-always-finishes-with-an-error
-        log::warning() << "Could not write to database: " + ec.message();
+        log::warning() << "Could not write to database: " << ec.message();
         return false;
     }
     return true;

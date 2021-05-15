@@ -45,7 +45,7 @@ auto state::step() -> int
 
     for (auto& fwd : m_threads) {
         if (fwd.runner.state() <= thread_runner::State::Stopped) {
-            log::warning() << "The thread '" + fwd.runner.name() + "' stopped: " + fwd.runner.state_string();
+            log::warning() << "The thread '" << fwd.runner.name() << "' stopped: " << fwd.runner.state_string();
             m_failure = true;
             stop();
             return 0;
@@ -61,7 +61,7 @@ auto state::step() -> int
     m_system_cpu_load.add(data.system_cpu_load);
     m_current_data.system_cpu_load = m_system_cpu_load.mean();
 
-    if ((now - m_last) >= Config::interval.clusterlog) {
+    if ((now - m_last) >= config::singleton()->interval.clusterlog) {
         m_last = now;
 
         source::base<cluster_log_t>::put(m_current_data);

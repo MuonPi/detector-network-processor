@@ -148,12 +148,12 @@ auto mqtt<detector_info_t<location_t>>::item_collector::add(message_parser& /*to
             return ResultCode::Aggregating;
         }
     } catch (std::invalid_argument& e) {
-        log::warning() << "received exception when parsing log item: " + std::string(e.what());
+        log::warning() << "received exception when parsing log item: " << e.what();
         return ResultCode::Error;
     }
 
     if (item.item<location_t>().max_geohash_length == 0) {
-        item.item<location_t>().max_geohash_length = Config::meta.max_geohash_length;
+        item.item<location_t>().max_geohash_length = config::singleton()->meta.max_geohash_length;
     }
     return ((status == 0) ? ResultCode::Finished : ResultCode::Aggregating);
 }
@@ -185,7 +185,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
             data.start = std::stoll(content[11], nullptr);
             data.end = std::stoll(content[8], nullptr) + data.start;
         } catch (std::invalid_argument& e) {
-            log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+            log::warning() << "Received exception: " << e.what() << "\n While converting '" << topic.get() << " " << content.get() << "'";
             return Error;
         }
         if (status == 0) {
@@ -226,7 +226,7 @@ auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& c
         data.utc = static_cast<std::uint8_t>(std::stoul(content[6], nullptr));
         data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
     } catch (std::invalid_argument& e) {
-        log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+        log::warning() << "Received exception: " << e.what() << "\n While converting '" << topic.get() << " " << content.get() << "'";
         return Error;
     } catch (...) {
         return Error;
@@ -319,7 +319,7 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             item.emplace({ message[1], message.get(), "" });
         }
     } catch (std::invalid_argument& e) {
-        log::warning() << "received exception when parsing log item: " + std::string(e.what());
+        log::warning() << "received exception when parsing log item: " << e.what();
         return Error;
     }
 

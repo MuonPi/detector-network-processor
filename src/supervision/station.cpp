@@ -88,7 +88,7 @@ auto station::process() -> int
     // +++ push detector log messages at regular interval
     steady_clock::time_point now { steady_clock::now() };
 
-    if ((now - m_last) >= Config::interval.detectorsummary) {
+    if ((now - m_last) >= config::singleton()->interval.detectorsummary) {
         m_last = now;
 
         for (auto& [hash, det] : m_detectors) {
@@ -133,7 +133,7 @@ auto station::get_station(std::size_t hash) const -> std::pair<userinfo_t, locat
 
 void station::load()
 {
-    std::ifstream in { Config::files.state };
+    std::ifstream in { config::singleton()->files.state };
 
     if (!in.is_open()) {
         log::warning() << "Could not load detectors.";
@@ -165,7 +165,7 @@ void station::load()
 
 void station::save()
 {
-    std::ofstream out { Config::files.state };
+    std::ofstream out { config::singleton()->files.state };
 
     if (!out.is_open()) {
         log::warning() << "Could not save detectors.";

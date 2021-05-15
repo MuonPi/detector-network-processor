@@ -61,7 +61,7 @@ private:
 
     std::mutex m_mutex;
 
-    Config::Influx m_config { Config::influx };
+    Config::Influx m_config { };
 };
 
 }

@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <string>
+#include <memory>
 
 #define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
 #cmakedefine CLUSTER_DISABLE_SSL
@@ -75,27 +76,37 @@ struct Meta {
 };
 
 namespace Default {
-static ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster.state"};
+static const ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster.state"};
 
-static Mqtt mqtt{"", 1883, {}};
-static Influx influx{"", {"", ""}, ""};
-static Ldap ldap{"ldaps://muonpi.org", {"", ""}};
-static Rest rest{1983, "0.0.0.0", "file://", "file://", "file://"};
-static Trigger trigger{"/var/muondetector/cluster_trigger"};
-static Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}, std::chrono::hours{24}};
-static Meta meta {false, 6, "muondetector_cluster" };
+static const Mqtt mqtt{"", 1883, {}};
+static const Influx influx{"", {"", ""}, ""};
+static const Ldap ldap{"ldaps://muonpi.org", {"", ""}};
+static const Rest rest{1983, "0.0.0.0", "file://", "file://", "file://"};
+static const Trigger trigger{"/var/muondetector/cluster_trigger"};
+static const Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}, std::chrono::hours{24}};
+static const Meta meta {false, 6, "muondetector_cluster" };
 }
 
+}
 
-static Mqtt source_mqtt { Default::mqtt };
-static Mqtt sink_mqtt { Default::mqtt };
-static Influx influx { Default::influx };
-static Ldap ldap { Default::ldap };
-static Rest rest { Default::rest };
-static Trigger trigger { Default::trigger };
-static Interval interval { Default::interval };
-static ConfigFiles files { Default::files };
-static Meta meta { Default::meta };
+namespace muonpi {
+class config {
+public:
+    [[nodiscard]] static auto singleton() -> std::shared_ptr<config>;
+
+    Config::Mqtt source_mqtt { Config::Default::mqtt };
+    Config::Mqtt sink_mqtt { Config::Default::mqtt };
+    Config::Influx influx { Config::Default::influx };
+    Config::Ldap ldap { Config::Default::ldap };
+    Config::Rest rest { Config::Default::rest };
+    Config::Trigger trigger { Config::Default::trigger };
+    Config::Interval interval { Config::Default::interval };
+    Config::ConfigFiles files { Config::Default::files };
+    Config::Meta meta { Config::Default::meta };
+
+private:
+    static std::shared_ptr<config> s_singleton;
+};
 }
 
 #endif // MUONDETECTOR_VERSION_H

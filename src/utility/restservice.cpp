@@ -336,7 +336,7 @@ void fail(beast::error_code ec, const std::string& what)
     }
 #endif
 
-    log::warning() << what + ": " + ec.message();
+    log::warning() << what << ": " << ec.message();
 }
 
 }

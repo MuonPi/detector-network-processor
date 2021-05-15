@@ -32,7 +32,6 @@ find_package(
 
 set(CLUSTER_INCLUDE_LIBS
     mosquitto
-    source-files
     pthread
     sasl2
     ldap
@@ -68,4 +67,4 @@ target_link_libraries(muondetector-cluster ${CLUSTER_INCLUDE_LIBS})
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
 
-add_custom_target(clangformat COMMAND clang-format -style=LLVM -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/aggregation.cpp")
+add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/aggregation.cpp")

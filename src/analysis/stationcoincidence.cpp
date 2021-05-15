@@ -117,23 +117,45 @@ void station_coincidence::save()
         log::warning() << "Last histogram store was too recent. Refusing to save now.";
         return;
     }
-    m_last_save = now;
-    log::debug() << "Saving histogram data.";
-    m_saving = true;
-    std::map<std::size_t, userinfo_t> stations {};
-    for (const auto& [userinfo, location] : m_stations) {
-        stations.emplace(userinfo.hash(), userinfo);
-    }
-
     if (!std::filesystem::exists(m_data_directory)) {
         std::filesystem::create_directories(m_data_directory);
     }
     const std::string filename { std::to_string(std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count()) };
+
+    m_last_save = now;
+    log::debug() << "Saving histogram data.";
+    m_saving = true;
+
+    std::ofstream stationfile {m_data_directory + "/" + filename + ".stations"};
+
+    std::map<std::size_t, userinfo_t> stations {};
+    std::map<std::size_t, std::map<std::size_t, std::size_t>> station_matrix {};
+
+    std::map<std::size_t, std::size_t> row_vector {};
+
+    for (const auto& [userinfo, location] : m_stations) {
+        row_vector.emplace(userinfo.hash(), 0);
+    }
+
+    for (const auto& [userinfo, location] : m_stations) {
+        stations.emplace(userinfo.hash(), userinfo);
+
+        station_matrix.emplace(userinfo.hash(), row_vector);
+
+        stationfile<<std::hex<<userinfo.hash()<<';'<<userinfo.site_id()<<';'<<location.lat<<';'<<location.lon<<';'<<location.h<<'\n';
+    }
+    stationfile.close();
+
+
     for (auto& data : m_data.data()) {
         if (data.online == 2) {
             data.uptime += std::chrono::duration_cast<std::chrono::minutes>(now - data.last_online).count();
             data.last_online = now;
         }
+
+        station_matrix[data.first][data.second] = data.hist.integral();
+        station_matrix[data.second][data.first] = data.hist.integral();
+
         std::ostringstream dir_stream {};
         dir_stream << m_data_directory << '/';
         std::string first_site { stations[data.first].site_id()};
@@ -174,6 +196,19 @@ void station_coincidence::save()
         data.uptime = 0;
         data.hist.clear();
     }
+    std::ofstream adjacentfile {m_data_directory + "/" + filename + ".adj"};
+    for (const auto& [hash, row]: row_vector) {
+        adjacentfile<<';'<<std::hex<<hash;
+    }
+    adjacentfile<<'\n';
+    for (const auto& [hash, row]: station_matrix) {
+        adjacentfile<<std::hex<<hash;
+        for (const auto& [inner_hash, n]: row) {
+            adjacentfile<<';'<<std::dec<<n;
+        }
+        adjacentfile<<'\n';
+    }
+    adjacentfile.close();
     m_saving = false;
 }
 

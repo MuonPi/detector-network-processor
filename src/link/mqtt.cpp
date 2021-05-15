@@ -8,10 +8,6 @@
 #include <sstream>
 #include <utility>
 
-#include <cryptopp/filters.h>
-#include <cryptopp/hex.h>
-#include <cryptopp/sha.h>
-
 namespace muonpi::link {
 
 constexpr std::chrono::duration s_timeout { std::chrono::milliseconds { 10 } };
@@ -374,11 +370,10 @@ auto mqtt::subscriber::get_subscribe_topic() const -> const std::string&
 
 auto mqtt::client_id() const -> std::string
 {
-    CryptoPP::SHA1 sha1;
+    std::ostringstream out{};
 
-    std::string source { std::string { m_config.login.username } + m_station_id };
-    std::string id {};
-    CryptoPP::StringSource give_me_a_name { source, true, new CryptoPP::HashFilter(sha1, new CryptoPP::HexEncoder(reinterpret_cast<CryptoPP::BufferedTransformation*>(new CryptoPP::StringSink(id)))) };
-    return id;
+    out<<std::hex<<std::hash<std::string>{}( m_config.login.username + m_station_id);
+
+    return out.str();
 }
 }

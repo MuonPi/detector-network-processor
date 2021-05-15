@@ -29,7 +29,6 @@ add_compile_options(
 
 
 find_library(MOSQUITTO mosquitto REQUIRED)
-find_library(CRYPTOPP crypto++ REQUIRED)
 find_library(SASL2 sasl2 REQUIRED)
 find_library(LDAP ldap REQUIRED)
 find_library(DL dl REQUIRED)
@@ -155,7 +154,6 @@ target_include_directories(muondetector-cluster PUBLIC
 
 if (NOT STD_CPP_FS)
 target_link_libraries(muondetector-cluster
-    crypto++
     mosquitto
     source-files
     pthread
@@ -169,7 +167,6 @@ target_link_libraries(muondetector-cluster
     )
 else()
 target_link_libraries(muondetector-cluster
-    crypto++
     mosquitto
     source-files
     pthread

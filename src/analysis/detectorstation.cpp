@@ -72,17 +72,16 @@ auto detector_station::serialise() const -> std::string
 {
     std::ostringstream out {};
     out
-            << m_hash
-            << ' ' << m_userinfo.username
-            << ' ' << m_userinfo.station_id
-            << ' ' << detector_status::to_string(m_status)
-            << ' ' << m_location.lat
-            << ' ' << m_location.lon
-            << ' ' << m_location.h
-            << ' ' << m_location.h_acc
-            << ' ' << m_location.v_acc
-            << ' ' << m_location.dop
-    ;
+        << m_hash
+        << ' ' << m_userinfo.username
+        << ' ' << m_userinfo.station_id
+        << ' ' << detector_status::to_string(m_status)
+        << ' ' << m_location.lat
+        << ' ' << m_location.lon
+        << ' ' << m_location.h
+        << ' ' << m_location.h_acc
+        << ' ' << m_location.v_acc
+        << ' ' << m_location.dop;
 
     return out.str();
 }
@@ -271,6 +270,5 @@ auto detector_status::to_string(reason r) -> std::string
         break;
     }
 }
-
 
 }

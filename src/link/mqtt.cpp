@@ -302,7 +302,7 @@ auto mqtt::connect() -> bool
         return false;
     }
     constexpr static int mqtt_keepalive { 60 };
-    constexpr static std::chrono::duration connect_wait_timeout { std::chrono::seconds{ 10 } };
+    constexpr static std::chrono::duration connect_wait_timeout { std::chrono::seconds { 10 } };
     auto result { mosquitto_connect(m_mqtt, m_config.host.c_str(), m_config.port, mqtt_keepalive) };
     if (result == MOSQ_ERR_SUCCESS) {
         m_connect_promise = std::promise<bool> {};
@@ -370,9 +370,9 @@ auto mqtt::subscriber::get_subscribe_topic() const -> const std::string&
 
 auto mqtt::client_id() const -> std::string
 {
-    std::ostringstream out{};
+    std::ostringstream out {};
 
-    out<<std::hex<<std::hash<std::string>{}( m_config.login.username + m_station_id);
+    out << std::hex << std::hash<std::string> {}(m_config.login.username + m_station_id);
 
     return out.str();
 }

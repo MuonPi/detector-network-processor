@@ -128,16 +128,17 @@ void ascii<detector_summary_t>::get(detector_summary_t log)
 template <>
 void ascii<trigger::detector>::get(trigger::detector trigger)
 {
-    if( trigger.status == detector_status::invalid) {
+    if (trigger.status == detector_status::invalid) {
         return;
     }
 
     std::ostringstream stream {};
-    stream<<trigger.userinfo.username<<' '<<trigger.userinfo.station_id
-     << ' ' << detector_status::to_string(trigger.status)
-     << ' ' << detector_status::to_string(trigger.reason);
+    stream << trigger.userinfo.username << ' ' << trigger.userinfo.station_id
+           << ' ' << detector_status::to_string(trigger.status)
+           << ' ' << detector_status::to_string(trigger.reason);
 
-    m_ostream << stream.str() << '\n' << std::flush;
+    m_ostream << stream.str() << '\n'
+              << std::flush;
 }
 
 }

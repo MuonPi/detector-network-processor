@@ -3,8 +3,8 @@
 
 #include "defaults.h"
 #include "messages/detectorinfo.h"
-#include "messages/detectorsummary.h"
 #include "messages/detectorstatus.h"
+#include "messages/detectorsummary.h"
 #include "messages/userinfo.h"
 #include "utility/threadrunner.h"
 
@@ -35,7 +35,6 @@ private:
     static constexpr std::size_t s_time_interval { 30000 };
 
 public:
-
     /**
      * @brief enable Enable the detector_station object so it has the status Enabled
      */

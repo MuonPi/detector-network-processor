@@ -126,7 +126,7 @@ void station_coincidence::save()
     log::debug() << "Saving histogram data.";
     m_saving = true;
 
-    std::ofstream stationfile {m_data_directory + "/" + filename + ".stations"};
+    std::ofstream stationfile { m_data_directory + "/" + filename + ".stations" };
 
     std::map<std::size_t, userinfo_t> stations {};
     std::map<std::size_t, std::map<std::size_t, std::size_t>> station_matrix {};
@@ -142,10 +142,9 @@ void station_coincidence::save()
 
         station_matrix.emplace(userinfo.hash(), row_vector);
 
-        stationfile<<std::hex<<userinfo.hash()<<';'<<userinfo.site_id()<<';'<<location.lat<<';'<<location.lon<<';'<<location.h<<'\n';
+        stationfile << std::hex << userinfo.hash() << ';' << userinfo.site_id() << ';' << location.lat << ';' << location.lon << ';' << location.h << '\n';
     }
     stationfile.close();
-
 
     for (auto& data : m_data.data()) {
         if (data.online == 2) {
@@ -158,20 +157,20 @@ void station_coincidence::save()
 
         std::ostringstream dir_stream {};
         dir_stream << m_data_directory << '/';
-        std::string first_site { stations[data.first].site_id()};
-        std::string second_site { stations[data.second].site_id()};
+        std::string first_site { stations[data.first].site_id() };
+        std::string second_site { stations[data.second].site_id() };
 
         std::replace(first_site.begin(), first_site.end(), '/', '-');
         std::replace(second_site.begin(), second_site.end(), '/', '-');
 
         if (data.first < data.second) {
             dir_stream << first_site
-            << "_"
-            << second_site;
+                       << "_"
+                       << second_site;
         } else {
             dir_stream << second_site
-            << "_"
-            << first_site;
+                       << "_"
+                       << first_site;
         }
         dir_stream << '/';
         if (!std::filesystem::exists(dir_stream.str())) {
@@ -196,17 +195,17 @@ void station_coincidence::save()
         data.uptime = 0;
         data.hist.clear();
     }
-    std::ofstream adjacentfile {m_data_directory + "/" + filename + ".adj"};
-    for (const auto& [hash, row]: row_vector) {
-        adjacentfile<<';'<<std::hex<<hash;
+    std::ofstream adjacentfile { m_data_directory + "/" + filename + ".adj" };
+    for (const auto& [hash, row] : row_vector) {
+        adjacentfile << ';' << std::hex << hash;
     }
-    adjacentfile<<'\n';
-    for (const auto& [hash, row]: station_matrix) {
-        adjacentfile<<std::hex<<hash;
-        for (const auto& [inner_hash, n]: row) {
-            adjacentfile<<';'<<std::dec<<n;
+    adjacentfile << '\n';
+    for (const auto& [hash, row] : station_matrix) {
+        adjacentfile << std::hex << hash;
+        for (const auto& [inner_hash, n] : row) {
+            adjacentfile << ';' << std::dec << n;
         }
-        adjacentfile<<'\n';
+        adjacentfile << '\n';
     }
     adjacentfile.close();
     m_saving = false;

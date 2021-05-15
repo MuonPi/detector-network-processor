@@ -128,7 +128,7 @@ void database<trigger::detector>::get(trigger::detector trig)
         << tag { "site_id", trig.userinfo.site_id() }
         << field { "type", detector_status::to_string(trig.status) }
         << field { "reason", detector_status::to_string(trig.reason) })
-        .commit(nanosecondsUTC) };
+                      .commit(nanosecondsUTC) };
 
     if (!result) {
         log::warning() << "error writing trigger to DB";

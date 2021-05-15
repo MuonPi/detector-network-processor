@@ -1,12 +1,12 @@
-#include <string>
-#include <iostream>
-#include <vector>
-#include <filesystem>
-#include <map>
-#include <fstream>
-#include <sstream>
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
 class aggregator {
 public:
@@ -17,7 +17,6 @@ public:
     [[nodiscard]] auto save(std::string_view filename = "aggregate") -> bool;
 
     void fill();
-
 
 private:
     std::map<std::int32_t, std::uint32_t> m_entries {};
@@ -42,7 +41,7 @@ auto main(int argc, const char* argv[]) -> int
     }
 
     std::string last_directory {};
-    for(const auto& p: std::filesystem::recursive_directory_iterator(argv[1])) {
+    for (const auto& p : std::filesystem::recursive_directory_iterator(argv[1])) {
         if (!p.is_regular_file()) {
             continue;
         }
@@ -54,7 +53,7 @@ auto main(int argc, const char* argv[]) -> int
             continue;
         }
 
-        aggregator agg{current_directory};
+        aggregator agg { current_directory };
 
         if (!agg.find_files()) {
             std::cerr << "Could not find any histograms in the specified directory '" << current_directory << "'\n";
@@ -69,24 +68,21 @@ auto main(int argc, const char* argv[]) -> int
 
         last_directory = current_directory;
     }
-
-
 }
-
 
 void print_help()
 {
     std::cerr << "aggregation searches a directory for histograms and aggregates them into a single histogram file.\nUsage: aggregation <directory>\n";
 }
 
-
 aggregator::aggregator(std::string directory)
     : m_directory { std::move(directory) }
-{}
+{
+}
 
 auto aggregator::find_files() -> bool
 {
-    for (const auto& entry: std::filesystem::directory_iterator(m_directory)) {
+    for (const auto& entry : std::filesystem::directory_iterator(m_directory)) {
         if (!entry.is_regular_file()) {
             continue;
         }
@@ -108,21 +104,20 @@ auto aggregator::directory() const -> const std::string&
     return m_directory;
 }
 
-
 void aggregator::fill()
 {
-    for (const auto& file: m_input_files) {
-        std::string filename { m_directory +"/" + file };
-        std::string filename_hist { filename +  ".hist" };
-        std::string filename_meta { filename +  ".meta" };
+    for (const auto& file : m_input_files) {
+        std::string filename { m_directory + "/" + file };
+        std::string filename_hist { filename + ".hist" };
+        std::string filename_meta { filename + ".meta" };
         std::ifstream input_hist { filename_hist };
 
-        for (std::string line {}; std::getline(input_hist, line); ) {
+        for (std::string line {}; std::getline(input_hist, line);) {
             std::vector<std::string> cont {};
             std::istringstream iss(line);
-            std::copy(std::istream_iterator<std::string>{iss},
-                      std::istream_iterator<std::string>{},
-                      std::back_inserter(cont));
+            std::copy(std::istream_iterator<std::string> { iss },
+                std::istream_iterator<std::string> {},
+                std::back_inserter(cont));
 
             if (cont.size() != 2) {
                 continue;
@@ -138,9 +133,9 @@ void aggregator::fill()
         for (std::string line {}; std::getline(input_meta, line);) {
             std::vector<std::string> cont {};
             std::istringstream iss(line);
-            std::copy(std::istream_iterator<std::string>{iss},
-                      std::istream_iterator<std::string>{},
-                      std::back_inserter(cont));
+            std::copy(std::istream_iterator<std::string> { iss },
+                std::istream_iterator<std::string> {},
+                std::back_inserter(cont));
 
             if (cont.size() != 3) {
                 continue;
@@ -163,7 +158,7 @@ void aggregator::fill()
 
 auto aggregator::save(std::string_view filename) -> bool
 {
-    std::string name { m_directory + "/" + std::string{filename} };
+    std::string name { m_directory + "/" + std::string { filename } };
     std::string name_hist { name + ".hist" };
     std::string name_meta { name + ".meta" };
     if (std::filesystem::exists(name_hist)) {
@@ -173,18 +168,17 @@ auto aggregator::save(std::string_view filename) -> bool
         std::filesystem::remove(name_meta);
     }
     std::ofstream output_hist { name_hist };
-    for (const auto& [bin, count]: m_entries) {
-        output_hist<<std::to_string(bin)<<' '<<std::to_string(count)<<'\n';
+    for (const auto& [bin, count] : m_entries) {
+        output_hist << std::to_string(bin) << ' ' << std::to_string(count) << '\n';
     }
     output_hist.close();
     std::ofstream output_meta { name_meta };
     output_meta
-            <<"bin_width "<<std::to_string(m_bin_width)<<" ns\n"
-            <<"distance "<<std::to_string(m_distance)<<" m\n"
-            <<"total "<<std::to_string(m_n)<<" 1\n"
-            <<"uptime "<<std::to_string(m_uptime)<<" min\n"
-            <<"sample_time "<<std::to_string(m_sample_time)<<" min\n"
-    ;
+        << "bin_width " << std::to_string(m_bin_width) << " ns\n"
+        << "distance " << std::to_string(m_distance) << " m\n"
+        << "total " << std::to_string(m_n) << " 1\n"
+        << "uptime " << std::to_string(m_uptime) << " min\n"
+        << "sample_time " << std::to_string(m_sample_time) << " min\n";
     std::cout << m_directory << ' ' << std::to_string(m_n) << ' ' << std::to_string(m_distance) << '\n';
     output_meta.close();
     return true;

@@ -1,9 +1,9 @@
 #ifndef TRIGGER_H
 #define TRIGGER_H
 
-#include "messages/userinfo.h"
-#include "messages/detectorstatus.h"
 #include "analysis/detectorstation.h"
+#include "messages/detectorstatus.h"
+#include "messages/userinfo.h"
 
 #include <cinttypes>
 #include <string>

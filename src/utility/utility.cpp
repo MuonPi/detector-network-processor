@@ -160,7 +160,7 @@ auto guid::get_number() -> std::uint64_t
 namespace Version {
     auto string() -> std::string
     {
-        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string{additional};
+        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string { additional };
     }
 }
 }

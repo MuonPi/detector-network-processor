@@ -110,7 +110,7 @@ void station::on_detector_status(std::size_t hash, detector_status::status statu
     if (status == detector_status::deleted) {
         m_delete_detectors.push(hash);
     }
-    source::base<trigger::detector>::put(trigger::detector{hash, m_detectors.at(hash)->user_info(), status, reason});
+    source::base<trigger::detector>::put(trigger::detector { hash, m_detectors.at(hash)->user_info(), status, reason });
 }
 
 auto station::get_stations() const -> std::vector<std::pair<userinfo_t, location_t>>

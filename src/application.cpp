@@ -26,7 +26,6 @@
 #include <exception>
 #include <memory>
 
-
 namespace muonpi {
 
 std::shared_ptr<config> config::s_singleton { std::make_shared<config>() };
@@ -48,71 +47,48 @@ auto application::setup(int argc, const char* argv[]) -> bool
     namespace po = boost::program_options;
 
     po::options_description desc("General options");
-    desc.add_options()
-            ("help,h", "produce help message")
-            ("offline,o", "Do not send processed data to the servers.")
-            ("debug,d", "Use the ascii sinks for debugging.")
-            ("local,l", "Run the cluser as a local instance")
-            ("verbose,v", po::value<int>()->default_value(Config::Default::meta.verbosity), "Verbosity level")
-            ("config,c", po::value<std::string>()->default_value(Config::Default::files.config), "Specify a configuration file to use")
-    ;
+    desc.add_options()("help,h", "produce help message")("offline,o", "Do not send processed data to the servers.")("debug,d", "Use the ascii sinks for debugging.")("local,l", "Run the cluser as a local instance")("verbose,v", po::value<int>()->default_value(Config::Default::meta.verbosity), "Verbosity level")("config,c", po::value<std::string>()->default_value(Config::Default::files.config), "Specify a configuration file to use");
 
     po::options_description file_options("Config file options");
-    file_options.add_options()
-            ("station_id", po::value<std::string>(), "Base station ID")
+    file_options.add_options()("station_id", po::value<std::string>(), "Base station ID")
 
-            ("source_mqtt_user", po::value<std::string>(), "MQTT User to use for the source")
-            ("source_mqtt_password", po::value<std::string>(), "MQTT password to use for the source")
-            ("source_mqtt_host", po::value<std::string>(), "MQTT hostname for the source")
-            ("source_mqtt_port", po::value<int>(), "MQTT port for the source")
+        ("source_mqtt_user", po::value<std::string>(), "MQTT User to use for the source")("source_mqtt_password", po::value<std::string>(), "MQTT password to use for the source")("source_mqtt_host", po::value<std::string>(), "MQTT hostname for the source")("source_mqtt_port", po::value<int>(), "MQTT port for the source")
 
-            ("sink_mqtt_user", po::value<std::string>(), "MQTT User to use for the sink")
-            ("sink_mqtt_password", po::value<std::string>(), "MQTT password to use for the sink")
-            ("sink_mqtt_host", po::value<std::string>(), "MQTT hostname for the sink")
-            ("sink_mqtt_port", po::value<int>(), "MQTT port for the sink")
+            ("sink_mqtt_user", po::value<std::string>(), "MQTT User to use for the sink")("sink_mqtt_password", po::value<std::string>(), "MQTT password to use for the sink")("sink_mqtt_host", po::value<std::string>(), "MQTT hostname for the sink")("sink_mqtt_port", po::value<int>(), "MQTT port for the sink")
 
-            ("influx_user", po::value<std::string>(), "InfluxDb Username")
-            ("influx_password", po::value<std::string>(), "InfluxDb Password")
-            ("influx_database", po::value<std::string>(), "InfluxDb Database")
-            ("influx_host", po::value<std::string>(), "InfluxDB Hostname")
+                ("influx_user", po::value<std::string>(), "InfluxDb Username")("influx_password", po::value<std::string>(), "InfluxDb Password")("influx_database", po::value<std::string>(), "InfluxDb Database")("influx_host", po::value<std::string>(), "InfluxDB Hostname")
 
-            ("ldap_bind_dn", po::value<std::string>(), "LDAP Bind DN")
-            ("ldap_password", po::value<std::string>(), "LDAP Bind Password")
-            ("ldap_host", po::value<std::string>(), "LDAP Hostname")
+                    ("ldap_bind_dn", po::value<std::string>(), "LDAP Bind DN")("ldap_password", po::value<std::string>(), "LDAP Bind Password")("ldap_host", po::value<std::string>(), "LDAP Hostname")
 
-            ("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")
-            ("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(Config::Default::interval.histogram_sample_time).count()), "histogram sample time to use. In hours.")
-            ("geohash_length", po::value<int>()->default_value(Config::Default::meta.max_geohash_length), "Geohash length to use")
-    ;
+                        ("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(Config::Default::interval.histogram_sample_time).count()), "histogram sample time to use. In hours.")("geohash_length", po::value<int>()->default_value(Config::Default::meta.max_geohash_length), "Geohash length to use");
 
     po::store(po::parse_command_line(argc, argv, desc), m_options);
 
     check_option("verbose", config::singleton()->meta.verbosity);
 
     if (option_set("help")) {
-        std::cout<<"muondetector-cluster " << Version::string()<<"\n\n"<<desc<<'\n';
+        std::cout << "muondetector-cluster " << Version::string() << "\n\n"
+                  << desc << '\n';
         return false;
     }
-    if (option_set("config"))
-    {
+    if (option_set("config")) {
         std::ifstream ifs { get_option<std::string>("config") };
         if (ifs) {
             po::store(po::parse_config_file(ifs, file_options), m_options);
         } else {
-            std::cerr<<"Could not open configuration file.\n";
+            std::cerr << "Could not open configuration file.\n";
         }
     }
     po::notify(m_options);
 
-
     std::set_terminate(error::terminate_handler);
 
     if (option_set("offline")) {
-        log::info()<<"Starting in offline mode.";
+        log::info() << "Starting in offline mode.";
     }
 
     if (option_set("histogram_sample_time")) {
-        config::singleton()->interval.histogram_sample_time = std::chrono::hours { get_option<int>("histogram_sample_time")};
+        config::singleton()->interval.histogram_sample_time = std::chrono::hours { get_option<int>("histogram_sample_time") };
     }
 
     log::info() << "muondetector-cluster " << Version::string();

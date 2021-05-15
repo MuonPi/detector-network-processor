@@ -4,8 +4,8 @@
 #include "defaults.h"
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace muonpi::log {
 
@@ -26,15 +26,18 @@ public:
     template <typename T>
     auto operator<<(T content) -> logger<L>&
     {
-        m_stream<<content;
+        m_stream << content;
         return *this;
     }
 
-    ~logger() {
+    ~logger()
+    {
         if (L < (Level::Error + config::singleton()->meta.verbosity)) {
-            std::clog << to_string() << m_stream.str() + "\n"<<std::flush;
+            std::clog << to_string() << m_stream.str() + "\n"
+                      << std::flush;
         }
     }
+
 private:
     std::ostringstream m_stream {};
 

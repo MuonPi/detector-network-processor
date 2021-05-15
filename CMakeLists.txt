@@ -59,8 +59,7 @@ configure_file("${PROJECT_CONFIG_DIR}/config.h"
 add_executable(aggregation "${PROJECT_SRC_DIR}/aggregation.cpp")
 
 add_executable(
-  muondetector-cluster ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES}
-                       "${PROJECT_SRC_DIR}/main.cpp")
+  muondetector-cluster ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES})
 
 target_include_directories(
   muondetector-cluster PUBLIC ${PROJECT_HEADER_DIR} ${CMAKE_CURRENT_BINARY_DIR})
@@ -68,3 +67,5 @@ target_include_directories(
 target_link_libraries(muondetector-cluster ${CLUSTER_INCLUDE_LIBS})
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
+
+add_custom_target(clangformat COMMAND clang-format -style=LLVM -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/aggregation.cpp")

@@ -15,10 +15,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Release)
             "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/muondetector-cluster")
 endif()
 
-add_custom_target(
-  clangformat COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES}
-                      ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/main.cpp")
-
 install(
   TARGETS muondetector-cluster
   DESTINATION bin

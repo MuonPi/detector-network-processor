@@ -43,7 +43,7 @@ public:
     ~logger()
     {
         if (L <= (Level::Info + config::singleton()->meta.verbosity)) {
-            std::clog << to_string() << m_stream.str() + "\n"
+            std::cerr << to_string() << m_stream.str() + "\n"
                       << std::flush;
         }
         if (L <= Level::Critical) {

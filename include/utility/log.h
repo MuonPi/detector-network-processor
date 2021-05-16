@@ -1,8 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include "defaults.h"
 #include "application.h"
+#include "defaults.h"
 
 #include "utility/configuration.h"
 

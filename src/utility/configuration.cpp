@@ -94,7 +94,6 @@ auto config::setup(int argc, const char* argv[]) -> bool
 
     check_option("verbose", meta.verbosity);
 
-
     check_option("station_id", meta.station);
 
     check_option("source_mqtt_user", source_mqtt.login.username);

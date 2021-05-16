@@ -29,17 +29,17 @@ auto error() -> logger<Level::Error>
 
 auto critical(int exit_code) -> logger<Level::Critical>
 {
-    return {std::move(exit_code)};
+    return { exit_code };
 }
 
 auto alert(int exit_code) -> logger<Level::Alert>
 {
-    return {std::move(exit_code)};
+    return { exit_code };
 }
 
 auto emergency(int exit_code) -> logger<Level::Emergency>
 {
-    return {std::move(exit_code)};
+    return { exit_code };
 }
 
 } // namespace muonpi::log

@@ -15,7 +15,6 @@ auto config::singleton() -> const std::unique_ptr<config>&
     return s_singleton;
 }
 
-
 auto config::setup(int argc, const char* argv[]) -> bool
 {
     namespace po = boost::program_options;
@@ -67,6 +66,8 @@ auto config::setup(int argc, const char* argv[]) -> bool
         return false;
     }
     check_option("config", files.config);
+    check_option("verbose", meta.verbosity);
+
     if (!std::filesystem::exists(files.config)) {
         log::error() << "Specified configuration file '" << files.config << "' does not exist.";
         return false;
@@ -91,8 +92,6 @@ auto config::setup(int argc, const char* argv[]) -> bool
     if (option_set("detectorsummary_interval")) {
         interval.detectorsummary = std::chrono::minutes { get_option<int>("detectorsummary_interval") };
     }
-
-    check_option("verbose", meta.verbosity);
 
     check_option("station_id", meta.station);
 

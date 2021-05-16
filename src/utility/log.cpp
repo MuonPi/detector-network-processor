@@ -27,19 +27,19 @@ auto error() -> logger<Level::Error>
     return {};
 }
 
-auto critical() -> logger<Level::Critical>
+auto critical(int exit_code) -> logger<Level::Critical>
 {
-    return {};
+    return {std::move(exit_code)};
 }
 
-auto alert() -> logger<Level::Alert>
+auto alert(int exit_code) -> logger<Level::Alert>
 {
-    return {};
+    return {std::move(exit_code)};
 }
 
-auto emergency() -> logger<Level::Emergency>
+auto emergency(int exit_code) -> logger<Level::Emergency>
 {
-    return {};
+    return {std::move(exit_code)};
 }
 
 } // namespace muonpi::log

@@ -29,11 +29,11 @@
 
 namespace muonpi {
 
-std::function<void(int)> application::s_shutdown_handler;
+const std::unique_ptr<application> application::s_singleton { std::make_unique<application>() };
 
 void wrapper_signal_handler(int signal)
 {
-    application::s_shutdown_handler(signal);
+    application::signal_handler(signal);
 }
 
 auto application::setup(int argc, const char* argv[]) -> bool
@@ -49,6 +49,16 @@ template <typename T>
 using sink_ptr = std::unique_ptr<sink::base<T>>;
 
 auto application::run() -> int
+{
+    return s_singleton->priv_run();
+}
+
+void application::shutdown(int exit_code)
+{
+    s_singleton->m_supervisor->stop(exit_code);
+}
+
+auto application::priv_run() -> int
 {
     std::unique_ptr<link::database> db_link { nullptr };
     std::unique_ptr<link::mqtt> sink_mqtt_link { nullptr };
@@ -161,8 +171,6 @@ auto application::run() -> int
     m_supervisor->add_thread(collection_trigger_sink);
     m_supervisor->add_thread(collection_detectorlog_sink);
 
-    s_shutdown_handler = [this](int signal) { signal_handler(signal); };
-
     std::signal(SIGINT, wrapper_signal_handler);
     std::signal(SIGTERM, wrapper_signal_handler);
     std::signal(SIGHUP, wrapper_signal_handler);
@@ -176,7 +184,7 @@ void application::signal_handler(int signal)
 {
     if ((signal == SIGINT) || (signal == SIGTERM) || (signal == SIGHUP)) {
         log::notice() << "Received signal: " << std::to_string(signal) << ". Exiting.";
-        m_supervisor->stop();
+        s_singleton->m_supervisor->stop(1);
     }
 }
 

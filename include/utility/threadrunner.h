@@ -30,7 +30,7 @@ public:
     /**
      * @brief stop Tells the main loop to finish
      */
-    void stop();
+    void stop(int exit_code = 0);
 
     /**
      * @brief join waits for the thread to finish
@@ -113,6 +113,8 @@ private:
     bool m_use_custom_run { false };
 
     std::atomic<bool> m_run { true };
+
+    std::atomic<int> m_exit_code { 0 };
 
     std::future<int> m_run_future {};
 

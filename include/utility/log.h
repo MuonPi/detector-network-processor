@@ -2,6 +2,7 @@
 #define LOG_H
 
 #include "defaults.h"
+#include "application.h"
 
 #include "utility/configuration.h"
 
@@ -12,11 +13,11 @@
 namespace muonpi::log {
 
 enum Level : int {
-    Info,
     Emergency,
     Alert,
     Critical,
     Error,
+    Info,
     Warning,
     Notice,
     Debug
@@ -32,16 +33,27 @@ public:
         return *this;
     }
 
+    logger(int exit_code)
+        : m_exit_code { std::move(exit_code) }
+    {
+    }
+
+    logger() = default;
+
     ~logger()
     {
-        if (L < (Level::Error + config::singleton()->meta.verbosity)) {
+        if (L <= (Level::Info + config::singleton()->meta.verbosity)) {
             std::clog << to_string() << m_stream.str() + "\n"
                       << std::flush;
+        }
+        if (L <= Level::Critical) {
+            application::shutdown(std::move(m_exit_code));
         }
     }
 
 private:
     std::ostringstream m_stream {};
+    int m_exit_code { 0 };
 
     [[nodiscard]] auto to_string() -> std::string
     {
@@ -72,9 +84,9 @@ private:
 [[nodiscard]] auto notice() -> logger<Level::Notice>;
 [[nodiscard]] auto warning() -> logger<Level::Warning>;
 [[nodiscard]] auto error() -> logger<Level::Error>;
-[[nodiscard]] auto critical() -> logger<Level::Critical>;
-[[nodiscard]] auto alert() -> logger<Level::Alert>;
-[[nodiscard]] auto emergency() -> logger<Level::Emergency>;
+[[nodiscard]] auto critical(int exit_code = 1) -> logger<Level::Critical>;
+[[nodiscard]] auto alert(int exit_code = 1) -> logger<Level::Alert>;
+[[nodiscard]] auto emergency(int exit_code = 1) -> logger<Level::Emergency>;
 
 }
 

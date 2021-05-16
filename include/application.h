@@ -6,21 +6,23 @@
 #include <csignal>
 #include <functional>
 
-#include <boost/program_options.hpp>
-
 namespace muonpi {
 
 class application {
 public:
-    [[nodiscard]] auto setup(int argc, const char* argv[]) -> bool;
-    [[nodiscard]] auto run() -> int;
+    [[nodiscard]] static auto setup(int argc, const char* argv[]) -> bool;
+    [[nodiscard]] static auto run() -> int;
 
-    void signal_handler(int signal);
+    static void shutdown(int exit_code);
+
+    static void signal_handler(int signal);
 
 private:
-    std::unique_ptr<supervision::state> m_supervisor { nullptr };
+    [[nodiscard]] auto priv_run() -> int;
 
-    static std::function<void(int)> s_shutdown_handler;
+    std::unique_ptr<supervision::state> m_supervisor;
+
+    const static std::unique_ptr<application> s_singleton;
 
     friend void wrapper_signal_handler(int signal);
 };

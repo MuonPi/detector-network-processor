@@ -15,10 +15,11 @@ thread_runner::thread_runner(std::string name, bool use_custom_run)
 
 thread_runner::~thread_runner() = default;
 
-void thread_runner::stop()
+void thread_runner::stop(int exit_code)
 {
     m_run = false;
     m_quit = true;
+    m_exit_code = exit_code;
     m_condition.notify_all();
     on_stop();
 }
@@ -118,7 +119,7 @@ auto thread_runner::run() -> int
         m_state = State::Finalising;
         log::debug() << "Stopping thread " << m_name;
         clean = true;
-        return post_run();
+        return post_run() + m_exit_code;
     } catch (std::exception& e) {
         log::error() << "Thread " << m_name << "Got an uncaught exception: " << e.what();
         return -1;

@@ -6,7 +6,6 @@
 
 namespace muonpi {
 
-
 const std::unique_ptr<config> config::s_singleton { std::make_unique<config>() };
 
 auto config::singleton() -> const std::unique_ptr<config>&
@@ -86,7 +85,6 @@ auto config::setup(int argc, const char* argv[]) -> bool
     if (option_set("detectorsummary_interval")) {
         interval.detectorsummary = std::chrono::minutes { get_option<int>("detectorsummary_interval") };
     }
-
 
     check_option("verbose", meta.verbosity);
 

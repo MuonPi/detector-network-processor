@@ -5,9 +5,9 @@
 
 #include "link/database.h"
 
+#include "utility/configuration.h"
 #include "utility/log.h"
 #include "utility/utility.h"
-#include "utility/configuration.h"
 
 #include "messages/clusterlog.h"
 #include "messages/detectorlog.h"

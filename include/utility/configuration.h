@@ -47,7 +47,6 @@ private:
     static const std::unique_ptr<config> s_singleton;
 
     boost::program_options::variables_map m_options {};
-
 };
 }
 

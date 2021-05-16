@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include <filesystem>
+
 namespace muonpi {
 
 const std::unique_ptr<config> config::s_singleton { std::make_unique<config>() };
@@ -64,13 +66,17 @@ auto config::setup(int argc, const char* argv[]) -> bool
         log::info() << "\n" << desc << '\n';
         return false;
     }
-    if (option_set("config")) {
-        std::ifstream ifs { get_option<std::string>("config") };
-        if (ifs) {
-            po::store(po::parse_config_file(ifs, file_options), m_options);
-        } else {
-            std::cerr << "Could not open configuration file.\n";
-        }
+    check_option("config", files.config);
+    if (!std::filesystem::exists(files.config)) {
+        log::error() << "Specified configuration file '" << files.config << "' does not exist.";
+        return false;
+    }
+    std::ifstream ifs { files.config };
+    if (ifs) {
+        po::store(po::parse_config_file(ifs, file_options), m_options);
+    } else {
+        log::error() << "Could not open configuration file '" << get_option<std::string>("config") << "'.";
+        return false;
     }
     po::notify(m_options);
 
@@ -88,7 +94,6 @@ auto config::setup(int argc, const char* argv[]) -> bool
 
     check_option("verbose", meta.verbosity);
 
-    check_option("config", files.config);
 
     check_option("station_id", meta.station);
 

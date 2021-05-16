@@ -80,9 +80,6 @@ protected:
 
     [[nodiscard]] auto process() -> int override;
 
-    void save();
-    void load();
-
 private:
     supervision::state& m_supervisor;
 

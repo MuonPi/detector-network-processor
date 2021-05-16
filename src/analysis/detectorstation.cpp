@@ -27,65 +27,6 @@ detector_station::detector_station(const detector_info_t<location_t>& initial_lo
 {
 }
 
-detector_station::detector_station(const std::string& serialised, supervision::station& stationsupervisor, bool stale)
-    : m_stationsupervisor { stationsupervisor }
-{
-    constexpr static std::size_t message_length { 10 };
-    constexpr static std::size_t index_hash { 0 };
-    constexpr static std::size_t index_username { 1 };
-    constexpr static std::size_t index_station_id { 2 };
-    constexpr static std::size_t index_status { 3 };
-    constexpr static std::size_t index_lat { 4 };
-    constexpr static std::size_t index_lon { 5 };
-    constexpr static std::size_t index_h { 6 };
-    constexpr static std::size_t index_h_acc { 7 };
-    constexpr static std::size_t index_v_acc { 8 };
-    constexpr static std::size_t index_dop { 9 };
-
-    message_parser in { serialised, ' ' };
-    if (in.size() < message_length) {
-        m_status = detector_status::deleted;
-        return;
-    }
-    m_hash = std::stoul(in[index_hash], nullptr);
-    m_userinfo.username = in[index_username];
-    m_userinfo.station_id = in[index_station_id];
-    if (in[index_status] == "created") {
-        m_status = detector_status::created;
-    } else if (in[index_status] == "deleted") {
-        m_status = detector_status::deleted;
-    } else if ((in[index_status] != "reliable") || (stale)) {
-        m_status = detector_status::unreliable;
-    } else {
-        m_status = detector_status::reliable;
-    }
-
-    m_location.lat = std::stod(in[index_lat], nullptr);
-    m_location.lon = std::stod(in[index_lon], nullptr);
-    m_location.h = std::stod(in[index_h], nullptr);
-    m_location.h_acc = std::stod(in[index_h_acc], nullptr);
-    m_location.v_acc = std::stod(in[index_v_acc], nullptr);
-    m_location.dop = std::stod(in[index_dop], nullptr);
-}
-
-auto detector_station::serialise() const -> std::string
-{
-    std::ostringstream out {};
-    out
-        << m_hash
-        << ' ' << m_userinfo.username
-        << ' ' << m_userinfo.station_id
-        << ' ' << detector_status::to_string(m_status)
-        << ' ' << m_location.lat
-        << ' ' << m_location.lon
-        << ' ' << m_location.h
-        << ' ' << m_location.h_acc
-        << ' ' << m_location.v_acc
-        << ' ' << m_location.dop;
-
-    return out.str();
-}
-
 auto detector_station::process(const event_t& event) -> bool
 {
     m_current_rate.increase_counter();

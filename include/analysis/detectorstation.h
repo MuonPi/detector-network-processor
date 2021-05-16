@@ -30,10 +30,6 @@ namespace supervision {
  * Scans the message rate and deletes the runtime objects from memory if the detector has not been active for some time.
  */
 class detector_station {
-private:
-    static constexpr std::size_t s_history_length { 10 };
-    static constexpr std::size_t s_time_interval { 30000 };
-
 public:
     /**
      * @brief enable Enable the detector_station object so it has the status Enabled
@@ -45,14 +41,6 @@ public:
      * @param initial_log The initial log message from which this detector object originates
      */
     detector_station(const detector_info_t<location_t>& initial_log, supervision::station& stationsupervisor);
-
-    /**
-     * @brief detector Construct the detector from a serialised string
-     * @param serialised The serialised string
-     * @param stationsupervisor The station supervisor to use
-     * @param stale whether the configuration is stale or not. If true, this detector will be marked as unreliable
-     */
-    detector_station(const std::string& serialised, supervision::station& stationsupervisor, bool stale);
 
     /**
      * @brief process Processes an event message. This means it calculates the event rate from this detector.
@@ -109,12 +97,6 @@ public:
      */
     [[nodiscard]] auto location() const -> location_t;
 
-    /**
-     * @brief serialise Serialise the current detector information
-     * @return Serialised string
-     */
-    [[nodiscard]] auto serialise() const -> std::string;
-
 protected:
     /**
      * @brief set_status Sets the status of this detector and sends the status to the listener if it has changed.
@@ -140,6 +122,8 @@ private:
 
     static constexpr std::chrono::system_clock::duration s_log_interval { std::chrono::seconds { 90 } };
     static constexpr std::chrono::system_clock::duration s_quit_interval { s_log_interval * 3 };
+    static constexpr std::size_t s_history_length { 10 };
+    static constexpr std::size_t s_time_interval { 30000 };
 
     supervision::station& m_stationsupervisor;
 

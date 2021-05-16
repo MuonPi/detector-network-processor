@@ -3,6 +3,8 @@
 
 #include "defaults.h"
 
+#include "utility/configuration.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>

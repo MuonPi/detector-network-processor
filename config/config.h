@@ -90,24 +90,4 @@ static const Meta meta {false, 6, "muondetector_cluster", 0};
 
 }
 
-namespace muonpi {
-class config {
-public:
-    [[nodiscard]] static auto singleton() -> std::shared_ptr<config>;
-
-    Config::Mqtt source_mqtt { Config::Default::mqtt };
-    Config::Mqtt sink_mqtt { Config::Default::mqtt };
-    Config::Influx influx { Config::Default::influx };
-    Config::Ldap ldap { Config::Default::ldap };
-    Config::Rest rest { Config::Default::rest };
-    Config::Trigger trigger { Config::Default::trigger };
-    Config::Interval interval { Config::Default::interval };
-    Config::ConfigFiles files { Config::Default::files };
-    Config::Meta meta { Config::Default::meta };
-
-private:
-    static std::shared_ptr<config> s_singleton;
-};
-}
-
 #endif // MUONDETECTOR_VERSION_H

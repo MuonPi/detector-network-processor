@@ -21,19 +21,13 @@
 #include "sink/database.h"
 #include "sink/mqtt.h"
 
+#include "utility/configuration.h"
 #include "utility/exceptions.h"
 
 #include <exception>
 #include <memory>
 
 namespace muonpi {
-
-const std::shared_ptr<config> config::s_singleton { std::make_shared<config>() };
-
-auto config::singleton() -> std::shared_ptr<config>
-{
-    return s_singleton;
-}
 
 std::function<void(int)> application::s_shutdown_handler;
 
@@ -44,81 +38,11 @@ void wrapper_signal_handler(int signal)
 
 auto application::setup(int argc, const char* argv[]) -> bool
 {
-    namespace po = boost::program_options;
-
-    po::options_description desc("General options");
-    desc.add_options()("help,h", "produce help message")("offline,o", "Do not send processed data to the servers.")("debug,d", "Use the ascii sinks for debugging.")("local,l", "Run the cluser as a local instance")("verbose,v", po::value<int>()->default_value(Config::Default::meta.verbosity), "Verbosity level")("config,c", po::value<std::string>()->default_value(Config::Default::files.config), "Specify a configuration file to use");
-
-    po::options_description file_options("Config file options");
-    file_options.add_options()("station_id", po::value<std::string>(), "Base station ID")
-
-        ("source_mqtt_user", po::value<std::string>(), "MQTT User to use for the source")("source_mqtt_password", po::value<std::string>(), "MQTT password to use for the source")("source_mqtt_host", po::value<std::string>(), "MQTT hostname for the source")("source_mqtt_port", po::value<int>(), "MQTT port for the source")
-
-            ("sink_mqtt_user", po::value<std::string>(), "MQTT User to use for the sink")("sink_mqtt_password", po::value<std::string>(), "MQTT password to use for the sink")("sink_mqtt_host", po::value<std::string>(), "MQTT hostname for the sink")("sink_mqtt_port", po::value<int>(), "MQTT port for the sink")
-
-                ("influx_user", po::value<std::string>(), "InfluxDb Username")("influx_password", po::value<std::string>(), "InfluxDb Password")("influx_database", po::value<std::string>(), "InfluxDb Database")("influx_host", po::value<std::string>(), "InfluxDB Hostname")
-
-                    ("ldap_bind_dn", po::value<std::string>(), "LDAP Bind DN")("ldap_password", po::value<std::string>(), "LDAP Bind Password")("ldap_host", po::value<std::string>(), "LDAP Hostname")
-
-                        ("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(Config::Default::interval.histogram_sample_time).count()), "histogram sample time to use. In hours.")("geohash_length", po::value<int>()->default_value(Config::Default::meta.max_geohash_length), "Geohash length to use");
-
-    po::store(po::parse_command_line(argc, argv, desc), m_options);
-
-    check_option("verbose", config::singleton()->meta.verbosity);
-
-    if (option_set("help")) {
-        std::cout << "muondetector-cluster " << Version::string() << "\n\n"
-                  << desc << '\n';
-        return false;
-    }
-    if (option_set("config")) {
-        std::ifstream ifs { get_option<std::string>("config") };
-        if (ifs) {
-            po::store(po::parse_config_file(ifs, file_options), m_options);
-        } else {
-            std::cerr << "Could not open configuration file.\n";
-        }
-    }
-    po::notify(m_options);
-
     std::set_terminate(error::terminate_handler);
-
-    if (option_set("offline")) {
-        log::info() << "Starting in offline mode.";
-    }
-
-    if (option_set("histogram_sample_time")) {
-        config::singleton()->interval.histogram_sample_time = std::chrono::hours { get_option<int>("histogram_sample_time") };
-    }
 
     log::info() << "muondetector-cluster " << Version::string();
 
-    check_option("config", config::singleton()->files.config);
-
-    check_option("station_id", config::singleton()->meta.station);
-
-    check_option("source_mqtt_user", config::singleton()->source_mqtt.login.username);
-    check_option("source_mqtt_password", config::singleton()->source_mqtt.login.password);
-    check_option("source_mqtt_host", config::singleton()->source_mqtt.host);
-    check_option("source_mqtt_port", config::singleton()->source_mqtt.port);
-
-    check_option("sink_mqtt_user", config::singleton()->sink_mqtt.login.username);
-    check_option("sink_mqtt_password", config::singleton()->sink_mqtt.login.password);
-    check_option("sink_mqtt_host", config::singleton()->sink_mqtt.host);
-    check_option("sink_mqtt_port", config::singleton()->sink_mqtt.port);
-
-    check_option("influx_user", config::singleton()->influx.login.username);
-    check_option("influx_password", config::singleton()->influx.login.password);
-    check_option("influx_database", config::singleton()->influx.database);
-    check_option("influx_host", config::singleton()->influx.host);
-
-    check_option("ldap_bind_dn", config::singleton()->ldap.login.bind_dn);
-    check_option("ldap_password", config::singleton()->ldap.login.password);
-    check_option("ldap_host", config::singleton()->ldap.host);
-
-    check_option("geohash_length", config::singleton()->meta.max_geohash_length);
-
-    return true;
+    return config::singleton()->setup(argc, argv);
 }
 
 template <typename T>
@@ -151,7 +75,7 @@ auto application::run() -> int
         return -1;
     }
 
-    if (!option_set("offline")) {
+    if (!config::singleton()->option_set("offline")) {
         sink_mqtt_link = std::make_unique<link::mqtt>(config::singleton()->sink_mqtt, config::singleton()->meta.station + "_sink", "muon::mqtt:si");
         if (!sink_mqtt_link->wait_for(link::mqtt::Status::Connected)) {
             return -1;
@@ -164,7 +88,7 @@ auto application::run() -> int
     sink::collection<trigger::detector> collection_trigger_sink { "muon::sink::t" };
     sink::collection<detector_log_t> collection_detectorlog_sink { "muon::sink::l" };
 
-    if (option_set("debug")) {
+    if (config::singleton()->option_set("debug")) {
         ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);
         ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>>(std::cout);
         ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>>(std::cout);
@@ -176,7 +100,7 @@ auto application::run() -> int
         collection_trigger_sink.emplace(*ascii_trigger_sink);
     }
 
-    if (!option_set("offline")) {
+    if (!config::singleton()->option_set("offline")) {
         mqtt_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish("muonpi/trigger"));
         collection_trigger_sink.emplace(*mqtt_trigger_sink);
 
@@ -216,8 +140,8 @@ auto application::run() -> int
 
     source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
 
-    if (option_set("histogram")) {
-        stationcoincidence = std::make_unique<station_coincidence>(get_option<std::string>("histogram"), stationsupervisor);
+    if (config::singleton()->option_set("histogram")) {
+        stationcoincidence = std::make_unique<station_coincidence>(config::singleton()->get_option<std::string>("histogram"), stationsupervisor);
 
         collection_event_sink.emplace(*stationcoincidence);
         collection_trigger_sink.emplace(*stationcoincidence);

@@ -10,6 +10,7 @@
 
 #include "utility/log.h"
 #include "utility/utility.h"
+#include "utility/configuration.h"
 
 #include <algorithm>
 #include <map>

@@ -11,6 +11,7 @@ set(PROJECT_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/restservice.cpp"
     "${PROJECT_SRC_DIR}/utility/scopeguard.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
+    "${PROJECT_SRC_DIR}/utility/exceptions.cpp"
     "${PROJECT_SRC_DIR}/analysis/simplecoincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"

@@ -18,7 +18,15 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/files.cmake")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
+message(STATUS "build-type: ${CMAKE_BUILD_TYPE}")
+
+add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3 -fsanitize=address)
+
+if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+add_compile_options(-fsanitize=address,undefined)
+add_link_options(-fsanitize=address,undefined)
+endif()
+
 
 find_library(MOSQUITTO mosquitto REQUIRED)
 find_library(SASL2 sasl2 REQUIRED)

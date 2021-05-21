@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
-project(muondetector-cluster LANGUAGES CXX C)
+project(detector-network-processor LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
-option(CLUSTER_DISABLE_SSL "build the code so the rest service doesn't use SSL"
+option(PROJECT_DISABLE_SSL "build the code so the rest service doesn't use SSL"
        OFF)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -30,7 +30,7 @@ find_package(
   COMPONENTS system program_options
   REQUIRED)
 
-set(CLUSTER_INCLUDE_LIBS
+set(PROJECT_INCLUDE_LIBS
     mosquitto
     pthread
     sasl2
@@ -45,12 +45,12 @@ set(CLUSTER_INCLUDE_LIBS
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
 
 if(STD_CPP_FS)
-  set(CLUSTER_INCLUDE_LIBS ${CLUSTER_INCLUDE_LIBS} stdc++fs)
+  set(PROJECT_INCLUDE_LIBS ${PROJECT_INCLUDE_LIBS} stdc++fs)
 endif()
 # --- necessary for compatability with older compilers
 
-configure_file("${PROJECT_CONFIG_DIR}/muondetector-cluster.1"
-               "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1")
+configure_file("${PROJECT_CONFIG_DIR}/detector-network-processor.1"
+               "${CMAKE_CURRENT_BINARY_DIR}/detector-network-processor.1")
 
 configure_file("${PROJECT_CONFIG_DIR}/config.h"
                "${CMAKE_CURRENT_BINARY_DIR}/defaults.h")
@@ -58,13 +58,13 @@ configure_file("${PROJECT_CONFIG_DIR}/config.h"
 add_executable(aggregation "${PROJECT_SRC_DIR}/aggregation.cpp")
 
 add_executable(
-  muondetector-cluster ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES})
+  detector-network-processor ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})
 
 target_include_directories(
-  muondetector-cluster PUBLIC ${PROJECT_HEADER_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+  detector-network-processor PUBLIC ${PROJECT_HEADER_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(muondetector-cluster ${CLUSTER_INCLUDE_LIBS})
+target_link_libraries(detector-network-processor ${PROJECT_INCLUDE_LIBS})
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/packaging.cmake")
 
-add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${CLUSTER_SOURCE_FILES} ${CLUSTER_HEADER_FILES} "${PROJECT_SRC_DIR}/aggregation.cpp")
+add_custom_target(clangformat COMMAND clang-format -style=WebKit -i ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES} "${PROJECT_SRC_DIR}/aggregation.cpp")

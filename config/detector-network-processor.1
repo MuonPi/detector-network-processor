@@ -1,15 +1,15 @@
-.\" manpage for muondetector-cluster
+.\" manpage for detector-network-processor
 .\" Contact developer@muonpi.org to correct errors or typos
-.TH "muondetector-cluster" "1" "@PROJECT_DATE_STRING@" "v @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@" "muondetector-cluster manpage"
+.TH "detector-network-processor" "1" "@PROJECT_DATE_STRING@" "v @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@" "detector-network-processor manpage"
 .SH "NAME"
-muondetector-cluster - calculate coincidences for the MuonPi network
+detector-network-processor - calculate coincidences for the MuonPi network
 .SH "SYNOPSIS"
-.B muondetector-cluster
+.B detector-network-processor
 .br
 Calculates coincidences of single events from the MuonPi network.
 .SH "DESCRIPTION"
-.B muondetector-cluster
-The cluster subscribes to a mqtt topic to collect the incoming event messages and keep
+.B detector-network-processor
+The detector-network-processor subscribes to a mqtt topic to collect the incoming event messages and keep
 track of individual event sources.
 With these messages it calculates coincidences and depending on the context
 publishes them to another mqtt topic or writes them to a database.

@@ -40,7 +40,7 @@ auto application::setup(int argc, const char* argv[]) -> bool
 {
     std::set_terminate(error::terminate_handler);
 
-    log::info() << "muondetector-cluster " << Version::string();
+    log::info() << "detector-network-processor " << Version::string();
 
     return config::singleton()->setup(argc, argv);
 }

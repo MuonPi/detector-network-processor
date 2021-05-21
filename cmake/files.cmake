@@ -1,4 +1,4 @@
-set(CLUSTER_SOURCE_FILES
+set(PROJECT_SOURCE_FILES
     "${PROJECT_SRC_DIR}/main.cpp"
     "${PROJECT_SRC_DIR}/application.cpp"
     "${PROJECT_SRC_DIR}/link/mqtt.cpp"
@@ -22,7 +22,7 @@ set(CLUSTER_SOURCE_FILES
     "${PROJECT_SRC_DIR}/supervision/resource.cpp"
     "${PROJECT_SRC_DIR}/supervision/station.cpp")
 
-set(CLUSTER_HEADER_FILES
+set(PROJECT_HEADER_FILES
     "${PROJECT_HEADER_DIR}/application.h"
     "${PROJECT_HEADER_DIR}/link/database.h"
     "${PROJECT_HEADER_DIR}/link/mqtt.h"

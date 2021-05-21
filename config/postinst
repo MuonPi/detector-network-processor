@@ -8,9 +8,9 @@ chmod g+w /var/muondetector
 echo -e "
 \e[0;31m
 Before starting the daemon, edit /etc/muondetector/muondetector-daemon.cfg and setup a credential file.
-To do this copy the file /usr/share/muondetector/muondetector-cluster-credentials to a local directory and execute
-    sudo runuser -u muonuser -- muondetector-cluster -s muondetector-cluster-credentials
+To do this copy the file /usr/share/muondetector/detector-network-processor-credentials to a local directory and execute
+    sudo runuser -u muonuser -- detector-network-processor -s detector-network-processor-credentials
 Ensure that the file is located at a secure location since it contains the plaintext credentials. Ideally delete this file after running above command.
-If you want to run this daemon as a local cluster, add the option run_local_cluster:b:true to /etc/muondetector/muondetector-cluster.cfg.
+If you want to run this daemon as a local cluster, add the option run_local_cluster:b:true to /etc/muondetector/detector-network-processor.cfg.
 \e[m
 "

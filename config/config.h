@@ -77,7 +77,7 @@ struct Meta {
 };
 
 namespace Default {
-static const ConfigFiles files {"/etc/muondetector/muondetector-cluster.cfg", "/var/muondetector/muondetector-cluster.state"};
+static const ConfigFiles files {"/etc/muondetector/detector-network-processor.cfg", "/var/muondetector/detector-network-processor.state"};
 
 static const Mqtt mqtt{"", 1883, {}};
 static const Influx influx{"", {"", ""}, ""};

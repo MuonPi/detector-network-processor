@@ -103,7 +103,7 @@ auto database::send_string(const std::string& query) const -> bool
 
     http::request<http::string_body> req { http::verb::post, target.str(), version };
     req.set(http::field::host, host);
-    req.set(http::field::user_agent, "muondetector-cluster");
+    req.set(http::field::user_agent, "detector-network-processor");
     req.set(http::field::content_type, "application/x-www-form-urlencoded");
     req.set(http::field::accept, "*/*");
     req.set(http::field::content_length, std::to_string(query.size()));

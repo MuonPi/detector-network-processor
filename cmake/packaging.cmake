@@ -2,47 +2,47 @@ include(GNUInstallDirs)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release)
   add_custom_target(
-    changelog-cluster ALL COMMAND gzip -cn9 "${PROJECT_CONFIG_DIR}/changelog" >
+    changelog-detector-network-processor ALL COMMAND gzip -cn9 "${PROJECT_CONFIG_DIR}/changelog" >
                                   "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz")
   add_custom_target(
-    manpage-cluster ALL
-    COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1" >
-            "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1.gz")
+    manpage-detector-network-processor ALL
+    COMMAND gzip -cn9 "${CMAKE_CURRENT_BINARY_DIR}/detector-network-processor.1" >
+            "${CMAKE_CURRENT_BINARY_DIR}/detector-network-processor.1.gz")
   add_custom_command(
-    TARGET muondetector-cluster
+    TARGET detector-network-processor
     POST_BUILD
     COMMAND ${CMAKE_STRIP}
-            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/muondetector-cluster")
+            "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/detector-network-processor")
 endif()
 
 install(
-  TARGETS muondetector-cluster
+  TARGETS detector-network-processor
   DESTINATION bin
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz"
   DESTINATION "${CMAKE_INSTALL_DOCDIR}"
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/muondetector-cluster.1.gz"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/detector-network-processor.1.gz"
   DESTINATION "share/man/man1/"
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 install(
   FILES "${PROJECT_CONFIG_DIR}/copyright"
   DESTINATION "${CMAKE_INSTALL_DOCDIR}"
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 install(
-  FILES "${PROJECT_CONFIG_DIR}/muondetector-cluster.service"
+  FILES "${PROJECT_CONFIG_DIR}/detector-network-processor.service"
   DESTINATION "/lib/systemd/system"
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 install(
-  FILES "${PROJECT_CONFIG_DIR}/muondetector-cluster.cfg"
+  FILES "${PROJECT_CONFIG_DIR}/detector-network-processor.cfg"
   DESTINATION "/etc/muondetector/"
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 install(
-  FILES "${PROJECT_CONFIG_DIR}/muondetector-cluster-credentials"
+  FILES "${PROJECT_CONFIG_DIR}/detector-network-processor-credentials"
   DESTINATION "share/muondetector/"
-  COMPONENT cluster)
+  COMPONENT detector-network-processor)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
@@ -52,7 +52,7 @@ set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
 set(CPACK_PACKAGE_VENDOR "MuonPi.org")
 set(CPACK_DEBIAN_PACKAGE_SECTION "net")
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE
-    "https://github.com/MuonPi/muondetector-cluster")
+    "https://github.com/MuonPi/detector-network-processor")
 set(CPACK_PACKAGE_VERSION
     "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
 )

@@ -63,7 +63,9 @@ configure_file("${PROJECT_CONFIG_DIR}/detector-network-processor.1"
 configure_file("${PROJECT_CONFIG_DIR}/config.h"
                "${CMAKE_CURRENT_BINARY_DIR}/defaults.h")
 
+if (PROCESSOR_BUILD_AGGREGATION)
 add_executable(aggregation "${PROJECT_SRC_DIR}/aggregation.cpp")
+endif()
 
 add_executable(
   detector-network-processor ${PROJECT_SOURCE_FILES} ${PROJECT_HEADER_FILES})

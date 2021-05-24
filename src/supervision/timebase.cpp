@@ -41,6 +41,6 @@ void timebase::get(timebase_t tb)
     pipeline::base<timebase_t>::put(tb);
 
     m_start = std::numeric_limits<std::int_fast64_t>::max();
-    m_end = std::numeric_limits<std::int_fast64_t>::min();
+    m_end = 0;
 }
 } // namespace muonpi::supervision

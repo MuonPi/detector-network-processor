@@ -1,87 +1,53 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include <iostream>
-#include <map>
-#include <optional>
-#include <string>
-#include <variant>
+#include "defaults.h"
 
-namespace MuonPi {
+#include <boost/program_options.hpp>
 
-struct Option {
-    Option(std::string name, int* value);
-    Option(std::string name, bool* value);
-    Option(std::string name, double* value);
-    Option(std::string name, std::string* value);
-    Option();
-
-    [[nodiscard]] auto name() const -> std::string;
-
-    template <typename T>
-    auto operator=(T value) -> bool;
-
-    [[nodiscard]] auto write() -> std::string;
-
-    [[nodiscard]] auto read(const std::string& in) -> bool;
-
-    [[nodiscard]] operator bool() const;
-
-private:
-    template <typename T>
-    auto set(T value) -> bool;
-
-    std::variant<bool*, int*, double*, std::string*> m_option;
-    bool m_valid { false };
-    std::string m_name {};
-};
-
-class Configuration {
+namespace muonpi {
+class config {
 public:
-    Configuration(std::string filename, bool encrypted = false);
+    [[nodiscard]] static auto singleton() -> const std::unique_ptr<config>&;
 
-    void set_encrypted(bool encrypted);
-    void set_filename(const std::string& filename);
+    Config::Mqtt source_mqtt { Config::Default::mqtt };
+    Config::Mqtt sink_mqtt { Config::Default::mqtt };
+    Config::Influx influx { Config::Default::influx };
+    Config::Ldap ldap { Config::Default::ldap };
+    Config::Rest rest { Config::Default::rest };
+    Config::Trigger trigger { Config::Default::trigger };
+    Config::Interval interval { Config::Default::interval };
+    Config::ConfigFiles files { Config::Default::files };
+    Config::Meta meta { Config::Default::meta };
 
-    [[nodiscard]] auto operator[](const std::string& name) -> Option&;
+    [[nodiscard]] auto setup(int argc, const char* argv[]) -> bool;
 
-    auto operator<<(Option argument) -> Configuration&;
+    [[nodiscard]] inline auto option_set(std::string name) const -> bool
+    {
+        return m_options.find(std::move(name)) != m_options.end();
+    }
 
-    [[nodiscard]] auto read() -> bool;
+    template <typename T>
+    [[nodiscard]] inline auto get_option(std::string name) const -> T
+    {
+        return m_options[std::move(name)].as<T>();
+    }
 
-    [[nodiscard]] auto write() -> bool;
+    template <typename T>
+    auto check_option(std::string name, T& option) const -> bool
+    {
+        if (!option_set(name)) {
+            return false;
+        }
+        option = get_option<T>(std::move(name));
+        return true;
+    }
 
 private:
-    [[nodiscard]] auto read(std::istream& in) -> bool;
-    [[nodiscard]] auto write(std::ostream& out) -> bool;
-    [[nodiscard]] static auto decrypt(std::istream& file) -> std::string;
-    static void encrypt(std::ostream& file, const std::string& content);
+    static const std::unique_ptr<config> s_singleton;
 
-    std::string m_filename {};
-    bool m_encrypted { false };
-
-    std::map<std::string, Option> m_options {};
+    boost::program_options::variables_map m_options {};
 };
-
-template <typename T>
-auto Option::operator=(T value) -> bool
-{
-    return set<T>(value);
 }
 
-template <typename T>
-auto Option::set(T value) -> bool
-{
-    if (!std::holds_alternative<T*>(m_option)) {
-        return false;
-    }
-    T* opt { std::get<T*>(m_option) };
-    if (opt == nullptr) {
-        return false;
-    }
-    *opt = value;
-    return true;
-}
-
-}
 #endif // CONFIGURATION_H

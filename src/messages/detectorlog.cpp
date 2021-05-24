@@ -1,48 +1,19 @@
 #include "messages/detectorlog.h"
 
-namespace MuonPi {
+#include <utility>
 
-void DetectorLog::add_item(DetectorLogItem item)
+namespace muonpi {
+
+void detector_log_t::emplace(item it)
 {
-    if (item == DetectorLogItem {}) {
-        return;
-    }
-    m_items.emplace(item);
+    items.emplace(std::move(it));
 }
 
-auto DetectorLog::has_items() const -> bool
+auto detector_log_t::get() -> item
 {
-    return (!m_items.empty());
+    item it { items.front() };
+    items.pop();
+    return it;
 }
 
-auto DetectorLog::next_item() -> DetectorLogItem
-{
-    if (!has_items()) {
-        return DetectorLogItem {};
-    }
-    DetectorLogItem item { m_items.front() };
-    m_items.pop();
-    return item;
-}
-
-auto DetectorLog::log_id() const -> const std::string&
-{
-    return m_log_id;
-}
-
-void DetectorLog::set_userinfo(UserInfo user_info)
-{
-    m_userinfo = user_info;
-}
-
-void DetectorLog::set_log_id(const std::string& log_id)
-{
-    m_log_id = log_id;
-}
-
-auto DetectorLog::user_info() const -> UserInfo
-{
-    return m_userinfo;
-}
-
-}
+} // namespace muonpi

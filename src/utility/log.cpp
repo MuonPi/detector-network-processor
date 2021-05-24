@@ -1,129 +1,45 @@
 #include "utility/log.h"
 
-namespace MuonPi::Log {
+namespace muonpi::log {
 
-Sink::Sink(Level level)
-    : m_level { level }
+auto debug() -> logger<Level::Debug>
 {
-}
-
-Sink::~Sink() = default;
-
-auto Sink::level() const -> Level
-{
-    return m_level;
-}
-
-auto Sink::to_string(Level level) -> std::string
-{
-    switch (level) {
-    case Level::Debug:
-        return "Debug";
-    case Level::Info:
-        return "Info";
-    case Level::Notice:
-        return "Notice";
-    case Level::Warning:
-        return "Warning";
-    case Level::Error:
-        return "Error";
-    case Level::Critical:
-        return "Critical";
-    case Level::Alert:
-        return "Alert";
-    case Level::Emergency:
-        return "Emergency";
-    }
     return {};
 }
 
-StreamSink::StreamSink(std::ostream& ostream, Level level)
-    : Sink { level }
-    , m_ostream { ostream }
+auto info() -> logger<Level::Info>
 {
+    return {};
 }
 
-void StreamSink::sink(const Message& msg)
+auto notice() -> logger<Level::Notice>
 {
-    m_ostream << to_string(msg.level) + ": " + msg.message + "\n"
-              << std::flush;
-}
-std::shared_ptr<Log> Log::s_singleton { std::make_shared<Log>() };
-
-void Log::add_sink(std::shared_ptr<Sink> sink)
-{
-    m_sinks.push_back(sink);
+    return {};
 }
 
-SyslogSink::SyslogSink(Level level)
-    : Sink { level }
+auto warning() -> logger<Level::Warning>
 {
-    setlogmask(LOG_UPTO(level));
-    openlog(appname, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+    return {};
 }
 
-SyslogSink::~SyslogSink()
+auto error() -> logger<Level::Error>
 {
-    closelog();
+    return {};
 }
 
-void SyslogSink::sink(const Message& msg)
+auto critical(int exit_code) -> logger<Level::Critical>
 {
-    syslog(level(), "%s", msg.message.c_str());
+    return { exit_code };
 }
 
-void Log::send(const Message& msg)
+auto alert(int exit_code) -> logger<Level::Alert>
 {
-    for (auto& sink : m_sinks) {
-        if (sink->level() >= msg.level) {
-            sink->sink(msg);
-        }
-    }
+    return { exit_code };
 }
 
-auto Log::singleton() -> std::shared_ptr<Log>
+auto emergency(int exit_code) -> logger<Level::Emergency>
 {
-    return s_singleton;
+    return { exit_code };
 }
 
-auto debug() -> Log::Logger<Level::Debug>&
-{
-    return Log::singleton()->m_debug;
-}
-
-auto info() -> Log::Logger<Level::Info>&
-{
-    return Log::singleton()->m_info;
-}
-
-auto notice() -> Log::Logger<Level::Notice>&
-{
-    return Log::singleton()->m_notice;
-}
-
-auto warning() -> Log::Logger<Level::Warning>&
-{
-    return Log::singleton()->m_warning;
-}
-
-auto error() -> Log::Logger<Level::Error>&
-{
-    return Log::singleton()->m_error;
-}
-
-auto critical() -> Log::Logger<Level::Critical>&
-{
-    return Log::singleton()->m_crititcal;
-}
-
-auto alert() -> Log::Logger<Level::Alert>&
-{
-    return Log::singleton()->m_alert;
-}
-
-auto emergency() -> Log::Logger<Level::Emergency>&
-{
-    return Log::singleton()->m_emergency;
-}
-
-}
+} // namespace muonpi::log

@@ -1,274 +1,122 @@
-﻿#include "utility/configuration.h"
+#include "utility/configuration.h"
+
 #include "utility/log.h"
-#include "utility/utility.h"
+
+#include <fstream>
 
 #include <filesystem>
-#include <fstream>
-#include <sstream>
-#include <utility>
 
-#include <crypto++/base64.h>
-#include <crypto++/files.h>
-#include <crypto++/filters.h>
-#include <crypto++/hex.h>
-#include <crypto++/modes.h>
-#include <crypto++/osrng.h>
-#include <crypto++/sha.h>
-#include <cryptopp/aes.h>
+namespace muonpi {
 
-namespace MuonPi {
+const std::unique_ptr<config> config::s_singleton { std::make_unique<config>() };
 
-Option::Option(std::string name, int* value)
-    : m_option { value }
-    , m_valid { true }
-    , m_name { std::move(name) }
+auto config::singleton() -> const std::unique_ptr<config>&
 {
+    return s_singleton;
 }
 
-Option::Option(std::string name, bool* value)
-    : m_option { value }
-    , m_valid { true }
-    , m_name { std::move(name) }
+auto config::setup(int argc, const char* argv[]) -> bool
 {
-}
+    namespace po = boost::program_options;
 
-Option::Option(std::string name, double* value)
-    : m_option { value }
-    , m_valid { true }
-    , m_name { std::move(name) }
-{
-}
+    po::options_description desc("General options");
+    desc.add_options()
+            ("help,h", "produce help message")
+            ("offline,o", "Do not send processed data to the servers.")
+            ("debug,d", "Use the ascii sinks for debugging.")
+            ("local,l", "Run the cluser as a local instance")
+            ("verbose,v", po::value<int>()->default_value(meta.verbosity), "Verbosity level")
+            ("config,c", po::value<std::string>()->default_value(files.config), "Specify a configuration file to use");
 
-Option::Option(std::string name, std::string* value)
-    : m_option { value }
-    , m_valid { true }
-    , m_name { std::move(name) }
-{
-}
+    po::options_description file_options("Config file options");
+    file_options.add_options()
+            ("station_id", po::value<std::string>(), "Base station ID")
 
-Option::Option()
+            ("source_mqtt_user", po::value<std::string>(), "MQTT User to use for the source")
+            ("source_mqtt_password", po::value<std::string>(), "MQTT password to use for the source")
+            ("source_mqtt_host", po::value<std::string>(), "MQTT hostname for the source")
+            ("source_mqtt_port", po::value<int>(), "MQTT port for the source")
 
-    = default;
+            ("sink_mqtt_user", po::value<std::string>(), "MQTT User to use for the sink")
+            ("sink_mqtt_password", po::value<std::string>(), "MQTT password to use for the sink")
+            ("sink_mqtt_host", po::value<std::string>(), "MQTT hostname for the sink")
+            ("sink_mqtt_port", po::value<int>(), "MQTT port for the sink")
 
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+            ("influx_user", po::value<std::string>(), "InfluxDb Username")
+            ("influx_password", po::value<std::string>(), "InfluxDb Password")
+            ("influx_database", po::value<std::string>(), "InfluxDb Database")
+            ("influx_host", po::value<std::string>(), "InfluxDB Hostname")
 
-auto Option::name() const -> std::string
-{
-    return m_name;
-}
+            ("ldap_bind_dn", po::value<std::string>(), "LDAP Bind DN")
+            ("ldap_password", po::value<std::string>(), "LDAP Bind Password")
+            ("ldap_host", po::value<std::string>(), "LDAP Hostname")
 
-auto Option::write() -> std::string
-{
-    std::ostringstream out {};
-    std::visit(overloaded {
-                   [&](const bool* value) { out << m_name << "=b:" << (*value); },
-                   [&](const int* value) { out << m_name << "=i:" << (*value); },
-                   [&](const double* value) { out << m_name << "=d:" << (*value); },
-                   [&](std::string* value) { out << m_name << "=s:" << (*value); },
-               },
-        m_option);
-    return out.str();
-}
+            ("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")
+            ("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(interval.histogram_sample_time).count()), "histogram sample time to use. In hours.")
+            ("geohash_length", po::value<int>()->default_value(meta.max_geohash_length), "Geohash length to use")
+            ("clusterlog_interval", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::minutes>(interval.clusterlog).count()), "Interval in which to send the cluster log. In minutes.")
+            ("detectorsummary_interval", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::minutes>(interval.detectorsummary).count()), "Interval in which to send the detector summary. In minutes.")
+            ;
 
-auto Option::read(const std::string& in) -> bool
-{
-    if (in[1] != ':') {
+    po::store(po::parse_command_line(argc, argv, desc), m_options);
+
+
+    if (option_set("help")) {
+        log::info() << "\n" << desc << '\n';
         return false;
     }
-    char type { in[0] };
-    try {
-        switch (type) {
-        case 'b':
-            return set<bool>(in.substr(2) == "true");
-        case 'i':
-            return set<int>(std::stoi(in.substr(2), nullptr));
-        case 'd':
-            return set<double>(std::stod(in.substr(2), nullptr));
-        case 's':
-            return set<std::string>(in.substr(2));
-        default:
-            return false;
-        }
-    } catch (...) {
+    check_option("config", files.config);
+    check_option("verbose", meta.verbosity);
+
+    if (!std::filesystem::exists(files.config)) {
+        log::error() << "Specified configuration file '" << files.config << "' does not exist.";
         return false;
     }
-}
-
-Option::operator bool() const
-{
-    return m_valid;
-}
-
-Configuration::Configuration(std::string filename, bool encrypted)
-    : m_filename { std::move(filename) }
-    , m_encrypted { encrypted }
-{
-}
-void Configuration::set_encrypted(bool encrypted)
-{
-    m_encrypted = encrypted;
-}
-
-void Configuration::set_filename(const std::string& filename)
-{
-    m_filename = filename;
-}
-
-auto Configuration::operator[](const std::string& name) -> Option&
-{
-    if (m_options.find(name) == m_options.end()) {
-        throw -1;
+    std::ifstream ifs { files.config };
+    if (ifs) {
+        po::store(po::parse_config_file(ifs, file_options), m_options);
+    } else {
+        log::error() << "Could not open configuration file '" << get_option<std::string>("config") << "'.";
+        return false;
     }
-    return m_options[name];
-}
+    po::notify(m_options);
 
-auto Configuration::operator<<(Option argument) -> Configuration&
-{
-    m_options[argument.name()] = std::move(argument);
-    return *this;
-}
-
-auto Configuration::read(std::istream& in) -> bool
-{
-    std::size_t n { 0 };
-    std::string line {};
-    while (std::getline(in, line)) {
-        n++;
-        auto equal_pos { line.find_first_of('=') };
-
-        if (equal_pos == std::string::npos) {
-            continue;
-        }
-
-        auto first_char { line.find_first_not_of(" \t") };
-        if (first_char == std::string::npos) {
-            continue;
-        }
-        line = line.substr(first_char);
-        auto comment_pos { line.find_first_of('#') };
-
-        if (comment_pos != std::string::npos) {
-            if (comment_pos < equal_pos) {
-                continue;
-            }
-            line = line.substr(0, comment_pos);
-        }
-        line = line.substr(0, line.find_last_not_of(" \t\n") + 1);
-
-        auto colon_pos { line.substr(equal_pos + 1).find(':') };
-        if ((equal_pos == std::string::npos) || (colon_pos == std::string::npos)) {
-            continue;
-        }
-
-        std::string name { line.substr(0, equal_pos) };
-        name = name.substr(0, name.find_last_not_of(" \t") + 1);
-        if (m_options.find(name) == m_options.end()) {
-            continue;
-        }
-
-        std::string value { line.substr(equal_pos + 1) };
-        value = value.substr(value.find_first_not_of(" \t"));
-
-        if (!m_options[name].read(value)) {
-            Log::warning() << "Could not read config '" + m_filename + "' line " + std::to_string(n) + ": " + line;
-            return false;
-        }
-
-        std::string output { "Loaded configuration: " + name };
-        if (!m_encrypted) {
-            output += "=" + value;
-        }
-        Log::debug() << output;
+    if (option_set("histogram_sample_time")) {
+        interval.histogram_sample_time = std::chrono::hours { get_option<int>("histogram_sample_time") };
     }
+
+    if (option_set("clusterlog_interval")) {
+        interval.clusterlog = std::chrono::minutes { get_option<int>("clusterlog_interval") };
+    }
+
+    if (option_set("detectorsummary_interval")) {
+        interval.detectorsummary = std::chrono::minutes { get_option<int>("detectorsummary_interval") };
+    }
+
+    check_option("station_id", meta.station);
+
+    check_option("source_mqtt_user", source_mqtt.login.username);
+    check_option("source_mqtt_password", source_mqtt.login.password);
+    check_option("source_mqtt_host", source_mqtt.host);
+    check_option("source_mqtt_port", source_mqtt.port);
+
+    check_option("sink_mqtt_user", sink_mqtt.login.username);
+    check_option("sink_mqtt_password", sink_mqtt.login.password);
+    check_option("sink_mqtt_host", sink_mqtt.host);
+    check_option("sink_mqtt_port", sink_mqtt.port);
+
+    check_option("influx_user", influx.login.username);
+    check_option("influx_password", influx.login.password);
+    check_option("influx_database", influx.database);
+    check_option("influx_host", influx.host);
+
+    check_option("ldap_bind_dn", ldap.login.bind_dn);
+    check_option("ldap_password", ldap.login.password);
+    check_option("ldap_host", ldap.host);
+
+    check_option("geohash_length", meta.max_geohash_length);
+
     return true;
 }
 
-auto Configuration::read() -> bool
-{
-    if (!std::filesystem::exists(m_filename)) {
-        Log::error() << "Configuration file does not exist: " + m_filename;
-        return false;
-    }
-    bool result { false };
-    if (m_encrypted) {
-        std::ifstream file { m_filename };
-        std::string decrypted { decrypt(file) };
-        file.close();
-        std::istringstream in_str { decrypted };
-        result = read(in_str);
-    } else {
-        std::ifstream in { m_filename };
-        result = read(in);
-        in.close();
-    }
-    return result;
-}
-
-auto Configuration::write(std::ostream& out) -> bool
-{
-    for (auto& [name, option] : m_options) {
-        out << option.write() << '\n';
-    }
-    return true;
-}
-
-auto Configuration::write() -> bool
-{
-    bool result { false };
-    if (m_encrypted) {
-        std::ostringstream plain {};
-        result = write(plain);
-        std::string string { plain.str() };
-        std::ofstream file { m_filename };
-        encrypt(file, string);
-        file.close();
-
-    } else {
-        std::ofstream out { m_filename };
-        result = write(out);
-        out.close();
-    }
-    return result;
-}
-
-auto Configuration::decrypt(std::istream& file) -> std::string
-{
-    using namespace CryptoPP;
-
-    std::ostringstream mac_stream {};
-    mac_stream << std::hex << std::setfill('0') << std::setw(16) << GUID::get_mac();
-    std::string mac { mac_stream.str() };
-
-    SecByteBlock aes_key(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
-    SecByteBlock iv(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
-
-    CFB_Mode<AES>::Decryption dec { aes_key, mac.size(), iv, static_cast<int>(mac.size()) };
-
-    std::string decrypted {};
-
-    FileSource give_me_a_name(file, true, new Base64Decoder { new StreamTransformationFilter(dec, new StringSink(decrypted)) });
-    return decrypted;
-}
-
-void Configuration::encrypt(std::ostream& file, const std::string& content)
-{
-    using namespace CryptoPP;
-    std::ostringstream mac_stream {};
-    mac_stream << std::hex << std::setfill('0') << std::setw(16) << GUID::get_mac();
-    std::string mac { mac_stream.str() };
-
-    SecByteBlock aes_key(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
-    SecByteBlock iv(reinterpret_cast<const byte*>(mac.data()), static_cast<int>(mac.size()));
-
-    std::string encrypted {};
-    CFB_Mode<AES>::Encryption enc { aes_key, mac.size(), iv, static_cast<int>(mac.size()) };
-
-    StringSource(content, true,
-        new StreamTransformationFilter(enc, new Base64Encoder { new FileSink(file) }));
-}
-}
+} // namespace muonpi

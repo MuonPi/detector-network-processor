@@ -1,126 +1,92 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <syslog.h>
-#include <vector>
+#include "application.h"
+#include "defaults.h"
 
-namespace MuonPi::Log {
+#include "utility/configuration.h"
+
+#include <iostream>
+#include <sstream>
+#include <string>
+
+namespace muonpi::log {
 
 enum Level : int {
-    Debug = LOG_DEBUG,
-    Info = LOG_INFO,
-    Notice = LOG_NOTICE,
-    Warning = LOG_WARNING,
-    Error = LOG_ERR,
-    Critical = LOG_CRIT,
-    Alert = LOG_ALERT,
-    Emergency = LOG_EMERG
-};
-
-static constexpr const char* appname { "muondetector-cluster" };
-
-struct Message {
-    const Level level { Level::Info };
-    const std::string message {};
-};
-
-class Sink {
-public:
-    Sink(Level level);
-
-    virtual ~Sink();
-    [[nodiscard]] auto level() const -> Level;
-
-protected:
-    friend class Log;
-
-    [[nodiscard]] static auto to_string(Level level) -> std::string;
-
-    virtual void sink(const Message& msg) = 0;
-
-private:
-    Level m_level { Level::Info };
-};
-
-class StreamSink : public Sink {
-public:
-    StreamSink(std::ostream& ostream, Level level = Level::Debug);
-
-protected:
-    void sink(const Message& msg) override;
-
-private:
-    std::ostream& m_ostream;
-};
-
-class SyslogSink : public Sink {
-public:
-    SyslogSink(Level level = Level::Debug);
-
-    ~SyslogSink();
-
-protected:
-    void sink(const Message& msg) override;
-};
-
-class Log {
-public:
-    template <Level L>
-    class Logger {
-    public:
-        Logger(Log& log);
-
-        auto operator<<(std::string message) -> Logger<L>&;
-
-    private:
-        Log& m_log;
-    };
-
-    void add_sink(std::shared_ptr<Sink> sink);
-
-    [[nodiscard]] static auto singleton() -> std::shared_ptr<Log>;
-
-    Logger<Level::Debug> m_debug { *this };
-    Logger<Level::Info> m_info { *this };
-    Logger<Level::Notice> m_notice { *this };
-    Logger<Level::Warning> m_warning { *this };
-    Logger<Level::Error> m_error { *this };
-    Logger<Level::Critical> m_crititcal { *this };
-    Logger<Level::Alert> m_alert { *this };
-    Logger<Level::Emergency> m_emergency { *this };
-
-private:
-    std::vector<std::shared_ptr<Sink>> m_sinks {};
-
-    void send(const Message& msg);
-
-    static std::shared_ptr<Log> s_singleton;
+    Emergency,
+    Alert,
+    Critical,
+    Error,
+    Info,
+    Warning,
+    Notice,
+    Debug
 };
 
 template <Level L>
-Log::Logger<L>::Logger(Log& log)
-    : m_log { log }
-{
-}
+class logger {
+public:
+    template <typename T>
+    auto operator<<(T content) -> logger<L>&
+    {
+        m_stream << content;
+        return *this;
+    }
 
-template <Level L>
-auto Log::Logger<L>::operator<<(std::string message) -> Logger<L>&
-{
-    m_log.send(Message { L, message });
-    return *this;
-}
+    logger(int exit_code)
+        : m_exit_code { std::move(exit_code) }
+    {
+    }
 
-[[nodiscard]] auto debug() -> Log::Logger<Level::Debug>&;
-[[nodiscard]] auto info() -> Log::Logger<Level::Info>&;
-[[nodiscard]] auto notice() -> Log::Logger<Level::Notice>&;
-[[nodiscard]] auto warning() -> Log::Logger<Level::Warning>&;
-[[nodiscard]] auto error() -> Log::Logger<Level::Error>&;
-[[nodiscard]] auto critical() -> Log::Logger<Level::Critical>&;
-[[nodiscard]] auto alert() -> Log::Logger<Level::Alert>&;
-[[nodiscard]] auto emergency() -> Log::Logger<Level::Emergency>&;
+    logger() = default;
+
+    ~logger()
+    {
+        if (L <= (Level::Info + config::singleton()->meta.verbosity)) {
+            std::cerr << to_string() << m_stream.str() + "\n"
+                      << std::flush;
+        }
+        if (L <= Level::Critical) {
+            application::shutdown(std::move(m_exit_code));
+        }
+    }
+
+private:
+    std::ostringstream m_stream {};
+    int m_exit_code { 0 };
+
+    [[nodiscard]] auto to_string() -> std::string
+    {
+        switch (L) {
+        case Level::Debug:
+            return "Debug: ";
+        case Level::Info:
+            return "";
+        case Level::Notice:
+            return "Notice: ";
+        case Level::Warning:
+            return "Warning: ";
+        case Level::Error:
+            return "Error: ";
+        case Level::Critical:
+            return "Critical: ";
+        case Level::Alert:
+            return "Alert: ";
+        case Level::Emergency:
+            return "Emergency: ";
+        }
+        return {};
+    }
+};
+
+[[nodiscard]] auto debug() -> logger<Level::Debug>;
+[[nodiscard]] auto info() -> logger<Level::Info>;
+[[nodiscard]] auto notice() -> logger<Level::Notice>;
+[[nodiscard]] auto warning() -> logger<Level::Warning>;
+[[nodiscard]] auto error() -> logger<Level::Error>;
+[[nodiscard]] auto critical(int exit_code = 1) -> logger<Level::Critical>;
+[[nodiscard]] auto alert(int exit_code = 1) -> logger<Level::Alert>;
+[[nodiscard]] auto emergency(int exit_code = 1) -> logger<Level::Emergency>;
 
 }
 

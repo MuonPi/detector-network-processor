@@ -6,29 +6,29 @@
 
 #include <algorithm>
 
-namespace MuonPi {
+namespace muonpi::supervision {
 
-TimeBaseSupervisor::TimeBaseSupervisor(Sink::Base<Event>& event_sink, Sink::Base<TimeBase>& timebase_sink)
-    : Pipeline<Event> { event_sink }
-    , Pipeline<TimeBase> { timebase_sink }
+timebase::timebase(sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink)
+    : pipeline::base<event_t> { event_sink }
+    , pipeline::base<timebase_t> { timebase_sink }
 {
 }
 
-void TimeBaseSupervisor::get(Event event)
+void timebase::get(event_t event)
 {
-    if (event.start() < m_start) {
-        m_start = event.start();
-    } else if (event.start() > m_end) {
-        m_end = event.start();
+    if (event.data.start < m_start) {
+        m_start = event.data.start;
+    } else if (event.data.start > m_end) {
+        m_end = event.data.start;
     }
-    Pipeline<Event>::put(event);
+    pipeline::base<event_t>::put(std::move(event));
 }
 
-void TimeBaseSupervisor::get(TimeBase timebase)
+void timebase::get(timebase_t tb)
 {
     if ((std::chrono::system_clock::now() - m_sample_start) < s_sample_time) {
-        timebase.base = m_current;
-        Pipeline<TimeBase>::put(timebase);
+        tb.base = m_current;
+        pipeline::base<timebase_t>::put(tb);
         return;
     }
 
@@ -36,11 +36,11 @@ void TimeBaseSupervisor::get(TimeBase timebase)
 
     m_current = std::clamp(std::chrono::nanoseconds { m_end - m_start }, s_minimum, s_maximum);
 
-    timebase.base = m_current;
+    tb.base = m_current;
 
-    Pipeline<TimeBase>::put(timebase);
+    pipeline::base<timebase_t>::put(tb);
 
     m_start = std::numeric_limits<std::int_fast64_t>::max();
     m_end = std::numeric_limits<std::int_fast64_t>::min();
 }
-}
+} // namespace muonpi::supervision

@@ -8,6 +8,7 @@
 #include "messages/userinfo.h"
 #include "source/base.h"
 
+#include "utility/configuration.h"
 #include "utility/log.h"
 #include "utility/utility.h"
 
@@ -16,27 +17,27 @@
 #include <memory>
 #include <string>
 
-namespace MuonPi::Source {
+namespace muonpi::source {
 
 /**
- * @brief The Source::Mqtt class
+ * @brief The source::mqtt class
  */
 template <typename T>
-class Mqtt : public Base<T> {
+class mqtt : public base<T> {
 public:
     /**
-     * @brief Mqtt
-     * @param subscriber The Mqtt Topic this source should be subscribed to
+     * @brief mqtt
+     * @param subscriber The mqtt Topic this source should be subscribed to
      */
-    Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& topic);
+    mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic);
 
-    ~Mqtt() override;
+    ~mqtt() override;
 
 private:
     /**
-    * @brief Adapter base class for the collection of several logically connected, but timely distributed MqttItems
+    * @brief Adapter base class for the collection of several logically connected, but timely distributed mqttItems
     */
-    struct ItemCollector {
+    struct item_collector {
         enum ResultCode : std::uint8_t {
             Error = 0,
             Aggregating = 1,
@@ -47,10 +48,10 @@ private:
             Reset = Abort | NewEpoch
         };
 
-        ItemCollector();
+        item_collector();
 
         /**
-        * @brief reset Resets the ItemCollector to its default state
+        * @brief reset Resets the item_collector to its default state
         */
         void reset();
 
@@ -59,9 +60,9 @@ private:
         * @param message The message to pass
         * @return result code
         */
-        [[nodiscard]] auto add(MessageParser& topic, MessageParser& message) -> ResultCode;
+        [[nodiscard]] auto add(message_parser& topic, message_parser& message) -> ResultCode;
 
-        UserInfo user_info {};
+        userinfo_t user_info {};
 
         const std::chrono::system_clock::time_point m_first_message { std::chrono::system_clock::now() };
 
@@ -75,91 +76,91 @@ private:
      * @brief process Processes one LogItem
      * @param msg The message to process
      */
-    void process(const Link::Mqtt::Message& msg);
+    void process(const link::mqtt::message_t& msg);
 
-    [[nodiscard]] auto generate_hash(MessageParser& topic, MessageParser& message) -> std::size_t;
+    [[nodiscard]] auto generate_hash(message_parser& topic, message_parser& message) -> std::size_t;
 
-    Link::Mqtt::Subscriber& m_link;
+    link::mqtt::subscriber& m_link;
 
-    std::map<std::size_t, ItemCollector> m_buffer {};
+    std::map<std::size_t, item_collector> m_buffer {};
 };
 
 // +++++++++++++++++++++++++++++++
 // implementation part starts here
 // +++++++++++++++++++++++++++++++
 template <>
-Mqtt<DetectorInfo<Location>>::ItemCollector::ItemCollector()
+mqtt<detector_info_t<location_t>>::item_collector::item_collector()
     : default_status { 0x003F }
     , status { default_status }
 {
 }
 
 template <>
-Mqtt<Event>::ItemCollector::ItemCollector()
+mqtt<event_t>::item_collector::item_collector()
     : default_status { 0x0000 }
     , status { default_status }
 {
 }
 
 template <>
-Mqtt<DetectorLog>::ItemCollector::ItemCollector()
+mqtt<detector_log_t>::item_collector::item_collector()
     : default_status { 2 }
     , status { default_status }
 {
 }
 
 template <typename T>
-void Mqtt<T>::ItemCollector::reset()
+void mqtt<T>::item_collector::reset()
 {
-    user_info = UserInfo {};
+    user_info = userinfo_t {};
     status = default_status;
 }
 
 template <>
-auto Mqtt<DetectorInfo<Location>>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<detector_info_t<location_t>>::item_collector::add(message_parser& /*topic*/, message_parser& message) -> ResultCode
 {
     if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Reset;
     }
-    item.m_hash = user_info.hash();
-    item.m_userinfo = user_info;
+    item.hash = user_info.hash();
+    item.userinfo = user_info;
     try {
         if (message[1] == "geoHeightMSL") {
-            item.m_item.h = std::stod(message[2], nullptr);
+            item.item<location_t>().h = std::stod(message[2], nullptr);
             status &= ~1;
         } else if (message[1] == "geoHorAccuracy") {
-            item.m_item.h_acc = std::stod(message[2], nullptr);
+            item.item<location_t>().h_acc = std::stod(message[2], nullptr);
             status &= ~2;
         } else if (message[1] == "geoLatitude") {
-            item.m_item.lat = std::stod(message[2], nullptr);
+            item.item<location_t>().lat = std::stod(message[2], nullptr);
             status &= ~4;
         } else if (message[1] == "geoLongitude") {
-            item.m_item.lon = std::stod(message[2], nullptr);
+            item.item<location_t>().lon = std::stod(message[2], nullptr);
             status &= ~8;
         } else if (message[1] == "geoVertAccuracy") {
-            item.m_item.v_acc = std::stod(message[2], nullptr);
+            item.item<location_t>().v_acc = std::stod(message[2], nullptr);
             status &= ~16;
         } else if (message[1] == "positionDOP") {
-            item.m_item.dop = std::stod(message[2], nullptr);
+            item.item<location_t>().dop = std::stod(message[2], nullptr);
             status &= ~32;
         } else if (message[1] == "maxGeohashLength") {
-            item.m_item.max_geohash_length = std::stoi(message[2], nullptr);
+            item.item<location_t>().max_geohash_length = std::stoi(message[2], nullptr);
         } else {
             return ResultCode::Aggregating;
         }
     } catch (std::invalid_argument& e) {
-        Log::warning() << "received exception when parsing log item: " + std::string(e.what());
+        log::warning() << "received exception when parsing log item: " << e.what();
         return ResultCode::Error;
     }
 
-    if (item.m_item.max_geohash_length == 0) {
-        item.m_item.max_geohash_length = Config::meta.max_geohash_length;
+    if (item.item<location_t>().max_geohash_length == 0) {
+        item.item<location_t>().max_geohash_length = config::singleton()->meta.max_geohash_length;
     }
     return ((status == 0) ? ResultCode::Finished : ResultCode::Aggregating);
 }
 
 template <>
-auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& content) -> ResultCode
+auto mqtt<event_t>::item_collector::add(message_parser& topic, message_parser& content) -> ResultCode
 {
     if ((topic.size() < 4) || (content.size() < 7)) {
         return Error;
@@ -169,12 +170,11 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             return Error;
         }
 
-        Event::Data data;
+        event_t::data_t data;
 
-        std::size_t hash { 0 };
         std::size_t n { 0 };
         try {
-            hash = std::stoul(content[1], nullptr, 16);
+            data.hash = std::stoul(content[1], nullptr, 16);
             n = std::stoul(content[4], nullptr);
             data.user = topic[2];
             data.station_id = topic[3];
@@ -186,15 +186,16 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             data.start = std::stoll(content[11], nullptr);
             data.end = std::stoll(content[8], nullptr) + data.start;
         } catch (std::invalid_argument& e) {
-            Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+            log::warning() << "Received exception: " << e.what() << "\n While converting '" << topic.get() << " " << content.get() << "'";
             return Error;
         }
         if (status == 0) {
-            item = Event { hash, data };
+
+            item = event_t { data };
             status = n - 1;
             return Aggregating;
         }
-        item.add_event(Event { hash, data });
+        item.emplace(data);
         status--;
         if (status == 0) {
             return Finished;
@@ -202,7 +203,8 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             return Aggregating;
         }
     }
-    Event::Data data;
+
+    event_t::data_t data;
 
     try {
 
@@ -214,6 +216,7 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
             return Error;
         }
 
+        data.hash = user_info.hash();
         data.start = static_cast<std::int_fast64_t>(std::stold(content[0]) * 1e9);
         data.end = static_cast<std::int_fast64_t>(std::stold(content[1]) * 1e9);
         data.user = topic[2];
@@ -224,7 +227,7 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
         data.utc = static_cast<std::uint8_t>(std::stoul(content[6], nullptr));
         data.gnss_time_grid = static_cast<std::uint8_t>(std::stoul(content[5], nullptr));
     } catch (std::invalid_argument& e) {
-        Log::warning() << "Received exception: " + std::string(e.what()) + "\n While converting '" + topic.get() + " " + content.get() + "'";
+        log::warning() << "Received exception: " << e.what() << "\n While converting '" << topic.get() << " " << content.get() << "'";
         return Error;
     } catch (...) {
         return Error;
@@ -232,17 +235,17 @@ auto Mqtt<Event>::ItemCollector::add(MessageParser& topic, MessageParser& conten
     if (data.start > data.end) {
         return Error;
     }
-    item = Event { user_info.hash(), data };
+    item = event_t { data };
     status = 0;
     return Finished;
 }
 
 template <>
-auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessageParser& message) -> ResultCode
+auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, message_parser& message) -> ResultCode
 {
-    if (!item.has_items()) {
-        item.set_log_id(message[0]);
-        item.set_userinfo(user_info);
+    if (item.items.empty()) {
+        item.log_id = message[0];
+        item.userinfo = user_info;
     } else if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Commit;
     }
@@ -296,28 +299,28 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
             || (message[1] == "usedSats")
             || (message[1] == "vbias")
             || (message[1] == "vsense")) {
-            item.add_item({ message[1], std::stod(message[2], nullptr), unit });
+            item.emplace({ message[1], std::stod(message[2], nullptr), unit });
         } else if (
             (message[1] == "UBX_HW_Version")
             || (message[1] == "UBX_Prot_Version")
             || (message[1] == "UBX_SW_Version")
             || (message[1] == "geoHash")) {
-            item.add_item({ message[1], message[2], "" });
+            item.emplace({ message[1], message[2], "" });
         } else if (
             (message[1] == "gainSwitch")
             || (message[1] == "polaritySwitch1")
             || (message[1] == "polaritySwitch2")
             || (message[1] == "preampSwitch1")
             || (message[1] == "preampSwitch2")) {
-            item.add_item({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
+            item.emplace({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else if (message[1] == "systemNrCPUs") {
-            item.add_item({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
+            item.emplace({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else {
             // unknown log message, forward as string as it is
-            item.add_item({ message[1], message.get(), "" });
+            item.emplace({ message[1], message.get(), "" });
         }
     } catch (std::invalid_argument& e) {
-        Log::warning() << "received exception when parsing log item: " + std::string(e.what());
+        log::warning() << "received exception when parsing log item: " << e.what();
         return Error;
     }
 
@@ -325,22 +328,22 @@ auto Mqtt<DetectorLog>::ItemCollector::add(MessageParser& /*topic*/, MessagePars
 }
 
 template <typename T>
-Mqtt<T>::Mqtt(Sink::Base<T>& sink, Link::Mqtt::Subscriber& topic)
-    : Base<T> { sink }
+mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic)
+    : base<T> { sink }
     , m_link { topic }
 {
-    topic.set_callback([this](const Link::Mqtt::Message& message) {
+    topic.set_callback([this](const link::mqtt::message_t& message) {
         process(message);
     });
 }
 
 template <typename T>
-Mqtt<T>::~Mqtt() = default;
+mqtt<T>::~mqtt() = default;
 
 template <typename T>
-auto Mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) -> std::size_t
+auto mqtt<T>::generate_hash(message_parser& topic, message_parser& /*message*/) -> std::size_t
 {
-    UserInfo userinfo {};
+    userinfo_t userinfo {};
     userinfo.username = topic[2];
     std::string site { topic[3] };
     for (std::size_t i = 4; i < topic.size(); i++) {
@@ -352,16 +355,16 @@ auto Mqtt<T>::generate_hash(MessageParser& topic, MessageParser& /*message*/) ->
 }
 
 template <>
-auto Mqtt<Event>::generate_hash(MessageParser& /*topic*/, MessageParser& message) -> std::size_t
+auto mqtt<event_t>::generate_hash(message_parser& /*topic*/, message_parser& message) -> std::size_t
 {
     return std::hash<std::string> {}(message[0]);
 }
 
 template <typename T>
-void Mqtt<T>::process(const Link::Mqtt::Message& msg)
+void mqtt<T>::process(const link::mqtt::message_t& msg)
 {
-    MessageParser topic { msg.topic, '/' };
-    MessageParser content { msg.content, ' ' };
+    message_parser topic { msg.topic, '/' };
+    message_parser content { msg.content, ' ' };
 
     if ((topic.size() < 4) || (content.size() < 2)) {
         return;
@@ -373,22 +376,22 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
     std::size_t hash { generate_hash(topic, content) };
 
     if ((m_buffer.size() > 0) && (m_buffer.find(hash) != m_buffer.end())) {
-        ItemCollector& item { m_buffer[hash] };
+        item_collector& item { m_buffer[hash] };
         auto result_code { item.add(topic, content) };
-        if ((result_code & ItemCollector::Finished) != 0) {
+        if ((result_code & item_collector::Finished) != 0) {
             this->put(std::move(item.item));
             m_buffer.erase(hash);
-        } else if ((result_code & ItemCollector::Abort) != 0) {
+        } else if ((result_code & item_collector::Abort) != 0) {
             m_buffer.erase(hash);
         } else {
             return;
         }
-        if ((result_code & ItemCollector::NewEpoch) == 0) {
+        if ((result_code & item_collector::NewEpoch) == 0) {
             return;
         }
     }
 
-    UserInfo userinfo {};
+    userinfo_t userinfo {};
     userinfo.username = topic[2];
     std::string site { topic[3] };
     for (std::size_t i = 4; i < topic.size(); i++) {
@@ -396,20 +399,20 @@ void Mqtt<T>::process(const Link::Mqtt::Message& msg)
     }
     userinfo.station_id = site;
 
-    ItemCollector item;
+    item_collector item;
     item.user_info = userinfo;
     auto value { item.add(topic, content) };
-    if ((value & ItemCollector::Finished) != 0) {
+    if ((value & item_collector::Finished) != 0) {
         this->put(std::move(item.item));
-    } else if ((value & ItemCollector::Aggregating) != 0) {
+    } else if ((value & item_collector::Aggregating) != 0) {
         m_buffer.insert({ hash, item });
     }
 }
 
 template <>
-void Mqtt<Link::Mqtt::Message>::process(const Link::Mqtt::Message& msg)
+void mqtt<link::mqtt::message_t>::process(const link::mqtt::message_t& msg)
 {
-    put(Link::Mqtt::Message { msg });
+    put(link::mqtt::message_t { msg });
 }
 }
 

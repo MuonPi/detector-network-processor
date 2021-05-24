@@ -4,13 +4,13 @@
 #include <atomic>
 #include <future>
 
-namespace MuonPi {
+namespace muonpi {
 
 /**
- * @brief The ThreadRunner class. Inherit from this to get a class which has an internal main loop.
+ * @brief The thread_runner class. Inherit from this to get a class which has an internal main loop.
  * If an instance of this class is created without inheriting from it, the main loop will stop immediatly per default.
  */
-class ThreadRunner {
+class thread_runner {
 public:
     enum class State {
         Error,
@@ -20,16 +20,17 @@ public:
         Running,
         Finalising
     };
-    ThreadRunner(std::string name);
+    thread_runner(std::string name, bool use_custom_run = false);
+
     /**
-     * @brief ~ThreadRunner Stops the thread and waits for it to finish.
+     * @brief ~thread_runner Stops the thread and waits for it to finish.
      */
-    virtual ~ThreadRunner();
+    virtual ~thread_runner();
 
     /**
      * @brief stop Tells the main loop to finish
      */
-    void stop();
+    void stop(int exit_code = 0);
 
     /**
      * @brief join waits for the thread to finish
@@ -76,6 +77,12 @@ protected:
      */
     [[nodiscard]] auto run() -> int;
 
+    [[nodiscard]] virtual auto custom_run() -> int;
+
+    void exec();
+
+    virtual void on_stop();
+
     /**
      * @brief finish Tells the main loop to finish and waits for the thread to exit
      */
@@ -103,13 +110,19 @@ protected:
     bool m_quit { false };
 
 private:
+    bool m_use_custom_run { false };
+
     std::atomic<bool> m_run { true };
+
+    std::atomic<int> m_exit_code { 0 };
 
     std::future<int> m_run_future {};
 
     std::string m_name {};
 
     State m_state { State::Initial };
+
+    std::unique_ptr<std::thread> m_thread { nullptr };
 };
 
 }

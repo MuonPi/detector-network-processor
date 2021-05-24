@@ -3,6 +3,9 @@ project(detector-network-processor LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
+
+option(PROCESSOR_BUILD_SANITIZERS "build the code with sanitizers"
+       OFF)
 option(PROCESSOR_DISABLE_SSL "build the code so the rest service doesn't use SSL"
        OFF)
 option(PROCESSOR_BUILD_AGGREGATION "along with the default application, also build the aggregation executable."
@@ -22,7 +25,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
-if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+if(PROCESSORS_BUILD_SANITIZERS)
 add_compile_options(-fsanitize=address,undefined)
 add_link_options(-fsanitize=address,undefined)
 endif()

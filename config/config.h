@@ -6,7 +6,7 @@
 #include <memory>
 
 #define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
-#cmakedefine CLUSTER_DISABLE_SSL
+#cmakedefine PROCESSOR_DISABLE_SSL
 
 namespace muonpi::Version {
 constexpr int major { @PROJECT_VERSION_MAJOR@ };

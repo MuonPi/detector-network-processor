@@ -39,10 +39,6 @@ install(
   FILES "${PROJECT_CONFIG_DIR}/detector-network-processor.cfg"
   DESTINATION "/etc/muondetector/"
   COMPONENT detector-network-processor)
-install(
-  FILES "${PROJECT_CONFIG_DIR}/detector-network-processor-credentials"
-  DESTINATION "share/muondetector/"
-  COMPONENT detector-network-processor)
 
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)

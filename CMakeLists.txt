@@ -3,7 +3,9 @@ project(detector-network-processor LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
-option(PROJECT_DISABLE_SSL "build the code so the rest service doesn't use SSL"
+option(PROCESSOR_DISABLE_SSL "build the code so the rest service doesn't use SSL"
+       OFF)
+option(PROCESSOR_BUILD_AGGREGATION "along with the default application, also build the aggregation executable."
        OFF)
 
 set(PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -18,9 +20,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/files.cmake")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-message(STATUS "build-type: ${CMAKE_BUILD_TYPE}")
-
-add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3 -fsanitize=address)
+add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
 if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
 add_compile_options(-fsanitize=address,undefined)

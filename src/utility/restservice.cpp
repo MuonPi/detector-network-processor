@@ -12,7 +12,7 @@ void fail(beast::error_code ec, const std::string& what);
 
 class session {
 public:
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     explicit session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler);
 #else
     explicit session(tcp::socket&& socket, std::function<response_type(request_type)> handler);
@@ -31,7 +31,7 @@ public:
 private:
     void notify();
 
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     beast::ssl_stream<beast::tcp_stream> m_stream;
 #else
     beast::tcp_stream m_stream;
@@ -49,7 +49,7 @@ private:
     constexpr static std::chrono::duration s_timeout { std::chrono::seconds { 30 } };
 };
 
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
 session::session(tcp::socket&& socket, ssl::context& ctx, std::function<response_type(request_type)> handler)
     : m_stream { std::move(socket), ctx }
     , m_handler { std::move(handler) }
@@ -67,7 +67,7 @@ void session::run()
 {
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
 
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     m_stream.async_handshake(ssl::stream_base::server, [&](beast::error_code ec) {
         scope_guard guard { [&] { notify(); } };
         if (ec) {
@@ -100,7 +100,7 @@ void session::do_close()
 {
     scope_guard guard { [&] { notify(); } };
     beast::get_lowest_layer(m_stream).expires_after(s_timeout);
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     m_stream.async_shutdown([&](beast::error_code ec) {
         if (ec) {
             fail(ec, "shutdown");
@@ -183,14 +183,14 @@ service::service(Config::Rest rest_config)
     , m_endpoint { net::ip::make_address(rest_config.address), static_cast<std::uint16_t>(rest_config.port) }
     , m_rest_conf { std::move(rest_config) }
 {
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     m_ctx.set_options(
         boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
 
     m_ctx.use_private_key_file(m_rest_conf.privkey, ssl::context::file_format::pem);
     m_ctx.use_certificate_file(m_rest_conf.cert, ssl::context::file_format::pem);
     m_ctx.use_certificate_chain_file(m_rest_conf.fullchain);
-#endif // CLUSTER_DISABLE_SSL
+#endif // PROCESSOR_DISABLE_SSL
 
     beast::error_code ec;
 
@@ -240,7 +240,7 @@ void service::do_accept()
             fail(ec, "on accept");
         } else {
             std::thread([&] {
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
                 session sess { std::move(socket), m_ctx, [&](request_type req) { return handle(std::move(req)); } };
 #else
                 session sess { std::move(socket), [&](request_type req) { return handle(std::move(req)); } };
@@ -330,7 +330,7 @@ auto service::handle(request_type req, std::queue<std::string> path, const std::
 
 void fail(beast::error_code ec, const std::string& what)
 {
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     if (ec == net::ssl::error::stream_truncated) {
         return;
     }

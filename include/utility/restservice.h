@@ -90,7 +90,7 @@ private:
     std::vector<handler> m_handler {};
 
     net::io_context m_ioc { 1 };
-#ifndef CLUSTER_DISABLE_SSL
+#ifndef PROCESSOR_DISABLE_SSL
     ssl::context m_ctx { ssl::context::tlsv12 };
 #endif
     tcp::acceptor m_acceptor { m_ioc };

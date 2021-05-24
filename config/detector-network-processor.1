@@ -15,26 +15,18 @@ With these messages it calculates coincidences and depending on the context
 publishes them to another mqtt topic or writes them to a database.
 .SH "OPTIONS"
 .TP
-\fB-h	--help\fP
-Displays a help page.
-.TP
-\fB-c	--config (value)\fP
-Specify a configuration file to use
-.TP
-\fB-l	--credentials (value)\fP
-Specify a credentials file to use
-.TP
-\fB-s	--setup (value)\fP
-Setup the Credentials file from a plaintext file given with this option. The file will be written to the location given in the -l parameter in an encrypted format.
-.TP
-\fB-o	--offline\fP
+-h [ --help ]\fP
+produce help message
+-o [ --offline ]\fP
 Do not send processed data to the servers.
-.TP
-\fB-hist	--histogram (value)\fP
-Track and store histograms. The parameter is the save directory
-.TP
-\fB-d	--debug\fP
-Additionally to the normal sinks use ascii sinks for debugging. Also enables the log output to stderr.
+-d [ --debug ]\fP
+Use the ascii sinks for debugging.
+-l [ --local ]\fP
+Run the cluser as a local instance. Uses the MQTT sinks instead of the DataBase Sinks.
+-v [ --verbose ] arg (=0)\fP
+Verbosity level
+-c [ --config ] arg (=/etc/muondetector/detector-network-processor.cfg)\fP
+Specify a configuration file to use
 .SH "EXIT STATUS"
 Default
 .SH "BUGS"

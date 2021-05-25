@@ -55,7 +55,7 @@ private:
 
     constexpr static double s_maximum_distance { 100 * units::kilometer };
     constexpr static double s_maximum_time { s_maximum_distance / consts::c_0 };
-    constexpr static double s_minimum_time { 50.0 * units::nanosecond };
+    constexpr static double s_minimum_time { 150.0 * units::nanosecond };
 };
 
 }

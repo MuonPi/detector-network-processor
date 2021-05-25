@@ -33,14 +33,7 @@ public:
     }
 };
 
-void inline terminate_handler()
-{
-    try {
-        std::cerr << boost::stacktrace::stacktrace();
-    } catch (...) {
-    }
-    std::abort();
-}
+void terminate_handler();
 
 }
 

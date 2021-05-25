@@ -1,6 +1,19 @@
 #include "utility/exceptions.h"
 
 
+namespace muonpi::error {
+
+void terminate_handler()
+{
+    try {
+        std::cerr << boost::stacktrace::stacktrace();
+    } catch (...) {
+    }
+    std::abort();
+}
+
+}
+
 namespace boost {
 
 void assertion_failed_msg(char const* expr, char const* msg, char const* function, char const* /*file*/, long /*line*/)

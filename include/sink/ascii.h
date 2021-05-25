@@ -84,6 +84,7 @@ void ascii<cluster_log_t>::get(cluster_log_t log)
 
     out
         << "Cluster Log:"
+        << "\n\tversion: " << Version::string()
         << "\n\ttimeout: " << log.timeout << " ms"
         << "\n\ttimebase: " << log.timebase << " ms"
         << "\n\tuptime: " << log.uptime << " min"

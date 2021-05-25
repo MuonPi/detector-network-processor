@@ -102,6 +102,7 @@ void mqtt<cluster_log_t>::get(cluster_log_t log)
     stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
     if (!(
             m_link.publish((construct(stream.str(), "timeout") << log.timeout).str())
+            && m_link.publish((construct(stream.str(), "version") << Version::string()).str())
             && m_link.publish((construct(stream.str(), "timebase") << log.timebase).str())
             && m_link.publish((construct(stream.str(), "uptime") << log.uptime).str())
             && m_link.publish((construct(stream.str(), "frequency_in") << log.frequency.single_in).str())

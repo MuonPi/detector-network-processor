@@ -59,6 +59,7 @@ void database<cluster_log_t>::get(cluster_log_t log)
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     auto fields { std::move(m_link.measurement("cluster_summary")
         << tag { "cluster_id", config::singleton()->meta.station }
+        << tag { "version", Version::string() }
         << field { "timeout", log.timeout }
         << field { "timebase", log.timebase }
         << field { "uptime", log.uptime }

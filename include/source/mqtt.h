@@ -304,6 +304,8 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             (message[1] == "UBX_HW_Version")
             || (message[1] == "UBX_Prot_Version")
             || (message[1] == "UBX_SW_Version")
+            || (message[1] == "hardwareVersionString")
+            || (message[1] == "softwareVersionString")
             || (message[1] == "geoHash")) {
             item.emplace({ message[1], message[2], "" });
         } else if (

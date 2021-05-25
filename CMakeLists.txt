@@ -46,8 +46,7 @@ set(PROJECT_INCLUDE_LIBS
     pthread
     sasl2
     ldap
-    boost_system
-    boost_program_options
+    ${Boost_LIBRARIES}
     ssl
     crypto
     dl)
@@ -68,6 +67,7 @@ configure_file("${PROJECT_CONFIG_DIR}/config.h"
 
 if (PROCESSOR_BUILD_AGGREGATION)
 add_executable(aggregation "${PROJECT_SRC_DIR}/aggregation.cpp")
+target_link_libraries(aggregation ${Boost_LIBRARIES})
 endif()
 
 add_executable(

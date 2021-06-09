@@ -176,6 +176,7 @@ void mqtt<event_t>::get(event_t event)
         message.add_field(std::to_string(evt.fix)); // if the station had a valid GNSS fix at the time of the event
         message.add_field(std::to_string(evt.start)); // the timestamp of the stations hit
         message.add_field(std::to_string(evt.utc)); //if the station uses utc
+        message.add_field(event.conflicting?"conflicting":"valid"); // if the event is conflicting or not
 
         if (m_detailed) {
             if (!m_link.publish(evt.user + "/" + evt.station_id, message.get_string())) {

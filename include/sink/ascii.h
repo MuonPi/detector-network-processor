@@ -56,7 +56,7 @@ void ascii<event_t>::get(event_t event)
     guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
     const std::int64_t cluster_coinc_time = event.duration();
     std::ostringstream out {};
-    out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
+    out << "Combined event_t: (" << event.n() << ")" << ((event.conflicting)?" C ":"") << ": coinc_time: " << cluster_coinc_time;
     for (const auto& evt : event.events) {
         const std::int64_t evt_coinc_time = evt.start - event.data.start;
         out
@@ -136,10 +136,9 @@ void ascii<trigger::detector>::get(trigger::detector trigger)
     std::ostringstream stream {};
     stream << trigger.userinfo.username << ' ' << trigger.userinfo.station_id
            << ' ' << detector_status::to_string(trigger.status)
-           << ' ' << detector_status::to_string(trigger.reason);
+           << ' ' << detector_status::to_string(trigger.reason) << '\n';
 
-    m_ostream << stream.str() << '\n'
-              << std::flush;
+    m_ostream << stream.str() << std::flush;
 }
 
 }

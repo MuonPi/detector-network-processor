@@ -1,38 +1,42 @@
 #ifndef CRITERION_H
 #define CRITERION_H
 
-#include <memory>
+#include "messages/event.h"
 
 namespace muonpi {
-
-struct event_t;
 
 /**
  * @brief The Criterion class
  * Abstract class for a relationship between two events
  */
+
 class criterion {
 public:
+    enum class Type {
+        Invalid,
+        Conflicting,
+        Valid
+    };
     virtual ~criterion() = default;
+
     /**
      * @brief apply Assigns a value of type T to a pair of events
      * @param first The first event to check
      * @param second the second event to check
      * @return a value of type T corresponding to the relationship between both events
      */
-    [[nodiscard]] virtual auto apply(const event_t& first, const event_t& second) const -> double = 0;
+    [[nodiscard]] auto apply(const event_t& first, const event_t& second) const -> Type;
 
     /**
-     * @brief maximum_false
-     * @return The upper limit where the criterion is false.
+     * @brief compare Compare two timestamps to each other
+     * @param difference difference between both timestamps
+     * @return returns a value indicating the coincidence time between the two timestamps.
      */
-    [[nodiscard]] virtual auto maximum_false() const -> double = 0;
+    [[nodiscard]] virtual auto compare(const event_t::data_t& first, const event_t::data_t& second) const -> double = 0;
 
-    /**
-     * @brief minimum_true
-     * @return The lower limit where the criterion is true.
-     */
-    [[nodiscard]] virtual auto minimum_true() const -> double = 0;
+private:
+    constexpr static double s_maximum_false { -0.3 };
+    constexpr static double s_minimum_true { 0.5 };
 };
 
 }

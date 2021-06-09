@@ -160,7 +160,9 @@ void database<event_t>::get(event_t event)
                 << field { "coinc_time", evt.start - event.data.start }
                 << field { "cluster_coinc_time", cluster_coinc_time }
                 << field { "time_ref", evt.gnss_time_grid }
-                << field { "valid_fix", evt.fix })
+                << field { "valid_fix", evt.fix }
+                << field { "conflicting", event.conflicting }
+              )
                  .commit(evt.start)) {
             log::warning() << "error writing L1event_t item to DB";
             return;

@@ -80,7 +80,13 @@ auto coincidence_filter::process(event_t event) -> int
         if (skip) {
             continue;
         }
-        if (m_criterion->maximum_false() < m_criterion->apply(event, constructor.event)) {
+        const auto result { m_criterion->apply(event, constructor.event) };
+        if (result == criterion::Type::Conflicting) {
+            matches.push(i);
+            if (constructor.event.n() > 1) {
+                constructor.event.conflicting = true;
+            }
+        } else if (result == criterion::Type::Valid) {
             matches.push(i);
         }
     }
@@ -116,14 +122,13 @@ auto coincidence_filter::process(event_t event) -> int
         constructor.event.emplace(e);
     }
     constructor.event.emplace(event);
-    // +++ Event matches more than one constructor
+    constructor.event.conflicting = true;
     // Combines all contesting constructors into one contesting coincience
     while (!matches.empty()) {
         constructor.event.emplace(m_constructors[matches.front()].event);
         m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(matches.front()));
         matches.pop();
     }
-    // --- Event matches more than one constructor
     // --- Event matches either no, or more than one constructor
     return 0;
 }

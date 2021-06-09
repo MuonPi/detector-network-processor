@@ -14,6 +14,7 @@ set(PROJECT_SOURCE_FILES
     "${PROJECT_SRC_DIR}/utility/exceptions.cpp"
     "${PROJECT_SRC_DIR}/analysis/simplecoincidence.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidence.cpp"
+    "${PROJECT_SRC_DIR}/analysis/criterion.cpp"
     "${PROJECT_SRC_DIR}/analysis/eventconstructor.cpp"
     "${PROJECT_SRC_DIR}/analysis/coincidencefilter.cpp"
     "${PROJECT_SRC_DIR}/analysis/detectorstation.cpp"

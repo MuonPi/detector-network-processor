@@ -35,6 +35,8 @@ struct event_t {
         }
     } data;
 
+    bool conflicting { false };
+
     std::vector<data_t> events {};
 
     /**

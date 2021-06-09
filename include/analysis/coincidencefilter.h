@@ -56,7 +56,7 @@ protected:
     [[nodiscard]] auto process() -> int override;
 
 private:
-    std::unique_ptr<criterion> m_criterion { std::make_unique<simple_coincidence>() };
+    std::unique_ptr<criterion> m_criterion { std::make_unique<coincidence>() };
 
     std::vector<event_constructor> m_constructors {};
 

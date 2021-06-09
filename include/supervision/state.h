@@ -4,6 +4,7 @@
 #include "analysis/detectorstation.h"
 #include "messages/clusterlog.h"
 #include "messages/detectorstatus.h"
+#include "messages/event.h"
 #include "sink/base.h"
 
 #include "analysis/dataseries.h"
@@ -46,11 +47,11 @@ public:
     void on_detector_status(std::size_t hash, detector_status::status status);
 
     /**
-     * @brief increase_event_count gets called when an event arrives or gets processed
+     * @brief process_event gets called when an event arrives or gets send off
+     * @param event the event which should be processed
      * @param incoming true if the event is incoming, false if it a processed one
-     * @param n The coincidence level of the event. Only used for processed events.
      */
-    void increase_event_count(bool incoming, std::size_t n = 1);
+    void process_event(const event_t& event, bool incoming = false);
 
     /**
      * @brief set_queue_size Update the current event constructor buffer size.
@@ -84,6 +85,7 @@ private:
 
     data_series<float, 10> m_process_cpu_load {};
     data_series<float, 10> m_system_cpu_load {};
+    data_series<float, 100> m_plausibility_level {};
     rate_measurement<100, s_rate_interval> m_incoming_rate {};
     rate_measurement<100, s_rate_interval> m_outgoing_rate {};
 

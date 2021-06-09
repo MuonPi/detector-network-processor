@@ -56,6 +56,9 @@ protected:
     [[nodiscard]] auto process() -> int override;
 
 private:
+
+    [[nodiscard]] auto find_matches(const event_t& event) -> std::queue<std::pair<std::size_t, std::size_t>>;
+
     std::unique_ptr<criterion> m_criterion { std::make_unique<coincidence>() };
 
     std::vector<event_constructor> m_constructors {};

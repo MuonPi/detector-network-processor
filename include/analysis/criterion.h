@@ -17,6 +17,17 @@ public:
         Conflicting,
         Valid
     };
+
+    struct score_t
+    {
+        Type type {};
+        std::size_t true_e { 0 };
+
+        [[nodiscard]] inline operator bool() const {
+            return type >= Type::Conflicting;
+        }
+    };
+
     virtual ~criterion() = default;
 
     /**
@@ -25,7 +36,7 @@ public:
      * @param second the second event to check
      * @return a value of type T corresponding to the relationship between both events
      */
-    [[nodiscard]] auto apply(const event_t& first, const event_t& second) const -> Type;
+    [[nodiscard]] auto apply(const event_t& first, const event_t& second) const -> score_t;
 
     /**
      * @brief compare Compare two timestamps to each other

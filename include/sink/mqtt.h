@@ -114,6 +114,7 @@ void mqtt<cluster_log_t>::get(cluster_log_t log)
             && m_link.publish((construct(stream.str(), "cpu_load") << log.system_cpu_load).str())
             && m_link.publish((construct(stream.str(), "process_cpu_load") << log.process_cpu_load).str())
             && m_link.publish((construct(stream.str(), "memory_usage") << log.memory_usage).str())
+            && m_link.publish((construct(stream.str(), "plausibility_level") << log.plausibility_level).str())
             && m_link.publish((construct(stream.str(), "incoming") << log.incoming).str()))) {
         log::warning() << "Could not publish MQTT message.";
         return;
@@ -177,6 +178,7 @@ void mqtt<event_t>::get(event_t event)
         message.add_field(std::to_string(evt.start)); // the timestamp of the stations hit
         message.add_field(std::to_string(evt.utc)); //if the station uses utc
         message.add_field(event.conflicting?"conflicting":"valid"); // if the event is conflicting or not
+        message.add_field(std::to_string(event.true_e)); // The number of true edges in the event graph
 
         if (m_detailed) {
             if (!m_link.publish(evt.user + "/" + evt.station_id, message.get_string())) {

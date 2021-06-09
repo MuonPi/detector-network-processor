@@ -56,7 +56,9 @@ void ascii<event_t>::get(event_t event)
     guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
     const std::int64_t cluster_coinc_time = event.duration();
     std::ostringstream out {};
-    out << "Combined event_t: (" << event.n() << ")" << ((event.conflicting)?" C ":"") << ": coinc_time: " << cluster_coinc_time;
+    double max_e { static_cast<double>(event.n() * event.n() - event.n()) * 0.5 };
+
+    out << "Combined event_t: (" << event.n() << ": " << static_cast<double>(event.true_e) / max_e << ")" << ((event.conflicting)?" C ":"") << ": coinc_time: " << cluster_coinc_time;
     for (const auto& evt : event.events) {
         const std::int64_t evt_coinc_time = evt.start - event.data.start;
         out
@@ -95,6 +97,7 @@ void ascii<cluster_log_t>::get(cluster_log_t log)
         << "\n\tcpu load: " << log.system_cpu_load
         << "\n\tprocess cpu load: " << log.process_cpu_load
         << "\n\tmemory usage: " << log.memory_usage
+        << "\n\tplausibility level: " << log.plausibility_level
         << "\n\tout in interval: ";
 
     for (auto& [n, i] : log.outgoing) {

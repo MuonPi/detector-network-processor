@@ -29,6 +29,7 @@ struct event_t {
         std::uint8_t fix {};
         std::uint8_t utc {};
         std::uint8_t gnss_time_grid {};
+
         [[nodiscard]] inline auto duration() const noexcept -> std::int_fast64_t
         {
             return end - start;
@@ -36,6 +37,7 @@ struct event_t {
     } data;
 
     bool conflicting { false };
+    std::uint8_t true_e {};
 
     std::vector<data_t> events {};
 

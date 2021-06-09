@@ -60,6 +60,7 @@ auto state::step() -> int
     m_current_data.process_cpu_load = m_process_cpu_load.mean();
     m_system_cpu_load.add(data.system_cpu_load);
     m_current_data.system_cpu_load = m_system_cpu_load.mean();
+    m_current_data.plausibility_level = m_plausibility_level.mean();
 
     if ((now - m_last) >= config::singleton()->interval.clusterlog) {
         m_last = now;
@@ -98,20 +99,23 @@ auto state::post_run() -> int
     return m_failure ? -1 : result;
 }
 
-void state::increase_event_count(bool incoming, std::size_t n)
+void state::process_event(const event_t& event, bool incoming)
 {
     if (incoming) {
         m_current_data.incoming++;
         m_incoming_rate.increase_counter();
-    } else {
-        m_current_data.outgoing[n]++;
+        return;
+    }
+    const std::size_t n { event.n() };
 
-        if (m_current_data.maximum_n < n) {
-            m_current_data.maximum_n = n;
-        }
-        if (n > 1) {
-            m_outgoing_rate.increase_counter();
-        }
+    m_current_data.outgoing[n]++;
+
+    if (m_current_data.maximum_n < n) {
+        m_current_data.maximum_n = n;
+    }
+    if (n > 1) {
+        m_outgoing_rate.increase_counter();
+        m_plausibility_level.add( static_cast<float>(event.true_e) / (static_cast<float>(n*n - n) * 0.5F));
     }
 }
 

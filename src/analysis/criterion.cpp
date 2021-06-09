@@ -4,8 +4,15 @@
 
 namespace muonpi {
 
-auto criterion::apply(const event_t& first, const event_t& second) const -> Type
+auto criterion::apply(const event_t& first, const event_t& second) const -> score_t
 {
+    if ((first.n() < 2) && (second.n() < 2)) {
+        if (compare(first.data, second.data) > 0.0) {
+            return score_t{Type::Valid, 1};
+        }
+        return score_t{Type::Invalid};
+    }
+
     std::vector<event_t::data_t> first_data {};
     std::vector<event_t::data_t> second_data {};
 
@@ -22,25 +29,30 @@ auto criterion::apply(const event_t& first, const event_t& second) const -> Type
     }
 
     double sum {};
-    double n { 0 };
+    std::size_t n { 0 };
+    std::size_t valid { 0 };
 
     for (const auto& data_f : first_data) {
         for (const auto& data_s : second_data) {
-            sum += compare(data_f, data_s);
-            n += 1.0;
+            const double v = compare(data_f, data_s);
+            sum += v;
+            n++;
+            if (v > 0.0) {
+                valid++;
+            }
         }
     }
 
-    sum /= n;
+    sum /= static_cast<double>(n);
 
     if (sum < s_maximum_false) {
-        return Type::Invalid;
+        return score_t{Type::Invalid};
     }
-    if (sum > s_minimum_true) {
-        return Type::Valid;
+
+    if ((sum > s_minimum_true) && (n == valid)) {
+        return score_t{Type::Valid, valid};
     }
-    return Type::Conflicting;
+    return score_t{Type::Conflicting, valid};
 }
 
-}
-
+} // namespace muonpi

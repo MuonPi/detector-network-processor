@@ -72,7 +72,9 @@ void database<cluster_log_t>::get(cluster_log_t log)
         << field { "cpu_load", log.system_cpu_load }
         << field { "process_cpu_load", log.process_cpu_load }
         << field { "memory_usage", log.memory_usage }
-        << field { "incoming", log.incoming }) };
+        << field { "incoming", log.incoming }
+        << field { "plausibility_level", log.plausibility_level }
+                            ) };
 
     std::size_t total_n { 0 };
 
@@ -146,6 +148,7 @@ void database<event_t>::get(event_t event)
 
     const std::int64_t cluster_coinc_time = event.duration();
     guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
+    double plausibility { static_cast<double>(event.true_e) / (static_cast<double>(event.n() * event.n() - event.n()) * 0.5) };
     for (auto& evt : event.events) {
         using namespace link::influx;
         if (!(m_link.measurement("L1Event")
@@ -162,6 +165,7 @@ void database<event_t>::get(event_t event)
                 << field { "time_ref", evt.gnss_time_grid }
                 << field { "valid_fix", evt.fix }
                 << field { "conflicting", event.conflicting }
+                << field { "plausibility", plausibility }
               )
                  .commit(evt.start)) {
             log::warning() << "error writing L1event_t item to DB";

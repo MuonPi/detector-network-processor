@@ -133,9 +133,9 @@ auto coincidence_filter::process(event_t event) -> int
         constructor.event.true_e += score;
         constructor.event.emplace(m_constructors[i].event);
     }
-    for (std::size_t i { erase.top()}; !erase.empty(); i = erase.top()) {
+    for (std::size_t j { erase.top()}; !erase.empty(); j = erase.top()) {
         erase.pop();
-        m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(i));
+        m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(j));
 
     }
     return 0;

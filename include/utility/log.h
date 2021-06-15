@@ -42,7 +42,7 @@ public:
 
     ~logger()
     {
-        if (L <= (Level::Info + config::singleton()->meta.verbosity)) {
+        if ((config::singleton() == nullptr) || (L <= (Level::Info + config::singleton()->meta.verbosity))) {
             std::cerr << to_string() << m_stream.str() + "\n"
                       << std::flush;
         }

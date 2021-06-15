@@ -24,7 +24,7 @@ public:
     [[nodiscard]] auto compare(const event_t::data_t& first, const event_t::data_t& second) const -> double override;
 
 private:
-    std::int_fast64_t m_time { 100000 };
+    constexpr static std::int_fast64_t s_time { 100000 };
 };
 
 }

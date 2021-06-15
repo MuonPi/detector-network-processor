@@ -11,6 +11,6 @@ simple_coincidence::~simple_coincidence() = default;
 
 auto simple_coincidence::compare(const event_t::data_t& first, const event_t::data_t& second) const -> double
 {
-    return (std::abs(first.start - second.start) <= m_time) ? 1.0 : -1.0;
+    return (std::abs(first.start - second.start) <= s_time) ? 1.0 : -1.0;
 }
 } // namespace muonpi

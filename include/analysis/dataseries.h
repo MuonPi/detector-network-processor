@@ -41,6 +41,12 @@ public:
     [[nodiscard]] auto mean(const mean_t& type = mean_t::arithmetic) const -> T;
 
     /**
+     * @brief median Calculates the median of all values. This value gets cached between data entries.
+     * @return The median
+     */
+    [[nodiscard]] auto median() const -> T;
+
+    /**
      * @brief mean Calculates the standard deviation of all values. This value gets cached between data entries.
      * @return The standard deviation
      */
@@ -78,6 +84,18 @@ private:
         return std::accumulate(begin, end, 0.0) / n;
     }
 
+    [[nodiscard]] inline auto private_median() const -> T
+    {
+        std::array<T, N> sorted { m_buffer };
+
+        std::sort(sorted.begin(), sorted.end());
+
+        if (N % 2 == 0) {
+            return (sorted.at( N / 2 ) + sorted.at( N / 2 + 1)) / 2.0;
+        }
+        return sorted.at( N / 2 );
+    }
+
     [[nodiscard]] inline auto private_stddev() const -> T
     {
         return std::sqrt(variance());
@@ -108,6 +126,7 @@ private:
     std::size_t m_index { 0 };
     bool m_full { false };
     cached_value<T, const mean_t&> m_mean { [this] (const mean_t& type) { return private_mean(type); }};
+    cached_value<T> m_median { [this] { return private_median(); }};
     cached_value<T> m_stddev { [this] { return private_stddev(); }};
     cached_value<T> m_variance { [this] { return private_variance(); }};
 };
@@ -121,6 +140,7 @@ void data_series<T, N, Sample>::add(T value)
 {
     m_buffer[m_index] = value;
     m_mean.mark_dirty();
+    m_median.mark_dirty();
     m_stddev.mark_dirty();
     m_variance.mark_dirty();
     m_index = (m_index + 1) % N;
@@ -139,6 +159,12 @@ template <typename T, std::size_t N, bool Sample>
 auto data_series<T, N, Sample>::mean(const mean_t& type) const -> T
 {
     return m_mean.get(type);
+}
+
+template <typename T, std::size_t N, bool Sample>
+auto data_series<T, N, Sample>::median() const -> T
+{
+    return m_median.get();
 }
 
 template <typename T, std::size_t N, bool Sample>

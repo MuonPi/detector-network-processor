@@ -21,6 +21,7 @@ namespace muonpi {
 template <typename T, std::size_t N, bool Sample = false>
 class data_series {
     static_assert(std::is_arithmetic<T>::value);
+    static_assert(N > 2);
 
 public:
     /**

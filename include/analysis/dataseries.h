@@ -29,11 +29,16 @@ public:
      */
     void add(T value);
 
+    enum class mean_t {
+        arithmetic,
+        geometric
+    };
+
     /**
      * @brief mean Calculates the mean of all values. This value gets cached between data entries.
      * @return The mean
      */
-    [[nodiscard]] auto mean() const -> T;
+    [[nodiscard]] auto mean(const mean_t& type = mean_t::arithmetic) const -> T;
 
     /**
      * @brief mean Calculates the standard deviation of all values. This value gets cached between data entries.
@@ -61,12 +66,15 @@ public:
     [[nodiscard]] auto current() const -> T;
 
 private:
-    [[nodiscard]] inline auto private_mean() const -> T
+    [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
     {
         const auto n { m_full ? N : (std::max<double>(m_index, 1.0)) };
         const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
         const auto begin { m_buffer.begin() };
 
+        if (type == mean_t::geometric) {
+            return std::pow(std::accumulate(begin, end, 0.0, std::multiplies<T>()), 1.0/static_cast<T>(n));
+        }
         return std::accumulate(begin, end, 0.0) / n;
     }
 
@@ -81,7 +89,7 @@ private:
         const auto end { m_full ? m_buffer.end() : m_buffer.begin() + m_index };
         const auto begin { m_buffer.begin() };
         const auto denominator { Sample ? (n - 1.0) : n };
-        const auto m { m_mean() };
+        const auto m { mean() };
 
         return 1.0 / (denominator)*std::inner_product(
                    begin, end, begin, 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
@@ -99,12 +107,9 @@ private:
     std::array<T, N> m_buffer { T {} };
     std::size_t m_index { 0 };
     bool m_full { false };
-    bool m_mean_dirty { false };
-    bool m_var_dirty { false };
-    bool m_stddev_dirty { false };
-    cached_value<T> m_mean { [this] { return private_mean(); }, [this] { return dirty(m_mean_dirty); } };
-    cached_value<T> m_stddev { [this] { return private_stddev(); }, [this] { return dirty(m_stddev_dirty); } };
-    cached_value<T> m_variance { [this] { return private_variance(); }, [this] { return dirty(m_var_dirty); } };
+    cached_value<T, const mean_t&> m_mean { [this] (const mean_t& type) { return private_mean(type); }};
+    cached_value<T> m_stddev { [this] { return private_stddev(); }};
+    cached_value<T> m_variance { [this] { return private_variance(); }};
 };
 
 // +++++++++++++++++++++++++++++++
@@ -115,9 +120,9 @@ template <typename T, std::size_t N, bool Sample>
 void data_series<T, N, Sample>::add(T value)
 {
     m_buffer[m_index] = value;
-    m_mean_dirty = true;
-    m_stddev_dirty = true;
-    m_var_dirty = true;
+    m_mean.mark_dirty();
+    m_stddev.mark_dirty();
+    m_variance.mark_dirty();
     m_index = (m_index + 1) % N;
     if (m_index == 0) {
         m_full = true;
@@ -131,9 +136,9 @@ auto data_series<T, N, Sample>::entries() const -> std::size_t
 }
 
 template <typename T, std::size_t N, bool Sample>
-auto data_series<T, N, Sample>::mean() const -> T
+auto data_series<T, N, Sample>::mean(const mean_t& type) const -> T
 {
-    return m_mean.get();
+    return m_mean.get(type);
 }
 
 template <typename T, std::size_t N, bool Sample>

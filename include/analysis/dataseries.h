@@ -32,7 +32,8 @@ public:
 
     enum class mean_t {
         arithmetic,
-        geometric
+        geometric,
+        harmonic
     };
 
     /**
@@ -81,6 +82,8 @@ private:
 
         if (type == mean_t::geometric) {
             return std::pow(std::accumulate(begin, end, 0.0, std::multiplies<T>()), 1.0/static_cast<T>(n));
+        } else if (type == mean_t::harmonic) {
+            return static_cast<T>(n) / std::accumulate(begin, end, 0.0, [](const T& lhs, const T& rhs) {return lhs + 1.0/rhs;});
         }
         return std::accumulate(begin, end, 0.0) / n;
     }
@@ -126,7 +129,9 @@ private:
     std::array<T, N> m_buffer { T {} };
     std::size_t m_index { 0 };
     bool m_full { false };
-    cached_value<T, const mean_t&> m_mean { [this] (const mean_t& type) { return private_mean(type); }};
+    cached_value<T> m_geometric_mean { [this] { return private_mean(mean_t::geometric); }};
+    cached_value<T> m_arithmetic_mean { [this] { return private_mean(mean_t::arithmetic); }};
+    cached_value<T> m_harmonic_mean { [this] { return private_mean(mean_t::harmonic); }};
     cached_value<T> m_median { [this] { return private_median(); }};
     cached_value<T> m_stddev { [this] { return private_stddev(); }};
     cached_value<T> m_variance { [this] { return private_variance(); }};
@@ -140,7 +145,9 @@ template <typename T, std::size_t N, bool Sample>
 void data_series<T, N, Sample>::add(T value)
 {
     m_buffer[m_index] = value;
-    m_mean.mark_dirty();
+    m_arithmetic_mean.mark_dirty();
+    m_geometric_mean.mark_dirty();
+    m_harmonic_mean.mark_dirty();
     m_median.mark_dirty();
     m_stddev.mark_dirty();
     m_variance.mark_dirty();
@@ -159,7 +166,12 @@ auto data_series<T, N, Sample>::entries() const -> std::size_t
 template <typename T, std::size_t N, bool Sample>
 auto data_series<T, N, Sample>::mean(const mean_t& type) const -> T
 {
-    return m_mean.get(type);
+    if (type == mean_t::geometric) {
+        return m_geometric_mean.get();
+    } else if (type == mean_t::harmonic) {
+        return m_harmonic_mean.get();
+    }
+    return m_arithmetic_mean.get();
 }
 
 template <typename T, std::size_t N, bool Sample>

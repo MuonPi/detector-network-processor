@@ -83,7 +83,7 @@ auto state::step() -> int
 
     std::mutex mx;
     std::unique_lock<std::mutex> lock { mx };
-    m_condition.wait_for(lock, std::chrono::milliseconds { s_rate_interval });
+    m_condition.wait_for(lock, s_rate_interval);
     return 0;
 }
 

@@ -81,13 +81,14 @@ private:
     std::chrono::system_clock::time_point m_start { std::chrono::system_clock::now() };
     std::chrono::system_clock::time_point m_startup { std::chrono::system_clock::now() };
 
-    constexpr static int s_rate_interval { 5000 };
+    constexpr static std::chrono::seconds s_rate_interval { 5 };
 
-    data_series<float, 10> m_process_cpu_load {};
-    data_series<float, 10> m_system_cpu_load {};
-    data_series<float, 100> m_plausibility_level {};
-    rate_measurement<100, s_rate_interval> m_incoming_rate {};
-    rate_measurement<100, s_rate_interval> m_outgoing_rate {};
+    data_series<float> m_process_cpu_load { 10 };
+    data_series<float> m_system_cpu_load { 10 };
+    data_series<float> m_plausibility_level { 100 };
+
+    rate_measurement<double> m_incoming_rate {100, s_rate_interval};
+    rate_measurement<double> m_outgoing_rate {100, s_rate_interval};
 
     struct forward {
         thread_runner& runner;

@@ -42,6 +42,10 @@ public:
      */
     explicit histogram(std::size_t n, T lower, T upper) noexcept;
 
+    /**
+     * @brief fill fill the histogram with a series of data.
+     * @param data the data to add
+     */
     void fill(const std::vector<T>& data);
 
     /**
@@ -76,17 +80,56 @@ public:
      */
     [[nodiscard]] auto integral() const -> std::uint64_t;
 
+    /**
+     * @brief reset Completely empty the histogram without altering its defining values.
+     */
     void reset();
 
+    /**
+     * @brief reset Completely empy the histogram and change the number of bins
+     * @param n the new number of bins
+     */
     void reset(std::size_t n);
 
+    /**
+     * @brief reset Completely empty the histogram and change its bin count and width
+     * @param n the new number of bins
+     * @param width the new bin width
+     */
     void reset(std::size_t n, T width);
 
+    /**
+     * @brief reset Completely empty the histogram and change its bin count and upper/lower bound
+     * @param n the new number of bins
+     * @param lower the new lower bound of the histogram
+     * @param upper the new upper bound of the histogram
+     */
     void reset(std::size_t n, T lower, T upper);
 
+    /**
+     * @brief mode Calculate the mode (most common value) of the histogram
+     * @return The mode
+     */
     [[nodiscard]] auto mode() const -> T;
-    [[nodiscard]] auto percentile(double value) const -> T;
+
+    /**
+     * @brief percentile calculate the value of the percentile
+     * @param percent The percentage value to check
+     * @return the value associated with the percentage
+     */
+    [[nodiscard]] auto percentile(double percent) const -> T;
+
+    /**
+     * @brief mean Calculate the mean value of the histogram
+     * @return the mean
+     */
     [[nodiscard]] auto mean() const -> T;
+
+    /**
+     * @brief median Calculate the median value of the histogram
+     * @return the median
+     */
+    [[nodiscard]] auto median() const -> T;
 
 private:
     T m_lower {};
@@ -254,11 +297,18 @@ auto histogram<T, C>::mean() const -> T
 }
 
 template <typename T, typename C>
-auto histogram<T, C>::percentile(double value) const -> T
+auto histogram<T, C>::median() const -> T
+{
+    const std::size_t l { m_n / 2 };
+    return m_lower + m_width * (static_cast<T>(l) + (static_cast<T>(m_n)*0.5 - static_cast<T>(std::accumulate(m_bins.begin(), m_bins.begin() + l, 0))) / m_bins.at(l));
+}
+
+template <typename T, typename C>
+auto histogram<T, C>::percentile(double percent) const -> T
 {
     const auto total { static_cast<double>(integral()) };
     std::uint64_t lower {};
-    auto edge { static_cast<std::uint64_t>(total * value) };
+    auto edge { static_cast<std::uint64_t>(total * percent) };
 
     for (size_t i { 0 }; i < m_n; i++) {
         lower += m_bins.at(i);

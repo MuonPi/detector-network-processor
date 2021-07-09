@@ -193,7 +193,7 @@ void station_coincidence::save()
             << "sample_time " << std::to_string(std::chrono::duration_cast<std::chrono::minutes>(duration).count()) << "min\n";
         metadata_file.close();
         data.uptime = 0;
-        data.hist.clear();
+        data.hist.reset();
     }
     std::ofstream adjacentfile { m_data_directory + "/" + filename + ".adj" };
     for (const auto& [hash, row] : row_vector) {
@@ -234,7 +234,7 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
             const std::int32_t bin_width { static_cast<std::int32_t>(std::clamp((2.0 * time_of_flight) / static_cast<double>(s_bins), 1.0, s_total_width / static_cast<double>(s_bins))) };
             const std::int32_t min { bin_width * -static_cast<std::int32_t>(s_bins * 0.5) };
             const std::int32_t max { bin_width * static_cast<std::int32_t>(s_bins * 0.5) };
-            m_data.emplace(x, y, { userinfo.hash(), user.hash(), static_cast<float>(distance), histogram_t { min, max } });
+            m_data.emplace(x, y, { userinfo.hash(), user.hash(), static_cast<float>(distance), histogram_t { s_bins, min, max } });
         }
     }
 }

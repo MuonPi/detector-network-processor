@@ -63,12 +63,12 @@ private:
 
     std::atomic<bool> m_saving { false };
 
-    using histogram_t = histogram<s_bins, std::int32_t, std::uint32_t>;
+    using histogram_t = histogram<std::int32_t, std::uint32_t>;
     struct data_t {
         std::size_t first {};
         std::size_t second {};
         float distance {};
-        histogram_t hist {};
+        histogram_t hist { s_bins };
         std::uint8_t online { 2 };
         std::chrono::system_clock::time_point last_online { std::chrono::system_clock::now() };
         std::int32_t uptime { 0 };

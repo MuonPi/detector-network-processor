@@ -40,9 +40,7 @@ auto main(int argc, const char* argv[]) -> int
     namespace po = boost::program_options;
 
     po::options_description desc("General options");
-    desc.add_options()
-            ("help,h", "produce help message")
-            ("directory,d", po::value<std::string>()->required(), "Directory through which to search");
+    desc.add_options()("help,h", "produce help message")("directory,d", po::value<std::string>()->required(), "Directory through which to search");
 
     boost::program_options::variables_map options {};
     po::store(po::parse_command_line(argc, argv, desc), options);
@@ -85,7 +83,8 @@ auto main(int argc, const char* argv[]) -> int
 
 void print_help(const boost::program_options::options_description& desc)
 {
-    std::cerr << "aggregation searches a directory for histograms and aggregates them into a single histogram file.\n" << desc;
+    std::cerr << "aggregation searches a directory for histograms and aggregates them into a single histogram file.\n"
+              << desc;
 }
 
 aggregator::aggregator(std::string directory, std::string output_filename)

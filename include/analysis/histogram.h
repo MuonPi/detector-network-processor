@@ -179,7 +179,7 @@ histogram<T, C>::histogram(std::size_t n, T lower, T upper) noexcept
 template <typename T, typename C>
 void histogram<T, C>::fill(const std::vector<T>& data)
 {
-    for (const auto& p: data) {
+    for (const auto& p : data) {
         add(p);
     }
 }
@@ -279,7 +279,7 @@ auto histogram<T, C>::mode() const -> T
         }
     }
 
-    return (static_cast<T>(max_i) + 0.5 ) * m_width;
+    return (static_cast<T>(max_i) + 0.5) * m_width;
 }
 
 template <typename T, typename C>
@@ -290,17 +290,17 @@ auto histogram<T, C>::mean() const -> T
 
     for (std::size_t i { 0 }; i < m_n; i++) {
         total += static_cast<T>(m_bins.at(i));
-        weighted += static_cast<T>(m_bins.at(i)) * ((static_cast<T>(i) + 0.5 ) * m_width);
+        weighted += static_cast<T>(m_bins.at(i)) * ((static_cast<T>(i) + 0.5) * m_width);
     }
 
-    return weighted/total;
+    return weighted / total;
 }
 
 template <typename T, typename C>
 auto histogram<T, C>::median() const -> T
 {
     const std::size_t l { m_n / 2 };
-    return m_lower + m_width * (static_cast<T>(l) + (static_cast<T>(m_n)*0.5 - static_cast<T>(std::accumulate(m_bins.begin(), m_bins.begin() + l, 0))) / m_bins.at(l));
+    return m_lower + m_width * (static_cast<T>(l) + (static_cast<T>(m_n) * 0.5 - static_cast<T>(std::accumulate(m_bins.begin(), m_bins.begin() + l, 0))) / m_bins.at(l));
 }
 
 template <typename T, typename C>

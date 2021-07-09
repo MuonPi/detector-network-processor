@@ -177,7 +177,7 @@ void mqtt<event_t>::get(event_t event)
         message.add_field(std::to_string(evt.fix)); // if the station had a valid GNSS fix at the time of the event
         message.add_field(std::to_string(evt.start)); // the timestamp of the stations hit
         message.add_field(std::to_string(evt.utc)); //if the station uses utc
-        message.add_field(event.conflicting?"conflicting":"valid"); // if the event is conflicting or not
+        message.add_field(event.conflicting ? "conflicting" : "valid"); // if the event is conflicting or not
         message.add_field(std::to_string(event.true_e)); // The number of true edges in the event graph
 
         if (m_detailed) {

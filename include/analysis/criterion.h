@@ -18,12 +18,12 @@ public:
         Valid
     };
 
-    struct score_t
-    {
+    struct score_t {
         Type type {};
         std::size_t true_e { 0 };
 
-        [[nodiscard]] inline operator bool() const {
+        [[nodiscard]] inline operator bool() const
+        {
             return type >= Type::Conflicting;
         }
     };

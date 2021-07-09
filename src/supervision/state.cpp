@@ -119,7 +119,7 @@ void state::process_event(const event_t& event, bool incoming)
     }
     if (n > 1) {
         m_outgoing_rate.increase_counter();
-        m_plausibility_level.add( static_cast<float>(event.true_e) / (static_cast<float>(n*n - n) * 0.5F));
+        m_plausibility_level.add(static_cast<float>(event.true_e) / (static_cast<float>(n * n - n) * 0.5F));
     }
 }
 

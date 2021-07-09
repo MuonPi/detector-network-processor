@@ -1,6 +1,5 @@
 #include "utility/exceptions.h"
 
-
 namespace muonpi::error {
 
 void terminate_handler()

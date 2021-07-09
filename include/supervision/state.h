@@ -87,8 +87,8 @@ private:
     data_series<float> m_system_cpu_load { 10 };
     data_series<float> m_plausibility_level { 100 };
 
-    rate_measurement<double> m_incoming_rate {100, s_rate_interval};
-    rate_measurement<double> m_outgoing_rate {100, s_rate_interval};
+    rate_measurement<double> m_incoming_rate { 100, s_rate_interval };
+    rate_measurement<double> m_outgoing_rate { 100, s_rate_interval };
 
     struct forward {
         thread_runner& runner;

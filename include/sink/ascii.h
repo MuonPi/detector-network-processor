@@ -58,7 +58,7 @@ void ascii<event_t>::get(event_t event)
     std::ostringstream out {};
     double max_e { static_cast<double>(event.n() * event.n() - event.n()) * 0.5 };
 
-    out << "Combined event_t: (" << event.n() << ": " << static_cast<double>(event.true_e) / max_e << ")" << ((event.conflicting)?" C ":"") << ": coinc_time: " << cluster_coinc_time;
+    out << "Combined event_t: (" << event.n() << ": " << static_cast<double>(event.true_e) / max_e << ")" << ((event.conflicting) ? " C " : "") << ": coinc_time: " << cluster_coinc_time;
     for (const auto& evt : event.events) {
         const std::int64_t evt_coinc_time = evt.start - event.data.start;
         out

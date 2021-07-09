@@ -127,8 +127,8 @@ private:
 
     supervision::station& m_stationsupervisor;
 
-    rate_measurement<double> m_current_rate {s_history_length, s_time_interval};
-    rate_measurement<double> m_mean_rate {s_history_length, s_time_interval};
+    rate_measurement<double> m_current_rate { s_history_length, s_time_interval };
+    rate_measurement<double> m_mean_rate { s_history_length, s_time_interval };
 
     detector_summary_t m_current_data;
     std::uint16_t m_last_ublox_counter {};

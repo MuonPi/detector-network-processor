@@ -40,9 +40,10 @@ auto application::setup(int argc, const char* argv[]) -> bool
 {
     std::set_terminate(error::terminate_handler);
 
-    auto now {std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())};
+    auto now { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
 
-    log::info() << "detector-network-processor " << Version::string() << "\n" << std::ctime(&now);
+    log::info() << "detector-network-processor " << Version::string() << "\n"
+                << std::ctime(&now);
 
     return config::singleton()->setup(argc, argv);
 }

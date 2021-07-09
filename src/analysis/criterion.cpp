@@ -8,9 +8,9 @@ auto criterion::apply(const event_t& first, const event_t& second) const -> scor
 {
     if ((first.n() < 2) && (second.n() < 2)) {
         if (compare(first.data, second.data) > 0.0) {
-            return score_t{Type::Valid, 1};
+            return score_t { Type::Valid, 1 };
         }
-        return score_t{Type::Invalid};
+        return score_t { Type::Invalid };
     }
 
     std::vector<event_t::data_t> first_data {};
@@ -46,13 +46,13 @@ auto criterion::apply(const event_t& first, const event_t& second) const -> scor
     sum /= static_cast<double>(n);
 
     if (sum < s_maximum_false) {
-        return score_t{Type::Invalid};
+        return score_t { Type::Invalid };
     }
 
     if ((sum > s_minimum_true) && (n == valid)) {
-        return score_t{Type::Valid, valid};
+        return score_t { Type::Valid, valid };
     }
-    return score_t{Type::Conflicting, valid};
+    return score_t { Type::Conflicting, valid };
 }
 
 } // namespace muonpi

@@ -62,7 +62,8 @@ auto config::setup(int argc, const char* argv[]) -> bool
 
 
     if (option_set("help")) {
-        log::info() << "\n" << desc << '\n';
+        log::info() << "\n"
+                    << desc << '\n';
         return false;
     }
     check_option("config", files.config);

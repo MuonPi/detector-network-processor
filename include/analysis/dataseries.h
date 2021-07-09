@@ -4,11 +4,11 @@
 #include "analysis/cachedvalue.h"
 
 #include <algorithm>
-#include <vector>
 #include <chrono>
 #include <cmath>
 #include <functional>
 #include <numeric>
+#include <vector>
 
 namespace muonpi {
 
@@ -73,13 +73,14 @@ public:
     [[nodiscard]] auto n() const -> std::size_t;
 
     [[nodiscard]] auto data() const -> const std::vector<T>&;
+
 private:
     [[nodiscard]] inline auto private_mean(const mean_t& type) const -> T
     {
         if (type == mean_t::geometric) {
-            return std::pow(std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, std::multiplies<T>()), 1.0/static_cast<T>(n()));
+            return std::pow(std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, std::multiplies<T>()), 1.0 / static_cast<T>(n()));
         } else if (type == mean_t::harmonic) {
-            return static_cast<T>(n()) / std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, [](const T& lhs, const T& rhs) {return lhs + 1.0/rhs;});
+            return static_cast<T>(n()) / std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0, [](const T& lhs, const T& rhs) { return lhs + 1.0 / rhs; });
         }
         return std::accumulate(m_buffer.begin(), m_buffer.end(), 0.0) / static_cast<T>(n());
     }
@@ -91,9 +92,9 @@ private:
         std::sort(sorted.begin(), sorted.end());
 
         if (n() % 2 == 0) {
-            return (sorted.at( n() / 2 ) + sorted.at( n() / 2 + 1)) / 2.0;
+            return (sorted.at(n() / 2) + sorted.at(n() / 2 + 1)) / 2.0;
         }
-        return sorted.at( n() / 2 );
+        return sorted.at(n() / 2);
     }
 
     [[nodiscard]] inline auto private_stddev() const -> T
@@ -106,18 +107,19 @@ private:
         const auto denominator { Sample ? (n() - 1.0) : n() };
         const auto m { mean() };
 
-        return 1.0 / (denominator)*std::inner_product(m_buffer.begin(), m_buffer.end(), m_buffer.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
+        return 1.0 / (denominator)*std::inner_product(
+                   m_buffer.begin(), m_buffer.end(), m_buffer.begin(), 0.0, [](T const& x, T const& y) { return x + y; }, [m](T const& x, T const& y) { return (x - m) * (y - m); });
     }
 
     std::vector<T> m_buffer {};
     std::size_t m_n { 0 };
 
-    cached_value<T> m_geometric_mean { [this] { return private_mean(mean_t::geometric); }};
-    cached_value<T> m_arithmetic_mean { [this] { return private_mean(mean_t::arithmetic); }};
-    cached_value<T> m_harmonic_mean { [this] { return private_mean(mean_t::harmonic); }};
-    cached_value<T> m_median { [this] { return private_median(); }};
-    cached_value<T> m_stddev { [this] { return private_stddev(); }};
-    cached_value<T> m_variance { [this] { return private_variance(); }};
+    cached_value<T> m_geometric_mean { [this] { return private_mean(mean_t::geometric); } };
+    cached_value<T> m_arithmetic_mean { [this] { return private_mean(mean_t::arithmetic); } };
+    cached_value<T> m_harmonic_mean { [this] { return private_mean(mean_t::harmonic); } };
+    cached_value<T> m_median { [this] { return private_median(); } };
+    cached_value<T> m_stddev { [this] { return private_stddev(); } };
+    cached_value<T> m_variance { [this] { return private_variance(); } };
 };
 
 // +++++++++++++++++++++++++++++++

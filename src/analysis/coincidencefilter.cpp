@@ -92,9 +92,9 @@ auto coincidence_filter::find_matches(const event_t& event) -> std::queue<std::p
 auto coincidence_filter::process(event_t event) -> int
 {
     m_supervisor.process_event(event, true);
-    const scope_guard guard {[&](){
+    const scope_guard guard { [&]() {
         m_supervisor.set_queue_size(m_constructors.size());
-    }};
+    } };
 
     std::queue<std::pair<std::size_t, std::size_t>> matches { find_matches(event) };
 
@@ -106,7 +106,7 @@ auto coincidence_filter::process(event_t event) -> int
         return 0;
     }
 
-    auto [i, score] {matches.front()};
+    auto [i, score] { matches.front() };
     matches.pop();
 
     event_constructor& constructor { m_constructors[i] };
@@ -133,10 +133,9 @@ auto coincidence_filter::process(event_t event) -> int
         constructor.event.true_e += score;
         constructor.event.emplace(m_constructors[i].event);
     }
-    for (std::size_t j { erase.top()}; !erase.empty(); j = erase.top()) {
+    for (std::size_t j { erase.top() }; !erase.empty(); j = erase.top()) {
         erase.pop();
         m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(j));
-
     }
     return 0;
 }

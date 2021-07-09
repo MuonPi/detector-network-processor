@@ -120,8 +120,8 @@ private:
 
     std::chrono::system_clock::time_point m_last_log { std::chrono::system_clock::now() };
 
-    static constexpr std::chrono::system_clock::duration s_log_interval { std::chrono::seconds { 90 } };
-    static constexpr std::chrono::system_clock::duration s_quit_interval { s_log_interval * 3 };
+    static constexpr std::chrono::seconds s_log_interval { 90 };
+    static constexpr auto s_quit_interval { s_log_interval * 3 };
     static constexpr std::size_t s_history_length { 10 };
     static constexpr std::chrono::seconds s_time_interval { 30 };
 

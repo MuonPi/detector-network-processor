@@ -11,8 +11,16 @@
 namespace muonpi {
 
 struct timebase_t {
-    double factor { 0.0 };
-    std::chrono::steady_clock::duration base {};
+    std::int64_t factor { 0 }; //!< dynamic factor for the timeout
+    std::chrono::steady_clock::duration base {}; //!< time base used for the timeout calculation
+    constexpr static std::int64_t minimum_timeout { 2'000 }; //!< minimum timeout in milliseconds
+    constexpr static std::int64_t maximum_timeout { 1'800'000 }; //!< maximum timeout in milliseconds
+
+    /**
+     * @brief timeout calculate the timeout
+     * @return the tmimeout clamped between minimum and maximum timeout values
+     */
+    [[nodiscard]] auto timeout() const -> std::chrono::steady_clock::duration;
 };
 
 struct event_t {

@@ -28,7 +28,7 @@ coincidence_filter::coincidence_filter(sink::base<event_t>& event_sink, supervis
 void coincidence_filter::get(timebase_t timebase)
 {
     using namespace std::chrono;
-    m_timeout = milliseconds { static_cast<long>(static_cast<double>(duration_cast<milliseconds>(timebase.base).count()) * timebase.factor) };
+    m_timeout = timebase.timeout();
     m_supervisor.time_status(duration_cast<milliseconds>(timebase.base), duration_cast<milliseconds>(m_timeout));
 }
 

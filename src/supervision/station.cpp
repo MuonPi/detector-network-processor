@@ -77,7 +77,7 @@ auto station::process() -> int
                 }
             }
         }
-        source::base<timebase_t>::put(timebase_t { largest });
+        source::base<timebase_t>::put(timebase_t { static_cast<std::int64_t>(largest) });
     }
 
     while (!m_delete_detectors.empty()) {

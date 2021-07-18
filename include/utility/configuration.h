@@ -13,8 +13,6 @@ public:
     Config::Mqtt source_mqtt { Config::Default::mqtt };
     Config::Mqtt sink_mqtt { Config::Default::mqtt };
     Config::Influx influx { Config::Default::influx };
-    Config::Ldap ldap { Config::Default::ldap };
-    Config::Rest rest { Config::Default::rest };
     Config::Trigger trigger { Config::Default::trigger };
     Config::Interval interval { Config::Default::interval };
     Config::ConfigFiles files { Config::Default::files };

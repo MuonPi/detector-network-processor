@@ -32,8 +32,6 @@ endif()
 
 
 find_library(MOSQUITTO mosquitto REQUIRED)
-find_library(SASL2 sasl2 REQUIRED)
-find_library(LDAP ldap REQUIRED)
 find_library(DL dl REQUIRED)
 
 find_package(
@@ -44,8 +42,6 @@ find_package(
 set(PROJECT_INCLUDE_LIBS
     mosquitto
     pthread
-    sasl2
-    ldap
     ${Boost_LIBRARIES}
     ssl
     crypto

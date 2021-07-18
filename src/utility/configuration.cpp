@@ -47,10 +47,6 @@ auto config::setup(int argc, const char* argv[]) -> bool
             ("influx_database", po::value<std::string>(), "InfluxDb Database")
             ("influx_host", po::value<std::string>(), "InfluxDB Hostname")
 
-            ("ldap_bind_dn", po::value<std::string>(), "LDAP Bind DN")
-            ("ldap_password", po::value<std::string>(), "LDAP Bind Password")
-            ("ldap_host", po::value<std::string>(), "LDAP Hostname")
-
             ("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory")
             ("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(interval.histogram_sample_time).count()), "histogram sample time to use. In hours.")
             ("geohash_length", po::value<int>()->default_value(meta.max_geohash_length), "Geohash length to use")
@@ -110,10 +106,6 @@ auto config::setup(int argc, const char* argv[]) -> bool
     check_option("influx_password", influx.login.password);
     check_option("influx_database", influx.database);
     check_option("influx_host", influx.host);
-
-    check_option("ldap_bind_dn", ldap.login.bind_dn);
-    check_option("ldap_password", ldap.login.password);
-    check_option("ldap_host", ldap.host);
 
     check_option("geohash_length", meta.max_geohash_length);
 

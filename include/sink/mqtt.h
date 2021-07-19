@@ -104,7 +104,7 @@ void mqtt<cluster_log_t>::get(cluster_log_t log)
     stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
     if (!(
             m_link.publish((construct(stream.str(), "timeout") << log.timeout).str())
-            && m_link.publish((construct(stream.str(), "version") << Version::string()).str())
+            && m_link.publish((construct(stream.str(), "version") << Version::dnp::string()).str())
             && m_link.publish((construct(stream.str(), "timebase") << log.timebase).str())
             && m_link.publish((construct(stream.str(), "uptime") << log.uptime).str())
             && m_link.publish((construct(stream.str(), "frequency_in") << log.frequency.single_in).str())
@@ -164,10 +164,12 @@ void mqtt<event_t>::get(event_t event)
     for (auto& evt : event.events) {
         location_t loc = evt.location;
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
-        std::string geohash = geohash::from_coordinates(loc.lon, loc.lat, loc.max_geohash_length);
+        std::string geohash = coordinate::hash<double>::from_geodetic(coordinate::geodetic<double>{loc.lon, loc.lat}, loc.max_geohash_length);
         message_constructor message { ' ' };
         message.add_field(uuid.to_string()); // UUID for the L1Event
-        message.add_field(int_to_hex(evt.hash)); // the hashed detector id
+        std::stringstream ss;
+        ss << std::setfill('0') << std::setw(sizeof(evt.hash) * 2) << std::hex << (evt.hash | 0);
+        message.add_field(ss.str()); // the hashed detector id
         message.add_field(geohash); // the geohash of the detector's location
         message.add_field(std::to_string(evt.time_acc)); // station's time accuracy
         message.add_field(std::to_string(event.n())); // event multiplicity (coinc level)

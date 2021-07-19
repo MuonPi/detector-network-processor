@@ -121,3 +121,10 @@ auto config::setup(int argc, const char* argv[]) -> bool
 }
 
 } // namespace muonpi
+
+namespace muonpi::Version::dnp {
+    auto string() -> std::string
+    {
+        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string { additional };
+    }
+} // namespace Version

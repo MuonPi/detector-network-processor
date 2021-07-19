@@ -8,7 +8,7 @@
 #define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
 #cmakedefine PROCESSOR_DISABLE_SSL
 
-namespace muonpi::Version {
+namespace muonpi::Version::dnp {
 constexpr int major { @PROJECT_VERSION_MAJOR@ };
 constexpr int minor { @PROJECT_VERSION_MINOR@ };
 constexpr int patch { @PROJECT_VERSION_PATCH@ };

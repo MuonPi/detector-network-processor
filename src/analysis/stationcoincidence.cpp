@@ -1,6 +1,7 @@
 #include "analysis/stationcoincidence.h"
 
 #include "supervision/station.h"
+#include "utility/configuration.h"
 
 #include <muonpi/gnss.h>
 #include <muonpi/utility.h>

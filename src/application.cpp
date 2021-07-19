@@ -39,11 +39,13 @@ void wrapper_signal_handler(int signal)
 
 auto application::setup(int argc, const char* argv[]) -> bool
 {
+    log::system::setup(muonpi::log::Level::Info, [&](int c){shutdown(c);});
+
     std::set_terminate(error::terminate_handler);
 
     auto now { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
 
-    log::info() << "detector-network-processor " << Version::string() << "\n"
+    log::info() << "detector-network-processor " << Version::dnp::string() << "\n"
                 << std::ctime(&now);
 
     return config::singleton()->setup(argc, argv);
@@ -84,13 +86,23 @@ auto application::priv_run() -> int
     sink_ptr<detector_summary_t> ascii_detectorsummary_sink { nullptr };
     sink_ptr<trigger::detector> ascii_trigger_sink { nullptr };
 
-    link::mqtt source_mqtt_link { config::singleton()->source_mqtt, config::singleton()->meta.station + "_sink", "muon::mqtt::so" };
+    link::mqtt::configuration source_mqtt_config {};
+    source_mqtt_config.host = config::singleton()->source_mqtt.host;
+    source_mqtt_config.port = config::singleton()->source_mqtt.port;
+    source_mqtt_config.login.username = config::singleton()->source_mqtt.login.username;
+    source_mqtt_config.login.password = config::singleton()->source_mqtt.login.password;
+    link::mqtt source_mqtt_link { source_mqtt_config, config::singleton()->meta.station + "_sink", "muon::mqtt::so" };
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
 
     if (!config::singleton()->option_set("offline")) {
-        sink_mqtt_link = std::make_unique<link::mqtt>(config::singleton()->sink_mqtt, config::singleton()->meta.station + "_sink", "muon::mqtt:si");
+        link::mqtt::configuration sink_mqtt_config {};
+        sink_mqtt_config.host = config::singleton()->sink_mqtt.host;
+        sink_mqtt_config.port = config::singleton()->sink_mqtt.port;
+        sink_mqtt_config.login.username = config::singleton()->sink_mqtt.login.username;
+        sink_mqtt_config.login.password = config::singleton()->sink_mqtt.login.password;
+        sink_mqtt_link = std::make_unique<link::mqtt>(sink_mqtt_config, config::singleton()->meta.station + "_sink", "muon::mqtt:si");
         if (!sink_mqtt_link->wait_for(link::mqtt::Status::Connected)) {
             return -1;
         }

@@ -1,19 +1,21 @@
 #ifndef MQTTSINK_H
 #define MQTTSINK_H
 
-#include "link/mqtt.h"
-#include "sink/base.h"
-
-#include "utility/geohash.h"
-#include "utility/log.h"
-#include "utility/utility.h"
-
 #include "messages/clusterlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
+
+
+#include <muonpi/link/mqtt.h>
+#include <muonpi/sink/base.h>
+
+#include <muonpi/gnss.h>
+#include <muonpi/log.h>
+#include <muonpi/utility.h>
+
 
 #include <ctime>
 #include <iomanip>

@@ -1,15 +1,15 @@
 ﻿#include "analysis/coincidencefilter.h"
 
-#include "utility/log.h"
-#include "utility/scopeguard.h"
-
 #include "analysis/criterion.h"
 #include "messages/clusterlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
-#include "sink/base.h"
-#include "source/base.h"
 #include "supervision/timebase.h"
+
+#include <muonpi/log.h>
+#include <muonpi/scopeguard.h>
+#include <muonpi/sink/base.h>
+#include <muonpi/source/base.h>
 
 #include <cinttypes>
 #include <stack>

@@ -5,8 +5,9 @@
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
-#include "sink/base.h"
-#include "utility/utility.h"
+
+#include <muonpi/sink/base.h>
+#include <muonpi/utility.h>
 
 #include <iostream>
 #include <memory>

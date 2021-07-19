@@ -3,8 +3,8 @@
 #include "messages/detectorinfo.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
-#include "source/base.h"
-#include "utility/log.h"
+#include <muonpi/source/base.h>
+#include <muonpi/log.h>
 
 #include "defaults.h"
 

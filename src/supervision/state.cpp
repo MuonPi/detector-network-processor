@@ -1,7 +1,7 @@
 #include "supervision/state.h"
 
 #include "defaults.h"
-#include "utility/log.h"
+#include <muonpi/log.h>
 
 #include <sstream>
 

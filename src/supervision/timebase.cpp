@@ -2,7 +2,7 @@
 
 #include "messages/event.h"
 
-#include "utility/log.h"
+#include <muonpi/log.h>
 
 #include <algorithm>
 

@@ -5,14 +5,15 @@
 #include "messages/clusterlog.h"
 #include "messages/detectorstatus.h"
 #include "messages/event.h"
-#include "sink/base.h"
 
-#include "analysis/dataseries.h"
-#include "analysis/ratemeasurement.h"
+#include <muonpi/sink/base.h>
 
-#include "supervision/resource.h"
+#include <muonpi/analysis/dataseries.h>
+#include <muonpi/analysis/ratemeasurement.h>
 
-#include "source/base.h"
+#include <muonpi/supervision/resource.h>
+
+#include <muonpi/source/base.h>
 
 #include <chrono>
 #include <cinttypes>

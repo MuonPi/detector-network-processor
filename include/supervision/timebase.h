@@ -1,9 +1,10 @@
 #ifndef TIMEBASESUPERVISOR_H
 #define TIMEBASESUPERVISOR_H
 
-#include "pipeline/base.h"
-
 #include "messages/event.h"
+
+#include <muonpi/pipeline/base.h>
+
 
 #include <chrono>
 #include <memory>

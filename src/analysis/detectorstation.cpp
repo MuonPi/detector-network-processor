@@ -1,11 +1,12 @@
 #include "analysis/detectorstation.h"
 #include "messages/event.h"
 #include "supervision/state.h"
-#include "utility/log.h"
-#include "utility/units.h"
-#include "utility/utility.h"
 
 #include "supervision/station.h"
+
+#include <muonpi/log.h>
+#include <muonpi/units.h>
+#include <muonpi/utility.h>
 
 namespace muonpi {
 

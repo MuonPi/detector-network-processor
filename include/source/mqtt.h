@@ -1,16 +1,18 @@
 #ifndef MQTTLOGSOURCE_H
 #define MQTTLOGSOURCE_H
 
-#include "link/mqtt.h"
+#include <muonpi/link/mqtt.h>
 #include "messages/detectorinfo.h"
 #include "messages/detectorlog.h"
 #include "messages/event.h"
 #include "messages/userinfo.h"
-#include "source/base.h"
-
 #include "utility/configuration.h"
-#include "utility/log.h"
-#include "utility/utility.h"
+
+
+#include <muonpi/source/base.h>
+
+#include <muonpi/log.h>
+#include <muonpi/utility.h>
 
 #include <algorithm>
 #include <map>
@@ -334,7 +336,7 @@ mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic)
     : base<T> { sink }
     , m_link { topic }
 {
-    topic.set_callback([this](const link::mqtt::message_t& message) {
+    topic.emplace_callback([this](const link::mqtt::message_t& message) {
         process(message);
     });
 }

@@ -2,11 +2,10 @@
 
 #include "supervision/station.h"
 
-#include "utility/coordinatemodel.h"
-#include "utility/utility.h"
-
-#include "utility/log.h"
-#include "utility/units.h"
+#include <muonpi/gnss.h>
+#include <muonpi/utility.h>
+#include <muonpi/log.h>
+#include <muonpi/units.h>
 
 #include <algorithm>
 #include <filesystem>

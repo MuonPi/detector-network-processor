@@ -1,16 +1,16 @@
 ﻿#ifndef STATION_COINCIDENCE_H
 #define STATION_COINCIDENCE_H
 
-#include "utility/threadrunner.h"
-#include "utility/units.h"
-
 #include "messages/event.h"
 #include "messages/trigger.h"
 
-#include "sink/base.h"
+#include <muonpi/threadrunner.h>
+#include <muonpi/units.h>
 
-#include "analysis/histogram.h"
-#include "analysis/uppermatrix.h"
+#include <muonpi/sink/base.h>
+
+#include <muonpi/analysis/histogram.h>
+#include <muonpi/analysis/uppermatrix.h>
 
 #include <string>
 

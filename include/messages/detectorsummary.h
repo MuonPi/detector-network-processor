@@ -1,7 +1,7 @@
 #ifndef DETECTORSUMMARY_H
 #define DETECTORSUMMARY_H
 
-#include "userinfo.h"
+#include "messages/userinfo.h"
 
 #include <chrono>
 

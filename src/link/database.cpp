@@ -1,7 +1,7 @@
 ﻿#include "link/database.h"
 
-#include "utility/log.h"
-#include "utility/scopeguard.h"
+#include <muonpi/log.h>
+#include <muonpi/scopeguard.h>
 
 #include <type_traits>
 #include <utility>

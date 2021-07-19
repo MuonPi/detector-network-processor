@@ -2,7 +2,6 @@
 
 #include "defaults.h"
 
-#include "utility/log.h"
 
 #include "analysis/coincidencefilter.h"
 #include "analysis/stationcoincidence.h"
@@ -12,17 +11,19 @@
 #include "messages/trigger.h"
 
 #include "link/database.h"
-#include "link/mqtt.h"
 
 #include "source/mqtt.h"
 
 #include "sink/ascii.h"
-#include "sink/base.h"
 #include "sink/database.h"
 #include "sink/mqtt.h"
 
 #include "utility/configuration.h"
-#include "utility/exceptions.h"
+
+#include <muonpi/log.h>
+#include <muonpi/exceptions.h>
+#include <muonpi/link/mqtt.h>
+#include <muonpi/sink/base.h>
 
 #include <exception>
 #include <memory>

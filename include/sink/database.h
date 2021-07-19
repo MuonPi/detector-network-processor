@@ -1,19 +1,19 @@
 #ifndef DATABASESINK_H
 #define DATABASESINK_H
 
-#include "sink/base.h"
-
 #include "link/database.h"
 
 #include "utility/configuration.h"
-#include "utility/log.h"
-#include "utility/utility.h"
 
 #include "messages/clusterlog.h"
 #include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
+
+#include <muonpi/sink/base.h>
+#include <muonpi/log.h>
+#include <muonpi/utility.h>
 
 #include <memory>
 #include <sstream>

@@ -1,7 +1,7 @@
 #ifndef CLUSTERLOG_H
 #define CLUSTERLOG_H
 
-#include "userinfo.h"
+#include "messages/userinfo.h"
 
 #include <chrono>
 #include <map>

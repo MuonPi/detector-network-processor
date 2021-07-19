@@ -1,15 +1,15 @@
 ﻿#ifndef STATIONSUPERVISION_H
 #define STATIONSUPERVISION_H
 
-#include "pipeline/base.h"
-#include "sink/base.h"
-#include "source/base.h"
-
 #include "analysis/detectorstation.h"
 
 #include "messages/detectorinfo.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
+
+#include <muonpi/pipeline/base.h>
+#include <muonpi/sink/base.h>
+#include <muonpi/source/base.h>
 
 #include <map>
 #include <memory>

@@ -8,7 +8,8 @@
 #include "messages/clusterlog.h"
 #include "supervision/state.h"
 #include "supervision/timebase.h"
-#include "utility/threadrunner.h"
+
+#include <muonpi/threadrunner.h>
 
 #include <map>
 #include <queue>

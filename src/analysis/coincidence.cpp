@@ -1,6 +1,7 @@
 #include "analysis/coincidence.h"
 #include "messages/event.h"
-#include "utility/coordinatemodel.h"
+
+#include <muonpi/gnss.h>
 
 #include <cmath>
 

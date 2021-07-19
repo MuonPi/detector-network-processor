@@ -2,7 +2,8 @@
 #define COINCIDENCE_H
 
 #include "analysis/criterion.h"
-#include "utility/units.h"
+
+#include <muonpi/units.h>
 
 namespace muonpi {
 

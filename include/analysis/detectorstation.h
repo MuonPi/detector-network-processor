@@ -6,10 +6,10 @@
 #include "messages/detectorstatus.h"
 #include "messages/detectorsummary.h"
 #include "messages/userinfo.h"
-#include "utility/threadrunner.h"
 
-#include "analysis/dataseries.h"
-#include "analysis/ratemeasurement.h"
+#include <muonpi/threadrunner.h>
+#include <muonpi/analysis/dataseries.h>
+#include <muonpi/analysis/ratemeasurement.h>
 
 #include <chrono>
 #include <future>

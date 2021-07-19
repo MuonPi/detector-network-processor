@@ -32,9 +32,9 @@ endif()
 
 
 find_library(MOSQUITTO mosquitto REQUIRED)
-find_library(SASL2 sasl2 REQUIRED)
-find_library(LDAP ldap REQUIRED)
 find_library(DL dl REQUIRED)
+find_library(MUONPICORE muonpi-core REQUIRED)
+find_library(MUONPIMQTT muonpi-mqtt REQUIRED)
 
 find_package(
   Boost 1.71
@@ -44,12 +44,13 @@ find_package(
 set(PROJECT_INCLUDE_LIBS
     mosquitto
     pthread
-    sasl2
-    ldap
     ${Boost_LIBRARIES}
     ssl
     crypto
-    dl)
+    dl
+    muonpi-core
+    muonpi-mqtt
+    )
 
 # +++ necessary for compatability with older compilers
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)

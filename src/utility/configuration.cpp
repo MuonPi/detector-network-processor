@@ -1,6 +1,6 @@
 #include "utility/configuration.h"
 
-#include "utility/log.h"
+#include <muonpi/log.h>
 
 #include <fstream>
 

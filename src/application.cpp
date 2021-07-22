@@ -161,19 +161,19 @@ auto application::priv_run() -> int
         collection_detectorlog_sink.emplace(*detectorlog_sink);
     }
 
-    m_supervisor = std::make_unique<supervision::state>(collection_clusterlog_sink);
+    m_supervisor = std::make_unique<supervision::state>(collection_clusterlog_sink, supervision::state::configuration{config::singleton()->meta.station, config::singleton()->interval.clusterlog});
     coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
     supervision::timebase timebasesupervisor { coincidencefilter, coincidencefilter };
-    supervision::station stationsupervisor { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
+    supervision::station stationsupervisor { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor, supervision::station::configuration{config::singleton()->meta.station, config::singleton()->interval.detectorsummary} };
 
-    source::mqtt<event_t> event_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/data/#") };
-    source::mqtt<event_t> l1_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/l1data/#") };
-    source::mqtt<detector_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#") };
+    source::mqtt<event_t> event_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/data/#"), source::mqtt<event_t>::configuration{config::singleton()->meta.max_geohash_length} };
+    source::mqtt<event_t> l1_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/l1data/#"), source::mqtt<event_t>::configuration{config::singleton()->meta.max_geohash_length} };
+    source::mqtt<detector_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#"), source::mqtt<detector_info_t<location_t>>::configuration{config::singleton()->meta.max_geohash_length} };
 
-    source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
+    source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#"), source::mqtt<detector_log_t>::configuration{config::singleton()->meta.max_geohash_length} };
 
     if (config::singleton()->option_set("histogram")) {
-        stationcoincidence = std::make_unique<station_coincidence>(config::singleton()->get_option<std::string>("histogram"), stationsupervisor);
+        stationcoincidence = std::make_unique<station_coincidence>(config::singleton()->get_option<std::string>("histogram"), stationsupervisor, station_coincidence::configuration{config::singleton()->interval.histogram_sample_time});
 
         collection_event_sink.emplace(*stationcoincidence);
         collection_trigger_sink.emplace(*stationcoincidence);

@@ -19,6 +19,7 @@ struct detector_summary_t {
     std::uint64_t incoming { 0UL };
     std::uint8_t change { 0 };
     double mean_time_acc { 0.0 };
+    std::string station_id {};
 };
 
 }

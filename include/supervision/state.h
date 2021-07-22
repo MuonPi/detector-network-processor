@@ -28,11 +28,15 @@ namespace muonpi::supervision {
  */
 class state : public thread_runner, public source::base<cluster_log_t> {
 public:
+    struct configuration {
+        std::string station_id {};
+        std::chrono::steady_clock::duration clusterlog_interval;
+    };
     /**
      * @brief state_supervisor
      * @param log_sink The specific log sinks to send metadata to
      */
-    state(sink::base<cluster_log_t>& log_sink);
+    state(sink::base<cluster_log_t>& log_sink, configuration config);
 
     /**
      * @brief time_status Update the current timeout used
@@ -103,6 +107,8 @@ private:
     std::chrono::system_clock::time_point m_last { std::chrono::system_clock::now() };
 
     resource m_resource_tracker {};
+
+    configuration m_config {};
 };
 
 }

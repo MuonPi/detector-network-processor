@@ -9,9 +9,10 @@
 
 namespace muonpi::supervision {
 
-state::state(sink::base<cluster_log_t>& log_sink)
+state::state(sink::base<cluster_log_t>& log_sink, configuration config)
     : thread_runner { "muon::state" }
     , source::base<cluster_log_t> { log_sink }
+    , m_config { std::move(config) }
 {
 }
 
@@ -64,9 +65,10 @@ auto state::step() -> int
     m_current_data.system_cpu_load = m_system_cpu_load.mean();
     m_current_data.plausibility_level = m_plausibility_level.mean();
 
-    if ((now - m_last) >= config::singleton()->interval.clusterlog) {
+    if ((now - m_last) >= m_config.clusterlog_interval) {
         m_last = now;
 
+        m_current_data.station_id = m_config.station_id;
         source::base<cluster_log_t>::put(m_current_data);
 
         m_current_data.incoming = 0;

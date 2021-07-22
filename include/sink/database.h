@@ -58,7 +58,7 @@ void database<cluster_log_t>::get(cluster_log_t log)
     using field = link::influx::field;
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     auto fields { std::move(m_link.measurement("cluster_summary")
-        << tag { "cluster_id", config::singleton()->meta.station }
+        << tag { "cluster_id", log.station_id }
         << tag { "version", Version::dnp::string() }
         << field { "timeout", log.timeout }
         << field { "timebase", log.timebase }
@@ -99,7 +99,7 @@ void database<detector_summary_t>::get(detector_summary_t log)
     using tag = link::influx::tag;
     using field = link::influx::field;
     auto result { std::move((m_link.measurement("detector_summary")
-        << tag { "cluster_id", config::singleton()->meta.station }
+        << tag { "cluster_id", log.station_id }
         << tag { "user", log.userinfo.username }
         << tag { "detector", log.userinfo.station_id }
         << tag { "site_id", log.userinfo.site_id() }

@@ -15,13 +15,14 @@ namespace muonpi::supervision {
 
 constexpr static std::chrono::duration s_timeout { std::chrono::milliseconds { 100 } };
 
-station::station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor)
+station::station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor, configuration config)
     : sink::threaded<detector_info_t<location_t>> { "muon::station", s_timeout }
     , source::base<detector_summary_t> { summary_sink }
     , source::base<trigger::detector> { trigger_sink }
     , pipeline::base<event_t> { event_sink }
     , source::base<timebase_t> { timebase_sink }
     , m_supervisor { supervisor }
+    , m_config { std::move(config) }
 {
 }
 
@@ -89,11 +90,14 @@ auto station::process() -> int
     // +++ push detector log messages at regular interval
     steady_clock::time_point now { steady_clock::now() };
 
-    if ((now - m_last) >= config::singleton()->interval.detectorsummary) {
+    if ((now - m_last) >= m_config.detectorsummary_interval) {
         m_last = now;
 
         for (auto& [hash, det] : m_detectors) {
-            source::base<detector_summary_t>::put(det->current_log_data());
+            auto log = det->current_log_data();
+            log.station_id = m_config.station_id;
+
+            source::base<detector_summary_t>::put(log);
         }
     }
     // --- push detector log messages at regular interval

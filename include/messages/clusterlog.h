@@ -28,6 +28,7 @@ struct cluster_log_t {
     float system_cpu_load { 0.0 }; //!< The current cpu load in percent
     float memory_usage { 0.0 }; //!< The current memory usage in percent
     float plausibility_level { 0.0 }; //!< The mean plausibility level of the last 100 outgoing events
+    std::string station_id {};
 };
 
 } // namespace muonpi

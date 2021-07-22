@@ -30,6 +30,12 @@ class station
       public pipeline::base<event_t>,
       public source::base<timebase_t> {
 public:
+
+    struct configuration {
+        std::string station_id;
+        std::chrono::steady_clock::duration detectorsummary_interval;
+    };
+
     /**
      * @brief detector_tracker
      * @param summary_sink A sink to write the detector summaries to.
@@ -37,7 +43,7 @@ public:
      * @param event_sink A sink to write the events to.
      * @param supervisor A reference to a supervisor object, which keeps track of program metadata
      */
-    station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor);
+    station(sink::base<detector_summary_t>& summary_sink, sink::base<trigger::detector>& trigger_sink, sink::base<event_t>& event_sink, sink::base<timebase_t>& timebase_sink, supervision::state& supervisor, configuration config);
 
     /**
      * @brief detector_status Update the status of one detector
@@ -88,6 +94,8 @@ private:
     std::queue<std::size_t> m_delete_detectors {};
 
     std::chrono::steady_clock::time_point m_last { std::chrono::steady_clock::now() };
+
+    configuration m_config {};
 };
 
 }

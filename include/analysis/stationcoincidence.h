@@ -25,12 +25,16 @@ namespace supervision {
  */
 class station_coincidence : public sink::base<event_t>, public sink::base<trigger::detector>, public thread_runner {
 public:
+
+    struct configuration {
+        std::chrono::system_clock::duration histogram_sample_time {};
+    };
     /**
      * @brief station_coincidence
      * @param data_directory The data directory to use to store the data
      * @param stationsupervisor reference to the supervision::station object
      */
-    station_coincidence(std::string data_directory, supervision::station& stationsupervisor);
+    station_coincidence(std::string data_directory, supervision::station& stationsupervisor, configuration config);
 
     /**
      * @brief get Reimplemented from sink::base
@@ -76,6 +80,8 @@ private:
     std::vector<std::pair<userinfo_t, location_t>> m_stations {};
     upper_matrix<data_t> m_data { 0 };
     std::chrono::system_clock::time_point m_last_save { std::chrono::system_clock::now() };
+
+    configuration m_config {};
 };
 
 }

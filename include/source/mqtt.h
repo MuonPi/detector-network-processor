@@ -27,11 +27,14 @@ namespace muonpi::source {
 template <typename T>
 class mqtt : public base<T> {
 public:
+    struct configuration {
+        int max_geohash_length {};
+    };
     /**
      * @brief mqtt
      * @param subscriber The mqtt Topic this source should be subscribed to
      */
-    mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic);
+    mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic, configuration config);
 
     ~mqtt() override;
 
@@ -72,6 +75,8 @@ private:
         std::uint16_t status { 0 };
 
         T item {};
+
+        configuration m_config {};
     };
 
     /**
@@ -85,6 +90,8 @@ private:
     link::mqtt::subscriber& m_link;
 
     std::map<std::size_t, item_collector> m_buffer {};
+
+    configuration m_config {};
 };
 
 // +++++++++++++++++++++++++++++++
@@ -156,7 +163,7 @@ auto mqtt<detector_info_t<location_t>>::item_collector::add(message_parser& /*to
     }
 
     if (item.item<location_t>().max_geohash_length == 0) {
-        item.item<location_t>().max_geohash_length = config::singleton()->meta.max_geohash_length;
+        item.item<location_t>().max_geohash_length = m_config.max_geohash_length;
     }
     return ((status == 0) ? ResultCode::Finished : ResultCode::Aggregating);
 }
@@ -332,9 +339,10 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
 }
 
 template <typename T>
-mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic)
+mqtt<T>::mqtt(sink::base<T>& sink, link::mqtt::subscriber& topic, configuration config)
     : base<T> { sink }
     , m_link { topic }
+    , m_config { std::move(config) }
 {
     topic.emplace_callback([this](const link::mqtt::message_t& message) {
         process(message);
@@ -405,6 +413,7 @@ void mqtt<T>::process(const link::mqtt::message_t& msg)
 
     item_collector item;
     item.user_info = userinfo;
+    item.m_config = m_config;
     auto value { item.add(topic, content) };
     if ((value & item_collector::Finished) != 0) {
         this->put(std::move(item.item));

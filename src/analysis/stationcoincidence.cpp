@@ -14,10 +14,11 @@
 
 namespace muonpi {
 
-station_coincidence::station_coincidence(std::string data_directory, supervision::station& stationsupervisor)
+station_coincidence::station_coincidence(std::string data_directory, supervision::station& stationsupervisor, configuration config)
     : thread_runner { "muon::coinc" }
     , m_stationsupervisor { stationsupervisor }
     , m_data_directory { std::move(data_directory) }
+    , m_config { std::move(config) }
 {
     reset();
     start();
@@ -27,7 +28,7 @@ auto station_coincidence::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> lock { mx };
-    m_condition.wait_for(lock, config::singleton()->interval.histogram_sample_time);
+    m_condition.wait_for(lock, m_config.histogram_sample_time);
     if (!m_quit) {
         save();
     }
@@ -113,7 +114,7 @@ void station_coincidence::save()
     const auto now { std::chrono::system_clock::now() };
     constexpr static double grace_factor { 0.9 };
     const auto duration { now - m_last_save };
-    if (duration < (config::singleton()->interval.histogram_sample_time * grace_factor)) {
+    if (duration < (m_config.histogram_sample_time * grace_factor)) {
         log::warning() << "Last histogram store was too recent. Refusing to save now.";
         return;
     }

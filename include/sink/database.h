@@ -1,8 +1,6 @@
 #ifndef DATABASESINK_H
 #define DATABASESINK_H
 
-#include "link/database.h"
-
 #include "utility/configuration.h"
 
 #include "messages/clusterlog.h"
@@ -12,6 +10,7 @@
 #include "messages/trigger.h"
 
 #include <muonpi/sink/base.h>
+#include <muonpi/link/influx.h>
 #include <muonpi/log.h>
 #include <muonpi/utility.h>
 
@@ -30,7 +29,7 @@ public:
      * @brief databaseLogsink
      * @param link a link::database instance
      */
-    database(link::database& link);
+    database(link::influx& link);
 
     /**
      * @brief get Reimplemented from sink::base
@@ -39,7 +38,7 @@ public:
     void get(T message) override;
 
 private:
-    link::database& m_link;
+    link::influx& m_link;
 };
 
 // +++++++++++++++++++++++++++++++
@@ -47,7 +46,7 @@ private:
 // +++++++++++++++++++++++++++++++
 
 template <class T>
-database<T>::database(link::database& link)
+database<T>::database(link::influx& link)
     : m_link { link }
 {
 }
@@ -55,7 +54,8 @@ database<T>::database(link::database& link)
 template <>
 void database<cluster_log_t>::get(cluster_log_t log)
 {
-    using namespace link::influx;
+    using tag = link::influx::tag;
+    using field = link::influx::field;
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     auto fields { std::move(m_link.measurement("cluster_summary")
         << tag { "cluster_id", config::singleton()->meta.station }
@@ -96,7 +96,8 @@ template <>
 void database<detector_summary_t>::get(detector_summary_t log)
 {
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
-    using namespace link::influx;
+    using tag = link::influx::tag;
+    using field = link::influx::field;
     auto result { std::move((m_link.measurement("detector_summary")
         << tag { "cluster_id", config::singleton()->meta.station }
         << tag { "user", log.userinfo.username }
@@ -124,7 +125,8 @@ void database<trigger::detector>::get(trigger::detector trig)
     }
 
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
-    using namespace link::influx;
+    using tag = link::influx::tag;
+    using field = link::influx::field;
     auto result { std::move(m_link.measurement("trigger")
         << tag { "user", trig.userinfo.username }
         << tag { "detector", trig.userinfo.station_id }
@@ -149,7 +151,8 @@ void database<event_t>::get(event_t event)
     guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
     double plausibility { static_cast<double>(event.true_e) / (static_cast<double>(event.n() * event.n() - event.n()) * 0.5) };
     for (auto& evt : event.events) {
-        using namespace link::influx;
+        using tag = link::influx::tag;
+        using field = link::influx::field;
         if (!(m_link.measurement("L1Event")
                 << tag { "user", evt.user }
                 << tag { "detector", evt.station_id }
@@ -176,7 +179,8 @@ template <>
 void database<detector_log_t>::get(detector_log_t log)
 {
     auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
-    using namespace link::influx;
+    using tag = link::influx::tag;
+    using field = link::influx::field;
     auto entry { m_link.measurement("detector_log") };
     entry << tag { "user", log.userinfo.username }
           << tag { "detector", log.userinfo.station_id }

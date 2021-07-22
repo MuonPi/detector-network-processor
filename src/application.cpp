@@ -10,8 +10,6 @@
 #include "messages/detectorlog.h"
 #include "messages/trigger.h"
 
-#include "link/database.h"
-
 #include "source/mqtt.h"
 
 #include "sink/ascii.h"
@@ -23,6 +21,7 @@
 #include <muonpi/log.h>
 #include <muonpi/exceptions.h>
 #include <muonpi/link/mqtt.h>
+#include <muonpi/link/influx.h>
 #include <muonpi/sink/base.h>
 
 #include <exception>
@@ -66,7 +65,7 @@ void application::shutdown(int exit_code)
 
 auto application::priv_run() -> int
 {
-    std::unique_ptr<link::database> db_link { nullptr };
+    std::unique_ptr<link::influx> db_link { nullptr };
     std::unique_ptr<link::mqtt> sink_mqtt_link { nullptr };
     std::unique_ptr<station_coincidence> stationcoincidence { nullptr };
 
@@ -131,7 +130,14 @@ auto application::priv_run() -> int
         collection_trigger_sink.emplace(*mqtt_trigger_sink);
 
         if (!config::singleton()->meta.local_cluster) {
-            db_link = std::make_unique<link::database>(config::singleton()->influx);
+            link::influx::configuration influx_config {};
+
+            influx_config.host = config::singleton()->influx.host;
+            influx_config.database = config::singleton()->influx.database;
+            influx_config.login.username = config::singleton()->influx.login.username;
+            influx_config.login.password = config::singleton()->influx.login.password;
+
+            db_link = std::make_unique<link::influx>(influx_config);
 
             event_sink = std::make_unique<sink::database<event_t>>(*db_link);
             clusterlog_sink = std::make_unique<sink::database<cluster_log_t>>(*db_link);

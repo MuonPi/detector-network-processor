@@ -1,7 +1,6 @@
 set(PROJECT_SOURCE_FILES
     "${PROJECT_SRC_DIR}/main.cpp"
     "${PROJECT_SRC_DIR}/application.cpp"
-    "${PROJECT_SRC_DIR}/link/database.cpp"
     "${PROJECT_SRC_DIR}/messages/event.cpp"
     "${PROJECT_SRC_DIR}/messages/detectorlog.cpp"
     "${PROJECT_SRC_DIR}/utility/configuration.cpp"
@@ -18,7 +17,6 @@ set(PROJECT_SOURCE_FILES
 
 set(PROJECT_HEADER_FILES
     "${PROJECT_HEADER_DIR}/application.h"
-    "${PROJECT_HEADER_DIR}/link/database.h"
     "${PROJECT_HEADER_DIR}/sink/database.h"
     "${PROJECT_HEADER_DIR}/sink/mqtt.h"
     "${PROJECT_HEADER_DIR}/sink/ascii.h"

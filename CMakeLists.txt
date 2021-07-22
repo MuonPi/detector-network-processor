@@ -34,7 +34,8 @@ endif()
 find_library(MOSQUITTO mosquitto REQUIRED)
 find_library(DL dl REQUIRED)
 find_library(MUONPICORE muonpi-core REQUIRED)
-find_library(MUONPIMQTT muonpi-mqtt REQUIRED)
+find_library(MUONPIMQTT muonpi-http REQUIRED)
+find_library(MUONPIMQTT muonpi-link REQUIRED)
 
 find_package(
   Boost 1.71
@@ -49,7 +50,8 @@ set(PROJECT_INCLUDE_LIBS
     crypto
     dl
     muonpi-core
-    muonpi-mqtt
+    muonpi-http
+    muonpi-link
     )
 
 # +++ necessary for compatability with older compilers

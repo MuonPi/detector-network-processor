@@ -1,9 +1,12 @@
 #ifndef MUONDETECTOR_VERSION_H
 #define MUONDETECTOR_VERSION_H
 
+#include <muonpi/configuration.h>
+
 #include <chrono>
 #include <string>
 #include <memory>
+#include <optional>
 
 #define BOOST_ENABLE_ASSERT_DEBUG_HANDLER
 #cmakedefine PROCESSOR_DISABLE_SSL
@@ -88,6 +91,7 @@ static const Interval interval {std::chrono::seconds{60}, std::chrono::seconds{1
 static const Meta meta {false, 6, "muondetector_cluster", 0};
 }
 
+[[nodiscard]] auto setup(int argc, const char* argv[]) -> std::optional<config>;
 }
 
 #endif // MUONDETECTOR_VERSION_H

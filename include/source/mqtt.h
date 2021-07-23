@@ -6,7 +6,6 @@
 #include "messages/detectorlog.h"
 #include "messages/event.h"
 #include "messages/userinfo.h"
-#include "utility/configuration.h"
 
 
 #include <muonpi/source/base.h>

@@ -1,7 +1,6 @@
 #include "supervision/state.h"
 
 #include "defaults.h"
-#include "utility/configuration.h"
 
 #include <muonpi/log.h>
 

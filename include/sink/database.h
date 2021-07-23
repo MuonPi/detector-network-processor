@@ -1,16 +1,15 @@
 #ifndef DATABASESINK_H
 #define DATABASESINK_H
 
-
 #include "messages/clusterlog.h"
 #include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
 
-#include <muonpi/sink/base.h>
 #include <muonpi/link/influx.h>
 #include <muonpi/log.h>
+#include <muonpi/sink/base.h>
 #include <muonpi/utility.h>
 
 #include <memory>

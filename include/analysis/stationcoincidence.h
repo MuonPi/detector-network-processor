@@ -25,7 +25,6 @@ namespace supervision {
  */
 class station_coincidence : public sink::base<event_t>, public sink::base<trigger::detector>, public thread_runner {
 public:
-
     struct configuration {
         std::chrono::system_clock::duration histogram_sample_time {};
     };

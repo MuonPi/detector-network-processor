@@ -13,7 +13,7 @@ auto setup(int argc, const char* argv[]) -> std::optional<config>
 
     namespace po = boost::program_options;
 
-    config cfg{};
+    config cfg {};
 
     auto desc = cfg.setup("General options");
 
@@ -55,7 +55,8 @@ auto setup(int argc, const char* argv[]) -> std::optional<config>
     file.add_option("detectorsummary_interval", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::minutes>(Config::Default::interval.detectorsummary).count()), "Interval in which to send the detector summary. In minutes.");
 
     if (cfg.is_set("help")) {
-        log::info() << "\n" << desc << '\n';
+        log::info() << "\n"
+                    << desc << '\n';
         return {};
     }
 
@@ -66,11 +67,11 @@ auto setup(int argc, const char* argv[]) -> std::optional<config>
     return cfg;
 }
 
-} // namespace muonpi::settings
+} // namespace muonpi::Config
 
 namespace muonpi::Version::dnp {
-    auto string() -> std::string
-    {
-        return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string { additional };
-    }
-} // namespace Version::dnp
+auto string() -> std::string
+{
+    return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + "-" + std::string { additional };
+}
+} // namespace muonpi::Version::dnp

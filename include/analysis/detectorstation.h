@@ -7,9 +7,9 @@
 #include "messages/detectorsummary.h"
 #include "messages/userinfo.h"
 
-#include <muonpi/threadrunner.h>
 #include <muonpi/analysis/dataseries.h>
 #include <muonpi/analysis/ratemeasurement.h>
+#include <muonpi/threadrunner.h>
 
 #include <chrono>
 #include <future>

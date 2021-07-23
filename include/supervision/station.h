@@ -30,7 +30,6 @@ class station
       public pipeline::base<event_t>,
       public source::base<timebase_t> {
 public:
-
     struct configuration {
         std::string station_id;
         std::chrono::steady_clock::duration detectorsummary_interval;

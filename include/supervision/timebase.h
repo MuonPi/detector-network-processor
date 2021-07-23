@@ -5,7 +5,6 @@
 
 #include <muonpi/pipeline/base.h>
 
-
 #include <chrono>
 #include <memory>
 

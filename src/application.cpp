@@ -2,7 +2,6 @@
 
 #include "defaults.h"
 
-
 #include "analysis/coincidencefilter.h"
 #include "analysis/stationcoincidence.h"
 #include "supervision/station.h"
@@ -16,10 +15,10 @@
 #include "sink/database.h"
 #include "sink/mqtt.h"
 
-#include <muonpi/log.h>
 #include <muonpi/exceptions.h>
-#include <muonpi/link/mqtt.h>
 #include <muonpi/link/influx.h>
+#include <muonpi/link/mqtt.h>
+#include <muonpi/log.h>
 #include <muonpi/sink/base.h>
 
 #include <exception>
@@ -36,7 +35,7 @@ void wrapper_signal_handler(int signal)
 
 auto application::setup(int argc, const char* argv[]) -> bool
 {
-    log::system::setup(muonpi::log::Level::Info, [&](int c){shutdown(c);});
+    log::system::setup(muonpi::log::Level::Info, [&](int c) { shutdown(c); });
 
     std::set_terminate(error::terminate_handler);
 
@@ -166,48 +165,53 @@ auto application::priv_run() -> int
     }
 
     m_supervisor = std::make_unique<supervision::state>(
-                collection_clusterlog_sink,
-                supervision::state::configuration{
-                    m_config.get<std::string>("station_id"),
-                    std::chrono::minutes{m_config.get<int>("clusterlog_interval")}});
+        collection_clusterlog_sink,
+        supervision::state::configuration {
+            m_config.get<std::string>("station_id"),
+            std::chrono::minutes { m_config.get<int>("clusterlog_interval") } });
     coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
     supervision::timebase timebasesupervisor { coincidencefilter, coincidencefilter };
     supervision::station stationsupervisor {
-                collection_detectorsummary_sink,
-                collection_trigger_sink,
-                timebasesupervisor,
-                timebasesupervisor,
-                *m_supervisor,
-                supervision::station::configuration{
-                    m_config.get<std::string>("station_id"),
-                    std::chrono::minutes{m_config.get<int>("detectorsummary_interval")}} };
+        collection_detectorsummary_sink,
+        collection_trigger_sink,
+        timebasesupervisor,
+        timebasesupervisor,
+        *m_supervisor,
+        supervision::station::configuration {
+            m_config.get<std::string>("station_id"),
+            std::chrono::minutes { m_config.get<int>("detectorsummary_interval") } }
+    };
 
     source::mqtt<event_t> event_source {
-                stationsupervisor,
-                source_mqtt_link.subscribe("muonpi/data/#"),
-                source::mqtt<event_t>::configuration{m_config.get<int>("geohash_length")} };
+        stationsupervisor,
+        source_mqtt_link.subscribe("muonpi/data/#"),
+        source::mqtt<event_t>::configuration { m_config.get<int>("geohash_length") }
+    };
     source::mqtt<event_t> l1_source {
-                stationsupervisor,
-                source_mqtt_link.subscribe("muonpi/l1data/#"),
-                source::mqtt<event_t>::configuration{m_config.get<int>("geohash_length")} };
+        stationsupervisor,
+        source_mqtt_link.subscribe("muonpi/l1data/#"),
+        source::mqtt<event_t>::configuration { m_config.get<int>("geohash_length") }
+    };
     source::mqtt<detector_info_t<location_t>> detector_location_source {
-                stationsupervisor,
-                source_mqtt_link.subscribe("muonpi/log/#"),
-                source::mqtt<detector_info_t<location_t>>::configuration{
-                    m_config.get<int>("geohash_length")} };
+        stationsupervisor,
+        source_mqtt_link.subscribe("muonpi/log/#"),
+        source::mqtt<detector_info_t<location_t>>::configuration {
+            m_config.get<int>("geohash_length") }
+    };
 
     source::mqtt<detector_log_t> detectorlog_source {
-                collection_detectorlog_sink,
-                source_mqtt_link.subscribe("muonpi/log/#"),
-                source::mqtt<detector_log_t>::configuration{
-                    m_config.get<int>("geohash_length")} };
+        collection_detectorlog_sink,
+        source_mqtt_link.subscribe("muonpi/log/#"),
+        source::mqtt<detector_log_t>::configuration {
+            m_config.get<int>("geohash_length") }
+    };
 
     if (m_config.is_set("histogram")) {
         stationcoincidence = std::make_unique<station_coincidence>(
-                    m_config.get<std::string>("histogram"),
-                    stationsupervisor,
-                    station_coincidence::configuration{
-                        std::chrono::hours{m_config.get<int>("histogram_sample_time")}});
+            m_config.get<std::string>("histogram"),
+            stationsupervisor,
+            station_coincidence::configuration {
+                std::chrono::hours { m_config.get<int>("histogram_sample_time") } });
 
         collection_event_sink.emplace(*stationcoincidence);
         collection_trigger_sink.emplace(*stationcoincidence);

@@ -1,12 +1,11 @@
 #ifndef MQTTLOGSOURCE_H
 #define MQTTLOGSOURCE_H
 
-#include <muonpi/link/mqtt.h>
 #include "messages/detectorinfo.h"
 #include "messages/detectorlog.h"
 #include "messages/event.h"
 #include "messages/userinfo.h"
-
+#include <muonpi/link/mqtt.h>
 
 #include <muonpi/source/base.h>
 

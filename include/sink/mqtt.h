@@ -8,14 +8,12 @@
 #include "messages/event.h"
 #include "messages/trigger.h"
 
-
 #include <muonpi/link/mqtt.h>
 #include <muonpi/sink/base.h>
 
 #include <muonpi/gnss.h>
 #include <muonpi/log.h>
 #include <muonpi/utility.h>
-
 
 #include <ctime>
 #include <iomanip>
@@ -164,7 +162,7 @@ void mqtt<event_t>::get(event_t event)
     for (auto& evt : event.events) {
         location_t loc = evt.location;
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
-        std::string geohash = coordinate::hash<double>::from_geodetic(coordinate::geodetic<double>{loc.lon, loc.lat}, loc.max_geohash_length);
+        std::string geohash = coordinate::hash<double>::from_geodetic(coordinate::geodetic<double> { loc.lon, loc.lat }, loc.max_geohash_length);
         message_constructor message { ' ' };
         message.add_field(uuid.to_string()); // UUID for the L1Event
         std::stringstream ss;

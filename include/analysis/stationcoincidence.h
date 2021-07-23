@@ -77,7 +77,7 @@ private:
         std::int32_t uptime { 0 };
     };
     std::vector<std::pair<userinfo_t, location_t>> m_stations {};
-    upper_matrix<data_t> m_data { 0 };
+    upper_matrix<data_t> m_data {};
     std::chrono::system_clock::time_point m_last_save { std::chrono::system_clock::now() };
 
     configuration m_config {};

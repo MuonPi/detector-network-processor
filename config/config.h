@@ -45,24 +45,8 @@ struct Influx {
     std::string database {};
 };
 
-struct Ldap {
-    std::string host {};
-    struct Login {
-        std::string bind_dn {};
-        std::string password {};
-    } login;
-};
-
 struct Trigger {
     std::string save_file {};
-};
-
-struct Rest {
-    int port {};
-    std::string address {};
-    std::string cert {};
-    std::string privkey {};
-    std::string fullchain {};
 };
 struct ConfigFiles {
     std::string config {};
@@ -81,8 +65,6 @@ static const ConfigFiles files {"/etc/muondetector/detector-network-processor.cf
 
 static const Mqtt mqtt{"", 1883, {}};
 static const Influx influx{"", {"", ""}, ""};
-static const Ldap ldap{"ldaps://muonpi.org", {"", ""}};
-static const Rest rest{1983, "0.0.0.0", "file://", "file://", "file://"};
 static const Trigger trigger{"/var/muondetector/cluster_trigger"};
 static const Interval interval {std::chrono::seconds{60}, std::chrono::seconds{120}, std::chrono::hours{24}};
 static const Meta meta {false, 6, "muondetector_cluster", 0};

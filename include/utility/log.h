@@ -43,7 +43,7 @@ public:
     ~logger()
     {
         if ((config::singleton() == nullptr) || (L <= (Level::Info + config::singleton()->meta.verbosity))) {
-            std::cerr << to_string() << m_stream.str() + "\n"
+            std::cerr << logger<L>::to_string() << m_stream.str() + "\n"
                       << std::flush;
         }
         if (L <= Level::Critical) {
@@ -55,7 +55,7 @@ private:
     std::ostringstream m_stream {};
     int m_exit_code { 0 };
 
-    [[nodiscard]] auto to_string() -> std::string
+    [[nodiscard]] constexpr static auto to_string() -> const char*
     {
         switch (L) {
         case Level::Debug:
@@ -75,7 +75,7 @@ private:
         case Level::Emergency:
             return "Emergency: ";
         }
-        return {};
+        return "";
     }
 };
 

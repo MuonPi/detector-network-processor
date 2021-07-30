@@ -320,7 +320,9 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             || (message[1] == "polaritySwitch1")
             || (message[1] == "polaritySwitch2")
             || (message[1] == "preampSwitch1")
-            || (message[1] == "preampSwitch2")) {
+            || (message[1] == "preampSwitch2")
+            || (message[1] == "maxGeohashLength")
+                   ) {
             item.emplace({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else if (message[1] == "systemNrCPUs") {
             item.emplace({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });

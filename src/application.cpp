@@ -83,7 +83,7 @@ auto application::priv_run() -> int
     sink_ptr<detector_summary_t> ascii_detectorsummary_sink { nullptr };
     sink_ptr<trigger::detector> ascii_trigger_sink { nullptr };
 
-    link::mqtt source_mqtt_link { config::singleton()->source_mqtt, config::singleton()->meta.station + "_sink", "muon::mqtt::so" };
+    link::mqtt source_mqtt_link { config::singleton()->source_mqtt, config::singleton()->meta.station + "_source", "muon::mqtt::so" };
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }

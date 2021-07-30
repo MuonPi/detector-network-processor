@@ -48,7 +48,8 @@ auto setup(int argc, const char* argv[]) -> std::optional<config>
     file.add_option("ldap_password", po::value<std::string>(), "LDAP Bind Password");
     file.add_option("ldap_host", po::value<std::string>(), "LDAP Hostname");
 
-    file.add_option("histogram", po::value<std::string>()->default_value("data"), "Track and store histograms. The parameter is the save directory");
+    file.add_option("store_histogram", po::value<bool>()->default_value(false), "Track and store histograms.");
+    file.add_option("histogram", po::value<std::string>()->default_value("data"), "Storage location of the histograms");
     file.add_option("histogram_sample_time", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::hours>(Config::Default::interval.histogram_sample_time).count()), "histogram sample time to use. In hours.");
     file.add_option("geohash_length", po::value<int>()->default_value(Config::Default::meta.max_geohash_length), "Geohash length to use");
     file.add_option("clusterlog_interval", po::value<int>()->default_value(std::chrono::duration_cast<std::chrono::minutes>(Config::Default::interval.clusterlog).count()), "Interval in which to send the cluster log. In minutes.");

@@ -206,7 +206,7 @@ auto application::priv_run() -> int
             m_config.get<int>("geohash_length") }
     };
 
-    if (m_config.is_set("histogram")) {
+    if (m_config.is_set("store_histogram") && m_config.get<bool>("store_histogram")) {
         stationcoincidence = std::make_unique<station_coincidence>(
             m_config.get<std::string>("histogram"),
             stationsupervisor,

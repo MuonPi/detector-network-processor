@@ -313,6 +313,7 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             || (message[1] == "UBX_SW_Version")
             || (message[1] == "hardwareVersionString")
             || (message[1] == "softwareVersionString")
+            || (message[1] == "maxGeohashLength")
             || (message[1] == "geoHash")) {
             item.emplace({ message[1], message[2], "" });
         } else if (
@@ -321,7 +322,6 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             || (message[1] == "polaritySwitch2")
             || (message[1] == "preampSwitch1")
             || (message[1] == "preampSwitch2")
-            || (message[1] == "maxGeohashLength")
                    ) {
             item.emplace({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else if (message[1] == "systemNrCPUs") {

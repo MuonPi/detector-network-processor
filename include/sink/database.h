@@ -117,10 +117,6 @@ void database<detector_summary_t>::get(detector_summary_t log)
 template <>
 void database<trigger::detector>::get(trigger::detector trig)
 {
-    if ((trig.status != detector_status::reliable) && (trig.status != detector_status::unreliable)) {
-        return;
-    }
-
     const auto nanosecondsUTC { std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() };
     using tag = link::influx::tag;
     using field = link::influx::field;

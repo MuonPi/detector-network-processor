@@ -314,6 +314,7 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
             || (message[1] == "hardwareVersionString")
             || (message[1] == "softwareVersionString")
             || (message[1] == "maxGeohashLength")
+            || (message[1] == "uniqueId")
             || (message[1] == "geoHash")) {
             item.emplace({ message[1], message[2], "" });
         } else if (

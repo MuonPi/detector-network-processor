@@ -328,8 +328,7 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
         } else if (message[1] == "systemNrCPUs") {
             item.emplace({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else {
-            // unknown log message, forward as string as it is
-            item.emplace({ message[1], message.get(), "" });
+            item.emplace({ message[1], message[2], (message.size() > 3)?message[3]:"" });
         }
     } catch (std::invalid_argument& e) {
         log::warning() << "received exception when parsing log item: " << e.what();

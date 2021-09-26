@@ -27,7 +27,7 @@ auto setup(int argc, const char* argv[]) -> std::optional<config>
     desc.commit(argc, argv);
 
     auto file = cfg.setup("Config file options");
-    file.add_option("station_id", po::value<std::string>(), "Base station ID");
+    file.add_option("station_id", po::value<std::string>()->default_value("dnp"), "Base station ID");
     file.add_option("sink_mqtt_base_path", po::value<std::string>()->default_value("muonpi/"), "Base path for the mqtt sink topics.");
     file.add_option("source_mqtt_base_path", po::value<std::string>()->default_value("muonpi/"), "Base path for the mqtt source topics.");
 

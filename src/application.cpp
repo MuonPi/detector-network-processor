@@ -237,7 +237,13 @@ auto application::priv_run() -> int
 
     m_supervisor->start_synchronuos();
 
-    return m_supervisor->wait();
+    const int status { m_supervisor->wait() };
+    if (status == 0) {
+        log::notice()<<"Clean exit. bye.";
+    } else {
+        log::warning()<<"Unclean exit with status code "<<status<<". bye.";
+    }
+    return status;
 }
 
 void application::signal_handler(int signal)

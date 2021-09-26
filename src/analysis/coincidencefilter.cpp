@@ -135,7 +135,8 @@ auto coincidence_filter::process(event_t event) -> int
         erase.emplace(i);
     }
 
-    for (std::size_t j { erase.top() }; !erase.empty(); j = erase.top()) {
+    while (!erase.empty()) {
+        std::size_t j { erase.top() };
         erase.pop();
         m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(j));
     }

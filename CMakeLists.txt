@@ -3,6 +3,10 @@ project(detector-network-processor LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
+execute_process(COMMAND bash "-c" "git rev-parse --short HEAD | tr -d '\n'"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE PROJECT_VERSION_HASH)
+
 
 option(PROCESSOR_BUILD_SANITIZERS "build the code with sanitizers"
        OFF)

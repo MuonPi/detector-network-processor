@@ -86,7 +86,7 @@ void database<cluster_log_t>::get(cluster_log_t log)
     fields << field { "outgoing", total_n };
 
     if (!fields.commit(nanosecondsUTC)) {
-        log::warning() << "error writing cluster_log_t item to DB";
+        log::warning("influx") << "error writing cluster_log_t item to DB";
     }
 }
 
@@ -110,7 +110,7 @@ void database<detector_summary_t>::get(detector_summary_t log)
                                 .commit(nanosecondsUTC)) };
 
     if (!result) {
-        log::warning() << "error writing detector summary item to DB";
+        log::warning("influx") << "error writing detector summary item to DB";
     }
 }
 
@@ -129,7 +129,7 @@ void database<trigger::detector>::get(trigger::detector trig)
                       .commit(nanosecondsUTC) };
 
     if (!result) {
-        log::warning() << "error writing trigger to DB";
+        log::warning("influx") << "error writing trigger to DB";
     }
 }
 
@@ -162,7 +162,7 @@ void database<event_t>::get(event_t event)
                 << field { "conflicting", event.conflicting }
                 << field { "plausibility", plausibility })
                  .commit(evt.start)) {
-            log::warning() << "error writing L1event_t item to DB";
+            log::warning("influx") << "error writing L1event_t item to DB";
             return;
         }
     }
@@ -185,7 +185,7 @@ void database<detector_log_t>::get(detector_log_t log)
     }
 
     if (!entry.commit(nanosecondsUTC)) {
-        log::warning() << "error writing DetectorLog item to DB";
+        log::warning("influx") << "error writing DetectorLog item to DB";
     }
 }
 

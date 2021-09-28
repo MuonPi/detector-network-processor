@@ -41,7 +41,7 @@ auto application::setup(int argc, const char* argv[]) -> bool
 
     auto now { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
 
-    log::info() << "detector-network-processor " << Version::dnp::string() << "\n"
+    log::info("app") << "detector-network-processor " << Version::dnp::string() << "\n"
                 << std::ctime(&now);
 
     auto optional = Config::setup(argc, argv);
@@ -243,9 +243,9 @@ auto application::priv_run() -> int
 
     const int status { m_supervisor->wait() };
     if (status == 0) {
-        log::notice()<<"Clean exit. bye.";
+        log::notice("app")<<"Clean exit. bye.";
     } else {
-        log::warning()<<"Unclean exit with status code "<<status<<". bye.";
+        log::warning("app")<<"Unclean exit with status code "<<status<<". bye.";
     }
     return status;
 }
@@ -253,8 +253,8 @@ auto application::priv_run() -> int
 void application::signal_handler(int signal)
 {
     if ((signal == SIGINT) || (signal == SIGTERM) || (signal == SIGHUP)) {
-        log::notice() << "Received signal: " << std::to_string(signal) << ". Exiting.";
-        s_singleton->m_supervisor->stop(1);
+        log::notice("app") << "Received signal: " << std::to_string(signal) << ". Exiting.";
+        s_singleton->m_supervisor->stop(0);
     }
 }
 

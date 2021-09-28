@@ -47,7 +47,7 @@ auto state::step() -> int
 
     for (auto& fwd : m_threads) {
         if (fwd.runner.state() <= thread_runner::State::Stopped) {
-            log::warning() << "The thread '" << fwd.runner.name() << "' stopped: " << fwd.runner.state_string();
+            log::warning("thread") << "'" << fwd.runner.name() << "' stopped: " << fwd.runner.state_string();
             m_failure = true;
             stop();
             return 0;

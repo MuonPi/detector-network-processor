@@ -71,6 +71,7 @@ auto state::step() -> int
         source::base<cluster_log_t>::put(m_current_data);
 
         m_current_data.incoming = 0;
+        std::unique_lock<std::mutex> lock { m_outgoing_mutex };
         m_current_data.outgoing.clear();
     }
 
@@ -111,10 +112,13 @@ void state::process_event(const event_t& event, bool incoming)
     }
     const std::size_t n { event.n() };
 
+    {
+    std::unique_lock<std::mutex> lock { m_outgoing_mutex };
     if (m_current_data.outgoing.count(n) < 1) {
         m_current_data.outgoing.emplace(n, 1);
     } else {
         m_current_data.outgoing[n] = m_current_data.outgoing.at(n) + 1;
+    }
     }
 
     if (m_current_data.maximum_n < n) {

@@ -20,6 +20,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <mutex>
 
 namespace muonpi::supervision {
 
@@ -104,6 +105,7 @@ private:
     std::vector<forward> m_threads;
 
     cluster_log_t m_current_data;
+    std::mutex m_outgoing_mutex;
     std::chrono::system_clock::time_point m_last { std::chrono::system_clock::now() };
 
     resource m_resource_tracker {};

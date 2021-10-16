@@ -19,17 +19,15 @@ struct detector_log_t {
         std::string unit {}; ///< the unit string of the log item
 
         enum class Type {
-            String
-            , Int
-            , Double
+            String,
+            Int,
+            Double
         } type;
 
         template <typename T,
-                  std::enable_if_t<std::disjunction<
-                                         std::is_same<T, std::string>
-                                       , std::is_same<T, int>
-                                       , std::is_same<T, double>
-                                       >::value, bool> = true>
+            std::enable_if_t<std::disjunction<
+                                 std::is_same<T, std::string>, std::is_same<T, int>, std::is_same<T, double>>::value,
+                bool> = true>
         auto get() const -> T
         {
             if constexpr (std::is_same_v<T, std::string>) {
@@ -46,22 +44,24 @@ struct detector_log_t {
             , value_s { std::move(value) }
             , unit { std::move(u) }
             , type { Type::String }
-        {}
+        {
+        }
 
         item(std::string n, int value, std::string u)
             : name { std::move(n) }
             , value_i { std::move(value) }
             , unit { std::move(u) }
             , type { Type::Int }
-        {}
+        {
+        }
 
         item(std::string n, double value, std::string u)
             : name { std::move(n) }
             , value_d { std::move(value) }
             , unit { std::move(u) }
             , type { Type::Double }
-        {}
-
+        {
+        }
     };
     /**
      * @brief add an item of type detector_log_item to the detector_log_t object

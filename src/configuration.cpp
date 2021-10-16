@@ -75,6 +75,6 @@ auto setup(int argc, const char* argv[]) -> std::optional<config>
 namespace muonpi::Version::dnp {
 auto string() -> std::string
 {
-    return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + ((std::strlen(additional) > 0)?("-" + std::string{additional}):("")) + ((std::strlen(hash) > 0)?("-" + std::string{hash}):(""));
+    return std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(patch) + ((std::strlen(additional) > 0) ? ("-" + std::string { additional }) : ("")) + ((std::strlen(hash) > 0) ? ("-" + std::string { hash }) : (""));
 }
 } // namespace muonpi::Version::dnp

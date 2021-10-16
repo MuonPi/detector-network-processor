@@ -41,7 +41,6 @@ private:
     using tag = link::influx::tag;
     template <typename F>
     using field = link::influx::field<F>;
-
 };
 
 // +++++++++++++++++++++++++++++++

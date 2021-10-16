@@ -19,8 +19,8 @@
 #include <cinttypes>
 #include <fstream>
 #include <map>
-#include <vector>
 #include <mutex>
+#include <vector>
 
 namespace muonpi::supervision {
 

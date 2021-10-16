@@ -42,7 +42,7 @@ auto application::setup(int argc, const char* argv[]) -> bool
     auto now { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
 
     log::info("app") << "detector-network-processor " << Version::dnp::string() << "\n"
-                << std::ctime(&now);
+                     << std::ctime(&now);
 
     auto optional = Config::setup(argc, argv);
     if (optional.has_value()) {
@@ -127,7 +127,6 @@ auto application::priv_run() -> int
         collection_detectorsummary_sink.emplace(*ascii_detectorsummary_sink);
         collection_trigger_sink.emplace(*ascii_trigger_sink);
     }
-
 
     if (!m_config.is_set("offline")) {
         const std::string sink_mqtt_base_path { m_config.get<std::string>("sink_mqtt_base_path") };
@@ -243,9 +242,9 @@ auto application::priv_run() -> int
 
     const int status { m_supervisor->wait() };
     if (status == 0) {
-        log::notice("app")<<"Clean exit. bye.";
+        log::notice("app") << "Clean exit. bye.";
     } else {
-        log::warning("app")<<"Unclean exit with status code "<<status<<". bye.";
+        log::warning("app") << "Unclean exit with status code " << status << ". bye.";
     }
     return status;
 }

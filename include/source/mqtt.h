@@ -256,7 +256,7 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
     } else if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Commit;
     }
-
+    // clang-format off
     static const std::map<std::string, detector_log_t::item::Type> mapping {
           {"UBX_HW_Version"       , detector_log_t::item::Type::String}
         , {"UBX_Prot_Version"     , detector_log_t::item::Type::String}
@@ -319,6 +319,7 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
         , {"vbias"                , detector_log_t::item::Type::Double}
         , {"vsense"               , detector_log_t::item::Type::Double}
     };
+    // clang-format on
 
     detector_log_t::item::Type type { detector_log_t::item::Type::String };
 
@@ -331,14 +332,13 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
         unit = message[3];
     }
 
-
     try {
         if (type == detector_log_t::item::Type::Int) {
-            item.emplace({ message[1], std::stoi(message[2], nullptr, 10), unit});
+            item.emplace({ message[1], std::stoi(message[2], nullptr, 10), unit });
         } else if (type == detector_log_t::item::Type::Double) {
-            item.emplace({ message[1], std::stod(message[2], nullptr), unit});
+            item.emplace({ message[1], std::stod(message[2], nullptr), unit });
         } else {
-            item.emplace({ message[1], message[2], unit});
+            item.emplace({ message[1], message[2], unit });
         }
     } catch (std::invalid_argument& e) {
         log::warning() << "received exception when parsing log item: " << e.what();

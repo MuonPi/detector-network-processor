@@ -42,7 +42,7 @@ auto coincidence_filter::process() -> int
     auto now { std::chrono::system_clock::now() };
 
     // +++ Send finished constructors off to the event sink
-    for (auto it { m_constructors.begin() }; it != m_constructors.end(); ) {
+    for (auto it { m_constructors.begin() }; it != m_constructors.end();) {
         event_constructor& constructor { *it };
         constructor.set_timeout(m_timeout);
         if (constructor.timed_out(now)) {
@@ -61,7 +61,7 @@ auto coincidence_filter::process() -> int
 auto coincidence_filter::next_match(const event_t& event, std::list<event_constructor>::iterator start) -> std::pair<criterion::score_t, std::list<event_constructor>::iterator>
 {
     if (start == m_constructors.end()) {
-        return std::make_pair(criterion::score_t{}, start);
+        return std::make_pair(criterion::score_t {}, start);
     }
 
     for (auto it { start }; it != m_constructors.end(); ++it) {
@@ -88,7 +88,7 @@ auto coincidence_filter::next_match(const event_t& event, std::list<event_constr
             return std::make_pair(result, it);
         }
     }
-    return std::make_pair(criterion::score_t{}, m_constructors.end());
+    return std::make_pair(criterion::score_t {}, m_constructors.end());
 }
 
 auto coincidence_filter::process(event_t event) -> int
@@ -137,7 +137,7 @@ auto coincidence_filter::process(event_t event) -> int
 
         iterator = m_constructors.erase(iterator);
 
-    } while(iterator != m_constructors.end());
+    } while (iterator != m_constructors.end());
 
     return 0;
 }

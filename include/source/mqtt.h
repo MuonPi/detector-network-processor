@@ -322,8 +322,8 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
 
     detector_log_t::item::Type type { detector_log_t::item::Type::String };
 
-    if (mapping.count(message[2]) > 0) {
-        type = mapping.at(message[2]);
+    if (mapping.count(message[1]) > 0) {
+        type = mapping.at(message[1]);
     }
 
     std::string unit {};

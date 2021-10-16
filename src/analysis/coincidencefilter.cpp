@@ -42,13 +42,15 @@ auto coincidence_filter::process() -> int
     auto now { std::chrono::system_clock::now() };
 
     // +++ Send finished constructors off to the event sink
-    for (ssize_t i { static_cast<ssize_t>(m_constructors.size()) - 1 }; i >= 0; i--) {
-        auto& constructor { m_constructors[static_cast<std::size_t>(i)] };
+    for (auto it { m_constructors.begin() }; it != m_constructors.end(); ) {
+        event_constructor& constructor { *it };
         constructor.set_timeout(m_timeout);
         if (constructor.timed_out(now)) {
             m_supervisor.process_event(constructor.event, false);
             put(constructor.event);
-            m_constructors.erase(m_constructors.begin() + i);
+            it = m_constructors.erase(it);
+        } else {
+            ++it;
         }
     }
 
@@ -56,11 +58,14 @@ auto coincidence_filter::process() -> int
     return 0;
 }
 
-auto coincidence_filter::find_matches(const event_t& event) -> std::queue<std::pair<std::size_t, std::size_t>>
+auto coincidence_filter::next_match(const event_t& event, std::list<event_constructor>::iterator start) -> std::pair<criterion::score_t, std::list<event_constructor>::iterator>
 {
-    std::queue<std::pair<std::size_t, std::size_t>> matches {};
-    for (std::size_t i { 0 }; i < m_constructors.size(); i++) {
-        auto& constructor { m_constructors[i] };
+    if (start == m_constructors.end()) {
+        return std::make_pair(criterion::score_t{}, start);
+    }
+
+    for (auto it { start }; it != m_constructors.end(); ++it) {
+        event_constructor& constructor { *it };
         bool skip { false };
         auto check_e_hash { [](const event_t::data_t& data, const event_t& e) {
             if (e.n() < 2) {
@@ -80,13 +85,10 @@ auto coincidence_filter::find_matches(const event_t& event) -> std::queue<std::p
         }
         const auto result { m_criterion->apply(event, constructor.event) };
         if (result) {
-            matches.emplace(std::make_pair(i, result.true_e));
-            if (result.type == criterion::Type::Conflicting) {
-                constructor.event.conflicting = true;
-            }
+            return std::make_pair(result, it);
         }
     }
-    return matches;
+    return std::make_pair(criterion::score_t{}, m_constructors.end());
 }
 
 auto coincidence_filter::process(event_t event) -> int
@@ -96,9 +98,9 @@ auto coincidence_filter::process(event_t event) -> int
         m_supervisor.set_queue_size(m_constructors.size());
     } };
 
-    std::queue<std::pair<std::size_t, std::size_t>> matches { find_matches(event) };
+    auto [score, iterator] { next_match(event, m_constructors.begin()) };
 
-    if (matches.empty()) {
+    if (iterator == m_constructors.end()) {
         event_constructor constructor {};
         constructor.event = event;
         constructor.timeout = m_timeout;
@@ -106,40 +108,37 @@ auto coincidence_filter::process(event_t event) -> int
         return 0;
     }
 
-    auto [i, score] { matches.front() };
-    matches.pop();
+    event_constructor& constructor { *iterator };
 
-    event_constructor& constructor { m_constructors[i] };
     if (constructor.event.n() < 2) {
         event_t e { constructor.event };
         constructor.event.data.end = constructor.event.data.start;
         constructor.event.emplace(e);
     }
-    constructor.event.true_e += score;
+    if (!score) {
+        constructor.event.conflicting = true;
+    }
+    constructor.event.true_e += score.true_e;
     constructor.event.emplace(std::move(event));
 
-    if (matches.empty()) {
-        return 0;
-    }
+    do {
+        ++iterator;
+        auto match = next_match(event, iterator);
+        score = match.first;
+        iterator = match.second;
+        if (iterator == m_constructors.end()) {
+            return 0;
+        }
 
-    constructor.event.conflicting = true;
-    std::stack<std::size_t> erase {};
-    // Combines all contesting constructors into one contesting coincience
-    while (!matches.empty()) {
-        i = matches.front().first;
-        score = matches.front().second;
-        matches.pop();
+        constructor.event.conflicting = true;
+        constructor.event.true_e += score.true_e;
 
-        constructor.event.true_e += score;
-        constructor.event.emplace(m_constructors[i].event);
-        erase.emplace(i);
-    }
+        constructor.event.emplace((*iterator).event);
 
-    while (!erase.empty()) {
-        std::size_t j { erase.top() };
-        erase.pop();
-        m_constructors.erase(m_constructors.begin() + static_cast<ssize_t>(j));
-    }
+        iterator = m_constructors.erase(iterator);
+
+    } while(iterator != m_constructors.end());
+
     return 0;
 }
 

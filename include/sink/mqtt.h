@@ -195,13 +195,6 @@ void mqtt<trigger::detector>::get(trigger::detector trigger)
     m_link.publish(trigger.userinfo.username + "/" + trigger.userinfo.station_id, stream.str());
 }
 
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
-
 template <>
 void mqtt<detector_log_t>::get(detector_log_t log)
 {
@@ -212,16 +205,13 @@ void mqtt<detector_log_t>::get(detector_log_t log)
     while (!log.items.empty()) {
         detector_log_t::item item { log.get() };
         auto constr { construct(stream.str(), item.name) };
-        std::visit(overloaded {
-                       [&](std::string value) { constr << value; },
-                       [&](std::int_fast64_t value) { constr << value; },
-                       [&](std::size_t value) { constr << value; },
-                       [&](std::uint8_t value) { constr << value; },
-                       [&](std::uint16_t value) { constr << value; },
-                       [&](std::uint32_t value) { constr << value; },
-                       [&](bool value) { constr << value; },
-                       [&](double value) { constr << value; } },
-            item.value);
+        if (item.type == detector_log_t::item::Type::Double) {
+            constr << item.value_d;
+        } else if (item.type == detector_log_t::item::Type::Int) {
+            constr << item.value_i;
+        } else {
+            constr << item.value_s;
+        }
         if (!item.unit.empty()) {
             constr << item.unit;
         }

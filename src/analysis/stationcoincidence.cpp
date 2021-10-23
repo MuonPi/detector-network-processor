@@ -114,7 +114,7 @@ void station_coincidence::save()
     constexpr static double grace_factor { 0.9 };
     const auto duration { now - m_last_save };
     if (duration < (m_config.histogram_sample_time * grace_factor)) {
-        log::warning() << "Last histogram store was too recent. Refusing to save now.";
+        log::warning("coincidence analysis") << "Last histogram store was too recent. Refusing to save now.";
         return;
     }
     if (!std::filesystem::exists(m_data_directory)) {
@@ -123,7 +123,7 @@ void station_coincidence::save()
     const std::string filename { std::to_string(std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count()) };
 
     m_last_save = now;
-    log::debug() << "Saving histogram data.";
+    log::debug("coincidence analysis") << "Saving histogram data.";
     m_saving = true;
 
     std::ofstream stationfile { m_data_directory + "/" + filename + ".stations" };
@@ -226,7 +226,7 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
     const auto x { m_data.increase() };
     m_stations.emplace_back(std::make_pair(userinfo, location));
     if (x > 0) {
-        coordinate::geodetic<double> first { location.lat * units::degree, location.lon * units::degree, location.h };
+        coordinate::geodetic<double> first { location.lat * units::degree, location.lon * units::degree, location.h * units::meter };
         for (std::size_t y { 0 }; y < x; y++) {
             const auto& [user, loc] { m_stations.at(y) };
             const auto distance { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, { loc.lat * units::degree, loc.lon * units::degree, loc.h }) };

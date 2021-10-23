@@ -57,11 +57,11 @@ protected:
     [[nodiscard]] auto process() -> int override;
 
 private:
-    [[nodiscard]] auto find_matches(const event_t& event) -> std::queue<std::pair<std::size_t, std::size_t>>;
+    [[nodiscard]] auto next_match(const event_t& event, std::list<event_constructor>::iterator start) -> std::pair<criterion::score_t, std::list<event_constructor>::iterator>;
 
     std::unique_ptr<criterion> m_criterion { std::make_unique<coincidence>() };
 
-    std::vector<event_constructor> m_constructors {};
+    std::list<event_constructor> m_constructors {};
 
     std::chrono::system_clock::duration m_timeout { std::chrono::seconds { 10 } };
 

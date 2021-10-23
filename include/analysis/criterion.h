@@ -19,7 +19,7 @@ public:
     };
 
     struct score_t {
-        Type type {};
+        Type type { Type::Invalid };
         std::size_t true_e { 0 };
 
         [[nodiscard]] inline operator bool() const

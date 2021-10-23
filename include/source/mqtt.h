@@ -256,79 +256,89 @@ auto mqtt<detector_log_t>::item_collector::add(message_parser& /*topic*/, messag
     } else if ((std::chrono::system_clock::now() - m_first_message) > std::chrono::seconds { 5 }) {
         return Commit;
     }
+    // clang-format off
+    static const std::map<std::string, detector_log_t::item::Type> mapping {
+          {"UBX_HW_Version"       , detector_log_t::item::Type::String}
+        , {"UBX_Prot_Version"     , detector_log_t::item::Type::String}
+        , {"UBX_SW_Version"       , detector_log_t::item::Type::String}
+        , {"hardwareVersionString", detector_log_t::item::Type::String}
+        , {"softwareVersionString", detector_log_t::item::Type::String}
+        , {"maxGeohashLength"     , detector_log_t::item::Type::String}
+        , {"uniqueId"             , detector_log_t::item::Type::String}
+        , {"geoHash"              , detector_log_t::item::Type::String}
+
+        , {"gainSwitch"           , detector_log_t::item::Type::Int}
+        , {"polaritySwitch1"      , detector_log_t::item::Type::Int}
+        , {"polaritySwitch2"      , detector_log_t::item::Type::Int}
+        , {"preampSwitch1"        , detector_log_t::item::Type::Int}
+        , {"preampSwitch2"        , detector_log_t::item::Type::Int}
+        , {"systemNrCPUs"         , detector_log_t::item::Type::Int}
+
+        , {"geoHeightMSL"         , detector_log_t::item::Type::Double}
+        , {"geoHorAccuracy"       , detector_log_t::item::Type::Double}
+        , {"geoLatitude"          , detector_log_t::item::Type::Double}
+        , {"geoLongitude"         , detector_log_t::item::Type::Double}
+        , {"geoVertAccuracy"      , detector_log_t::item::Type::Double}
+        , {"positionDOP"          , detector_log_t::item::Type::Double}
+        , {"RXBufUsage"           , detector_log_t::item::Type::Double}
+        , {"TXBufUsage"           , detector_log_t::item::Type::Double}
+        , {"adcSamplingTime"      , detector_log_t::item::Type::Double}
+        , {"antennaPower"         , detector_log_t::item::Type::Double}
+        , {"antennaStatus"        , detector_log_t::item::Type::Double}
+        , {"biasDAC"              , detector_log_t::item::Type::Double}
+        , {"biasSwitch"           , detector_log_t::item::Type::Double}
+        , {"calib_coeff2"         , detector_log_t::item::Type::Double}
+        , {"calib_coeff3"         , detector_log_t::item::Type::Double}
+        , {"calib_rsense"         , detector_log_t::item::Type::Double}
+        , {"calib_vdiv"           , detector_log_t::item::Type::Double}
+        , {"clockBias"            , detector_log_t::item::Type::Double}
+        , {"clockDrift"           , detector_log_t::item::Type::Double}
+        , {"fixStatus"            , detector_log_t::item::Type::Double}
+        , {"freqAccuracy"         , detector_log_t::item::Type::Double}
+        , {"ibias"                , detector_log_t::item::Type::Double}
+        , {"jammingLevel"         , detector_log_t::item::Type::Double}
+        , {"maxCNR"               , detector_log_t::item::Type::Double}
+        , {"maxRXBufUsage"        , detector_log_t::item::Type::Double}
+        , {"meanGeoHeightMSL"     , detector_log_t::item::Type::Double}
+        , {"preampAGC"            , detector_log_t::item::Type::Double}
+        , {"preampNoise"          , detector_log_t::item::Type::Double}
+        , {"rateAND"              , detector_log_t::item::Type::Double}
+        , {"rateXOR"              , detector_log_t::item::Type::Double}
+        , {"sats"                 , detector_log_t::item::Type::Double}
+        , {"systemFreeMem"        , detector_log_t::item::Type::Double}
+        , {"systemFreeSwap"       , detector_log_t::item::Type::Double}
+        , {"systemLoadAvg"        , detector_log_t::item::Type::Double}
+        , {"systemUptime"         , detector_log_t::item::Type::Double}
+        , {"temperature"          , detector_log_t::item::Type::Double}
+        , {"thresh1"              , detector_log_t::item::Type::Double}
+        , {"thresh2"              , detector_log_t::item::Type::Double}
+        , {"timeAccuracy"         , detector_log_t::item::Type::Double}
+        , {"timeDOP"              , detector_log_t::item::Type::Double}
+        , {"ubloxUptime"          , detector_log_t::item::Type::Double}
+        , {"usedSats"             , detector_log_t::item::Type::Double}
+        , {"vbias"                , detector_log_t::item::Type::Double}
+        , {"vsense"               , detector_log_t::item::Type::Double}
+    };
+    // clang-format on
+
+    detector_log_t::item::Type type { detector_log_t::item::Type::String };
+
+    if (mapping.count(message[1]) > 0) {
+        type = mapping.at(message[1]);
+    }
 
     std::string unit {};
     if (message.size() > 3) {
         unit = message[3];
     }
+
     try {
-        if ((message[1] == "geoHeightMSL")
-            || (message[1] == "geoHorAccuracy")
-            || (message[1] == "geoLatitude")
-            || (message[1] == "geoLongitude")
-            || (message[1] == "geoVertAccuracy")
-            || (message[1] == "positionDOP")
-            || (message[1] == "RXBufUsage")
-            || (message[1] == "TXBufUsage")
-            || (message[1] == "adcSamplingTime")
-            || (message[1] == "antennaPower")
-            || (message[1] == "antennaStatus")
-            || (message[1] == "biasDAC")
-            || (message[1] == "biasSwitch")
-            || (message[1] == "calib_coeff2")
-            || (message[1] == "calib_coeff3")
-            || (message[1] == "calib_rsense")
-            || (message[1] == "calib_vdiv")
-            || (message[1] == "clockBias")
-            || (message[1] == "clockDrift")
-            || (message[1] == "fixStatus")
-            || (message[1] == "freqAccuracy")
-            || (message[1] == "ibias")
-            || (message[1] == "jammingLevel")
-            || (message[1] == "maxCNR")
-            || (message[1] == "maxRXBufUsage")
-            || (message[1] == "meanGeoHeightMSL")
-            || (message[1] == "preampAGC")
-            || (message[1] == "preampNoise")
-            || (message[1] == "rateAND")
-            || (message[1] == "rateXOR")
-            || (message[1] == "sats")
-            || (message[1] == "systemFreeMem")
-            || (message[1] == "systemFreeSwap")
-            || (message[1] == "systemLoadAvg")
-            || (message[1] == "systemUptime")
-            || (message[1] == "temperature")
-            || (message[1] == "thresh1")
-            || (message[1] == "thresh2")
-            || (message[1] == "timeAccuracy")
-            || (message[1] == "timeDOP")
-            || (message[1] == "ubloxUptime")
-            || (message[1] == "usedSats")
-            || (message[1] == "vbias")
-            || (message[1] == "vsense")) {
+        if (type == detector_log_t::item::Type::Int) {
+            item.emplace({ message[1], std::stoi(message[2], nullptr, 10), unit });
+        } else if (type == detector_log_t::item::Type::Double) {
             item.emplace({ message[1], std::stod(message[2], nullptr), unit });
-        } else if (
-            (message[1] == "UBX_HW_Version")
-            || (message[1] == "UBX_Prot_Version")
-            || (message[1] == "UBX_SW_Version")
-            || (message[1] == "hardwareVersionString")
-            || (message[1] == "softwareVersionString")
-            || (message[1] == "geoHash")) {
-            item.emplace({ message[1], message[2], "" });
-        } else if (
-            (message[1] == "gainSwitch")
-            || (message[1] == "polaritySwitch1")
-            || (message[1] == "polaritySwitch2")
-            || (message[1] == "preampSwitch1")
-            || (message[1] == "preampSwitch2")
-            || (message[1] == "maxGeohashLength")
-                   ) {
-            item.emplace({ message[1], static_cast<std::uint8_t>(std::stoi(message[2], nullptr, 10)), unit });
-        } else if (message[1] == "systemNrCPUs") {
-            item.emplace({ message[1], static_cast<std::uint16_t>(std::stoi(message[2], nullptr, 10)), unit });
         } else {
-            // unknown log message, forward as string as it is
-            item.emplace({ message[1], message.get(), "" });
+            item.emplace({ message[1], message[2], unit });
         }
     } catch (std::invalid_argument& e) {
         log::warning() << "received exception when parsing log item: " << e.what();

@@ -1,11 +1,12 @@
 #include "analysis/detectorstation.h"
 #include "messages/event.h"
 #include "supervision/state.h"
-#include "utility/log.h"
-#include "utility/units.h"
-#include "utility/utility.h"
 
 #include "supervision/station.h"
+
+#include <muonpi/log.h>
+#include <muonpi/units.h>
+#include <muonpi/utility.h>
 
 namespace muonpi {
 
@@ -109,8 +110,12 @@ void detector_station::step(const std::chrono::system_clock::time_point& now)
 {
     auto diff { now - std::chrono::system_clock::time_point { m_last_log } };
     if (diff > s_log_interval) {
-        if (diff > s_quit_interval) {
-            set_status(detector_status::deleted, detector_status::reason::missed_log_interval);
+        if (diff > s_offline_interval) {
+            if (diff > s_quit_interval) {
+                set_status(detector_status::deleted, detector_status::reason::missed_log_interval);
+            } else {
+                set_status(detector_status::offline, detector_status::reason::missed_log_interval);
+            }
             return;
         }
         set_status(detector_status::unreliable, detector_status::reason::missed_log_interval);
@@ -174,6 +179,9 @@ auto detector_status::to_string(status s) -> std::string
         return "online";
         break;
     case detector_status::deleted:
+        return "deleted";
+        break;
+    case detector_status::offline:
         return "offline";
         break;
     case detector_status::reliable:

@@ -10,6 +10,7 @@ namespace detector_status {
         invalid,
         deleted,
         created,
+        offline,
         unreliable,
         reliable
     };

@@ -1,15 +1,17 @@
 #include "supervision/state.h"
 
 #include "defaults.h"
-#include "utility/log.h"
+
+#include <muonpi/log.h>
 
 #include <sstream>
 
 namespace muonpi::supervision {
 
-state::state(sink::base<cluster_log_t>& log_sink)
+state::state(sink::base<cluster_log_t>& log_sink, configuration config)
     : thread_runner { "muon::state" }
     , source::base<cluster_log_t> { log_sink }
+    , m_config { std::move(config) }
 {
 }
 
@@ -45,7 +47,7 @@ auto state::step() -> int
 
     for (auto& fwd : m_threads) {
         if (fwd.runner.state() <= thread_runner::State::Stopped) {
-            log::warning() << "The thread '" << fwd.runner.name() << "' stopped: " << fwd.runner.state_string();
+            log::warning("thread") << "'" << fwd.runner.name() << "' stopped: " << fwd.runner.state_string();
             m_failure = true;
             stop();
             return 0;
@@ -60,13 +62,16 @@ auto state::step() -> int
     m_current_data.process_cpu_load = m_process_cpu_load.mean();
     m_system_cpu_load.add(data.system_cpu_load);
     m_current_data.system_cpu_load = m_system_cpu_load.mean();
+    m_current_data.plausibility_level = m_plausibility_level.mean();
 
-    if ((now - m_last) >= config::singleton()->interval.clusterlog) {
+    if ((now - m_last) >= m_config.clusterlog_interval) {
         m_last = now;
 
+        m_current_data.station_id = m_config.station_id;
         source::base<cluster_log_t>::put(m_current_data);
 
         m_current_data.incoming = 0;
+        std::unique_lock<std::mutex> lock { m_outgoing_mutex };
         m_current_data.outgoing.clear();
     }
 
@@ -82,7 +87,7 @@ auto state::step() -> int
 
     std::mutex mx;
     std::unique_lock<std::mutex> lock { mx };
-    m_condition.wait_for(lock, std::chrono::milliseconds { s_rate_interval });
+    m_condition.wait_for(lock, s_rate_interval);
     return 0;
 }
 
@@ -98,20 +103,30 @@ auto state::post_run() -> int
     return m_failure ? -1 : result;
 }
 
-void state::increase_event_count(bool incoming, std::size_t n)
+void state::process_event(const event_t& event, bool incoming)
 {
     if (incoming) {
         m_current_data.incoming++;
         m_incoming_rate.increase_counter();
-    } else {
-        m_current_data.outgoing[n]++;
+        return;
+    }
+    const std::size_t n { event.n() };
 
-        if (m_current_data.maximum_n < n) {
-            m_current_data.maximum_n = n;
+    {
+        std::unique_lock<std::mutex> lock { m_outgoing_mutex };
+        if (m_current_data.outgoing.count(n) < 1) {
+            m_current_data.outgoing.emplace(n, 1);
+        } else {
+            m_current_data.outgoing[n] = m_current_data.outgoing.at(n) + 1;
         }
-        if (n > 1) {
-            m_outgoing_rate.increase_counter();
-        }
+    }
+
+    if (m_current_data.maximum_n < n) {
+        m_current_data.maximum_n = n;
+    }
+    if (n > 1) {
+        m_outgoing_rate.increase_counter();
+        m_plausibility_level.add(static_cast<float>(event.true_e) / (static_cast<float>(n * n - n) * 0.5F));
     }
 }
 

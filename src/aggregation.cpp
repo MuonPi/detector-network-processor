@@ -8,19 +8,22 @@
 #include <string>
 #include <vector>
 
+#include <boost/program_options.hpp>
+
 class aggregator {
 public:
-    explicit aggregator(std::string directory);
+    explicit aggregator(std::string directory, std::string output_filename = "aggregate");
 
     [[nodiscard]] auto find_files() -> bool;
     [[nodiscard]] auto directory() const -> const std::string&;
-    [[nodiscard]] auto save(std::string_view filename = "aggregate") -> bool;
+    [[nodiscard]] auto save() -> bool;
 
     void fill();
 
 private:
     std::map<std::int32_t, std::uint32_t> m_entries {};
     std::string m_directory {};
+    std::string m_output_filename {};
     double m_distance {};
     std::uint32_t m_bin_width {};
     std::uint32_t m_n {};
@@ -30,18 +33,26 @@ private:
     std::vector<std::string> m_input_files {};
 };
 
-void print_help();
+void print_help(const boost::program_options::options_description& desc);
 
 auto main(int argc, const char* argv[]) -> int
 {
-    if (argc != 2) {
-        std::cerr << "Wrong number of arguments.\n";
-        print_help();
-        return 1;
+    namespace po = boost::program_options;
+
+    po::options_description desc("General options");
+    desc.add_options()("help,h", "produce help message")("directory,d", po::value<std::string>()->required(), "Directory through which to search");
+
+    boost::program_options::variables_map options {};
+    po::store(po::parse_command_line(argc, argv, desc), options);
+    if (options.count("help")) {
+        print_help(desc);
+        return 0;
     }
+    po::notify(options);
 
     std::string last_directory {};
-    for (const auto& p : std::filesystem::recursive_directory_iterator(argv[1])) {
+
+    for (const auto& p : std::filesystem::recursive_directory_iterator(options.at("directory").as<std::string>())) {
         if (!p.is_regular_file()) {
             continue;
         }
@@ -70,13 +81,15 @@ auto main(int argc, const char* argv[]) -> int
     }
 }
 
-void print_help()
+void print_help(const boost::program_options::options_description& desc)
 {
-    std::cerr << "aggregation searches a directory for histograms and aggregates them into a single histogram file.\nUsage: aggregation <directory>\n";
+    std::cerr << "aggregation searches a directory for histograms and aggregates them into a single histogram file.\n"
+              << desc;
 }
 
-aggregator::aggregator(std::string directory)
+aggregator::aggregator(std::string directory, std::string output_filename)
     : m_directory { std::move(directory) }
+    , m_output_filename { std::move(output_filename) }
 {
 }
 
@@ -92,7 +105,12 @@ auto aggregator::find_files() -> bool
         }
         const std::string stem { path.stem() };
 
+        if (stem == m_output_filename) {
+            continue;
+        }
+
         if (!std::filesystem::exists(m_directory + "/" + stem + ".hist")) {
+            continue;
         }
         m_input_files.emplace_back(stem);
     }
@@ -156,9 +174,9 @@ void aggregator::fill()
     }
 }
 
-auto aggregator::save(std::string_view filename) -> bool
+auto aggregator::save() -> bool
 {
-    std::string name { m_directory + "/" + std::string { filename } };
+    std::string name { m_directory + "/" + std::string { m_output_filename } };
     std::string name_hist { name + ".hist" };
     std::string name_meta { name + ".meta" };
     if (std::filesystem::exists(name_hist)) {
@@ -179,7 +197,7 @@ auto aggregator::save(std::string_view filename) -> bool
         << "total " << std::to_string(m_n) << " 1\n"
         << "uptime " << std::to_string(m_uptime) << " min\n"
         << "sample_time " << std::to_string(m_sample_time) << " min\n";
-    std::cout << m_directory << ' ' << std::to_string(m_n) << ' ' << std::to_string(m_distance) << '\n';
+    std::cout << m_directory << ' ' << std::to_string(m_n) << ' ' << std::to_string(m_distance) << ' ' << std::to_string(m_uptime) << '\n';
     output_meta.close();
     return true;
 }

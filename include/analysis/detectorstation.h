@@ -6,10 +6,10 @@
 #include "messages/detectorstatus.h"
 #include "messages/detectorsummary.h"
 #include "messages/userinfo.h"
-#include "utility/threadrunner.h"
 
-#include "analysis/dataseries.h"
-#include "analysis/ratemeasurement.h"
+#include <muonpi/analysis/dataseries.h>
+#include <muonpi/analysis/ratemeasurement.h>
+#include <muonpi/threadrunner.h>
 
 #include <chrono>
 #include <future>
@@ -120,22 +120,23 @@ private:
 
     std::chrono::system_clock::time_point m_last_log { std::chrono::system_clock::now() };
 
-    static constexpr std::chrono::system_clock::duration s_log_interval { std::chrono::seconds { 90 } };
-    static constexpr std::chrono::system_clock::duration s_quit_interval { s_log_interval * 3 };
+    static constexpr std::chrono::seconds s_log_interval { 90 };
+    static constexpr auto s_offline_interval { s_log_interval * 3 };
+    static constexpr std::chrono::hours s_quit_interval { 48 };
     static constexpr std::size_t s_history_length { 10 };
-    static constexpr std::size_t s_time_interval { 30000 };
+    static constexpr std::chrono::seconds s_time_interval { 30 };
 
     supervision::station& m_stationsupervisor;
 
-    rate_measurement<s_history_length, s_time_interval> m_current_rate {};
-    rate_measurement<s_history_length * 10, s_time_interval> m_mean_rate {};
+    rate_measurement<double> m_current_rate { s_history_length, s_time_interval };
+    rate_measurement<double> m_mean_rate { s_history_length, s_time_interval };
 
     detector_summary_t m_current_data;
     std::uint16_t m_last_ublox_counter {};
 
-    data_series<double, 100> m_pulselength {};
-    data_series<double, 100> m_time_acc {}; //< ring buffer for time accuracy values provided by event messages (in ns)
-    data_series<double, 5> m_reliability_time_acc {}; //< ring buffer for time accuracy for use as reliability measure
+    data_series<double> m_pulselength { 100 };
+    data_series<double> m_time_acc { 100 }; //< ring buffer for time accuracy values provided by event messages (in ns)
+    data_series<double> m_reliability_time_acc { 5 }; //< ring buffer for time accuracy for use as reliability measure
 
     double m_factor { 1.0 };
 };

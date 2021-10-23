@@ -3,6 +3,13 @@ project(detector-network-processor LANGUAGES CXX C)
 
 string(TIMESTAMP PROJECT_DATE_STRING "%b %d, %Y")
 
+execute_process(COMMAND bash "-c" "git rev-parse --short HEAD | tr -d '\n'"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    OUTPUT_VARIABLE PROJECT_VERSION_HASH)
+
+
+option(PROCESSOR_BUILD_SANITIZERS "build the code with sanitizers"
+       OFF)
 option(PROCESSOR_DISABLE_SSL "build the code so the rest service doesn't use SSL"
        OFF)
 option(PROCESSOR_BUILD_AGGREGATION "along with the default application, also build the aggregation executable."
@@ -22,16 +29,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-Wall -Wextra -Wshadow -Wpedantic -Werror -O3)
 
-if(CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+if(PROCESSOR_BUILD_SANITIZERS)
 add_compile_options(-fsanitize=address,undefined)
 add_link_options(-fsanitize=address,undefined)
 endif()
 
 
 find_library(MOSQUITTO mosquitto REQUIRED)
-find_library(SASL2 sasl2 REQUIRED)
-find_library(LDAP ldap REQUIRED)
 find_library(DL dl REQUIRED)
+find_library(MUONPICORE muonpi-core REQUIRED)
+find_library(MUONPIMQTT muonpi-http REQUIRED)
+find_library(MUONPIMQTT muonpi-link REQUIRED)
 
 find_package(
   Boost 1.71
@@ -41,13 +49,14 @@ find_package(
 set(PROJECT_INCLUDE_LIBS
     mosquitto
     pthread
-    sasl2
-    ldap
-    boost_system
-    boost_program_options
+    ${Boost_LIBRARIES}
     ssl
     crypto
-    dl)
+    dl
+    muonpi-core
+    muonpi-http
+    muonpi-link
+    )
 
 # +++ necessary for compatability with older compilers
 find_library(STD_CPP_FS stdc++fs /usr/lib/gcc/x86_64-linux-gnu/8/)
@@ -65,6 +74,7 @@ configure_file("${PROJECT_CONFIG_DIR}/config.h"
 
 if (PROCESSOR_BUILD_AGGREGATION)
 add_executable(aggregation "${PROJECT_SRC_DIR}/aggregation.cpp")
+target_link_libraries(aggregation ${Boost_LIBRARIES})
 endif()
 
 add_executable(

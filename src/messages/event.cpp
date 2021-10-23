@@ -4,6 +4,12 @@
 
 namespace muonpi {
 
+auto timebase_t::timeout() const -> std::chrono::steady_clock::duration
+{
+    using namespace std::chrono;
+    return milliseconds { std::clamp(duration_cast<milliseconds>(base * factor).count(), minimum_timeout, maximum_timeout) };
+}
+
 auto event_t::duration() const noexcept -> std::int_fast64_t
 {
     return data.duration();

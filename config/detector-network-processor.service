@@ -1,6 +1,6 @@
 [Unit]
 Description=detector-network-processor - calculate coincidences for the MuonPi network
-After=network.target
+After=network.target network-online.target
 
 [Service]
 SyslogIdentifier=detector-network-processor
@@ -8,7 +8,7 @@ Type=simple
 User=muonuser
 ExecStart=/usr/bin/detector-network-processor
 ExecStop=/bin/kill $MAINPID
-Restart=on-abnormal
+Restart= always
 TimeoutSec=2
 
 [Install]

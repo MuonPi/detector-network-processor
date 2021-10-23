@@ -2,8 +2,6 @@
 
 #include "defaults.h"
 
-#include "utility/log.h"
-
 #include "analysis/coincidencefilter.h"
 #include "analysis/stationcoincidence.h"
 #include "supervision/station.h"
@@ -11,18 +9,17 @@
 #include "messages/detectorlog.h"
 #include "messages/trigger.h"
 
-#include "link/database.h"
-#include "link/mqtt.h"
-
 #include "source/mqtt.h"
 
 #include "sink/ascii.h"
-#include "sink/base.h"
 #include "sink/database.h"
 #include "sink/mqtt.h"
 
-#include "utility/configuration.h"
-#include "utility/exceptions.h"
+#include <muonpi/exceptions.h>
+#include <muonpi/link/influx.h>
+#include <muonpi/link/mqtt.h>
+#include <muonpi/log.h>
+#include <muonpi/sink/base.h>
 
 #include <exception>
 #include <memory>
@@ -38,11 +35,21 @@ void wrapper_signal_handler(int signal)
 
 auto application::setup(int argc, const char* argv[]) -> bool
 {
+    log::system::setup(muonpi::log::Level::Info, [&](int c) { shutdown(c); });
+
     std::set_terminate(error::terminate_handler);
 
-    log::info() << "detector-network-processor " << Version::string();
+    auto now { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
 
-    return config::singleton()->setup(argc, argv);
+    log::info("app") << "detector-network-processor " << Version::dnp::string() << "\n"
+                     << std::ctime(&now);
+
+    auto optional = Config::setup(argc, argv);
+    if (optional.has_value()) {
+        s_singleton->m_config = optional.value();
+        return true;
+    }
+    return false;
 }
 
 template <typename T>
@@ -60,7 +67,7 @@ void application::shutdown(int exit_code)
 
 auto application::priv_run() -> int
 {
-    std::unique_ptr<link::database> db_link { nullptr };
+    std::unique_ptr<link::influx> db_link { nullptr };
     std::unique_ptr<link::mqtt> sink_mqtt_link { nullptr };
     std::unique_ptr<station_coincidence> stationcoincidence { nullptr };
 
@@ -80,13 +87,24 @@ auto application::priv_run() -> int
     sink_ptr<detector_summary_t> ascii_detectorsummary_sink { nullptr };
     sink_ptr<trigger::detector> ascii_trigger_sink { nullptr };
 
-    link::mqtt source_mqtt_link { config::singleton()->source_mqtt, config::singleton()->meta.station + "_source", "muon::mqtt::so" };
+    link::mqtt::configuration source_mqtt_config {};
+    source_mqtt_config.host = m_config.get<std::string>("source_mqtt_host");
+    source_mqtt_config.port = m_config.get<int>("source_mqtt_port");
+    source_mqtt_config.login.username = m_config.get<std::string>("source_mqtt_user");
+    source_mqtt_config.login.password = m_config.get<std::string>("source_mqtt_password");
+
+    link::mqtt source_mqtt_link { source_mqtt_config, m_config.get<std::string>("station_id") + "_source", "muon::mqtt::so" };
     if (!source_mqtt_link.wait_for(link::mqtt::Status::Connected)) {
         return -1;
     }
 
-    if (!config::singleton()->option_set("offline")) {
-        sink_mqtt_link = std::make_unique<link::mqtt>(config::singleton()->sink_mqtt, config::singleton()->meta.station + "_sink", "muon::mqtt:si");
+    if (!m_config.is_set("offline")) {
+        link::mqtt::configuration sink_mqtt_config {};
+        sink_mqtt_config.host = m_config.get<std::string>("sink_mqtt_host");
+        sink_mqtt_config.port = m_config.get<int>("sink_mqtt_port");
+        sink_mqtt_config.login.username = m_config.get<std::string>("sink_mqtt_user");
+        sink_mqtt_config.login.password = m_config.get<std::string>("sink_mqtt_password");
+        sink_mqtt_link = std::make_unique<link::mqtt>(sink_mqtt_config, m_config.get<std::string>("station_id") + "_sink", "muon::mqtt:si");
         if (!sink_mqtt_link->wait_for(link::mqtt::Status::Connected)) {
             return -1;
         }
@@ -98,7 +116,7 @@ auto application::priv_run() -> int
     sink::collection<trigger::detector> collection_trigger_sink { "muon::sink::t" };
     sink::collection<detector_log_t> collection_detectorlog_sink { "muon::sink::l" };
 
-    if (config::singleton()->option_set("debug")) {
+    if (m_config.is_set("debug")) {
         ascii_event_sink = std::make_unique<sink::ascii<event_t>>(std::cout);
         ascii_clusterlog_sink = std::make_unique<sink::ascii<cluster_log_t>>(std::cout);
         ascii_detectorsummary_sink = std::make_unique<sink::ascii<detector_summary_t>>(std::cout);
@@ -110,17 +128,25 @@ auto application::priv_run() -> int
         collection_trigger_sink.emplace(*ascii_trigger_sink);
     }
 
-    if (!config::singleton()->option_set("offline")) {
-        mqtt_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish("muonpi/trigger"));
+    if (!m_config.is_set("offline")) {
+        const std::string sink_mqtt_base_path { m_config.get<std::string>("sink_mqtt_base_path") };
+        mqtt_trigger_sink = std::make_unique<sink::mqtt<trigger::detector>>(sink_mqtt_link->publish(sink_mqtt_base_path + "trigger"));
         collection_trigger_sink.emplace(*mqtt_trigger_sink);
 
-        if (!config::singleton()->meta.local_cluster) {
-            db_link = std::make_unique<link::database>(config::singleton()->influx);
+        if (!m_config.is_set("local")) {
+            link::influx::configuration influx_config {};
+
+            influx_config.host = m_config.get<std::string>("influx_host");
+            influx_config.database = m_config.get<std::string>("influx_database");
+            influx_config.login.username = m_config.get<std::string>("influx_user");
+            influx_config.login.password = m_config.get<std::string>("influx_password");
+
+            db_link = std::make_unique<link::influx>(influx_config);
 
             event_sink = std::make_unique<sink::database<event_t>>(*db_link);
             clusterlog_sink = std::make_unique<sink::database<cluster_log_t>>(*db_link);
             detectorsummary_sink = std::make_unique<sink::database<detector_summary_t>>(*db_link);
-            broadcast_event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish("muonpi/events"));
+            broadcast_event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish(sink_mqtt_base_path + "events"));
             detectorlog_sink = std::make_unique<sink::database<detector_log_t>>(*db_link);
             trigger_sink = std::make_unique<sink::database<trigger::detector>>(*db_link);
 
@@ -128,10 +154,10 @@ auto application::priv_run() -> int
             collection_event_sink.emplace(*broadcast_event_sink);
 
         } else {
-            event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish("muonpi/l1data"), true);
-            clusterlog_sink = std::make_unique<sink::mqtt<cluster_log_t>>(sink_mqtt_link->publish("muonpi/cluster"));
-            detectorsummary_sink = std::make_unique<sink::mqtt<detector_summary_t>>(sink_mqtt_link->publish("muonpi/cluster"));
-            detectorlog_sink = std::make_unique<sink::mqtt<detector_log_t>>(sink_mqtt_link->publish("muonpi/log/"));
+            event_sink = std::make_unique<sink::mqtt<event_t>>(sink_mqtt_link->publish(sink_mqtt_base_path + "l1data"), true);
+            clusterlog_sink = std::make_unique<sink::mqtt<cluster_log_t>>(sink_mqtt_link->publish(sink_mqtt_base_path + "cluster"));
+            detectorsummary_sink = std::make_unique<sink::mqtt<detector_summary_t>>(sink_mqtt_link->publish(sink_mqtt_base_path + "cluster"));
+            detectorlog_sink = std::make_unique<sink::mqtt<detector_log_t>>(sink_mqtt_link->publish(sink_mqtt_base_path + "log/"));
         }
         collection_event_sink.emplace(*event_sink);
         collection_clusterlog_sink.emplace(*clusterlog_sink);
@@ -139,19 +165,56 @@ auto application::priv_run() -> int
         collection_detectorlog_sink.emplace(*detectorlog_sink);
     }
 
-    m_supervisor = std::make_unique<supervision::state>(collection_clusterlog_sink);
+    m_supervisor = std::make_unique<supervision::state>(
+        collection_clusterlog_sink,
+        supervision::state::configuration {
+            m_config.get<std::string>("station_id"),
+            std::chrono::minutes { m_config.get<int>("clusterlog_interval") } });
     coincidence_filter coincidencefilter { collection_event_sink, *m_supervisor };
     supervision::timebase timebasesupervisor { coincidencefilter, coincidencefilter };
-    supervision::station stationsupervisor { collection_detectorsummary_sink, collection_trigger_sink, timebasesupervisor, timebasesupervisor, *m_supervisor };
+    supervision::station stationsupervisor {
+        collection_detectorsummary_sink,
+        collection_trigger_sink,
+        timebasesupervisor,
+        timebasesupervisor,
+        *m_supervisor,
+        supervision::station::configuration {
+            m_config.get<std::string>("station_id"),
+            std::chrono::minutes { m_config.get<int>("detectorsummary_interval") } }
+    };
 
-    source::mqtt<event_t> event_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/data/#") };
-    source::mqtt<event_t> l1_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/l1data/#") };
-    source::mqtt<detector_info_t<location_t>> detector_location_source { stationsupervisor, source_mqtt_link.subscribe("muonpi/log/#") };
+    const std::string source_mqtt_base_path { m_config.get<std::string>("source_mqtt_base_path") };
 
-    source::mqtt<detector_log_t> detectorlog_source { collection_detectorlog_sink, source_mqtt_link.subscribe("muonpi/log/#") };
+    source::mqtt<event_t> event_source {
+        stationsupervisor,
+        source_mqtt_link.subscribe(source_mqtt_base_path + "data/#"),
+        source::mqtt<event_t>::configuration { m_config.get<int>("geohash_length") }
+    };
+    source::mqtt<event_t> l1_source {
+        stationsupervisor,
+        source_mqtt_link.subscribe(source_mqtt_base_path + "l1data/#"),
+        source::mqtt<event_t>::configuration { m_config.get<int>("geohash_length") }
+    };
+    source::mqtt<detector_info_t<location_t>> detector_location_source {
+        stationsupervisor,
+        source_mqtt_link.subscribe(source_mqtt_base_path + "log/#"),
+        source::mqtt<detector_info_t<location_t>>::configuration {
+            m_config.get<int>("geohash_length") }
+    };
 
-    if (config::singleton()->option_set("histogram")) {
-        stationcoincidence = std::make_unique<station_coincidence>(config::singleton()->get_option<std::string>("histogram"), stationsupervisor);
+    source::mqtt<detector_log_t> detectorlog_source {
+        collection_detectorlog_sink,
+        source_mqtt_link.subscribe(source_mqtt_base_path + "log/#"),
+        source::mqtt<detector_log_t>::configuration {
+            m_config.get<int>("geohash_length") }
+    };
+
+    if (m_config.is_set("store_histogram") && m_config.get<bool>("store_histogram")) {
+        stationcoincidence = std::make_unique<station_coincidence>(
+            m_config.get<std::string>("histogram"),
+            stationsupervisor,
+            station_coincidence::configuration {
+                std::chrono::hours { m_config.get<int>("histogram_sample_time") } });
 
         collection_event_sink.emplace(*stationcoincidence);
         collection_trigger_sink.emplace(*stationcoincidence);
@@ -177,14 +240,20 @@ auto application::priv_run() -> int
 
     m_supervisor->start_synchronuos();
 
-    return m_supervisor->wait();
+    const int status { m_supervisor->wait() };
+    if (status == 0) {
+        log::notice("app") << "Clean exit. bye.";
+    } else {
+        log::warning("app") << "Unclean exit with status code " << status << ". bye.";
+    }
+    return status;
 }
 
 void application::signal_handler(int signal)
 {
     if ((signal == SIGINT) || (signal == SIGTERM) || (signal == SIGHUP)) {
-        log::notice() << "Received signal: " << std::to_string(signal) << ". Exiting.";
-        s_singleton->m_supervisor->stop(1);
+        log::notice("app") << "Received signal: " << std::to_string(signal) << ". Exiting.";
+        s_singleton->m_supervisor->stop(0);
     }
 }
 

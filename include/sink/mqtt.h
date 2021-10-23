@@ -1,19 +1,20 @@
 #ifndef MQTTSINK_H
 #define MQTTSINK_H
 
-#include "link/mqtt.h"
-#include "sink/base.h"
-
-#include "utility/geohash.h"
-#include "utility/log.h"
-#include "utility/utility.h"
-
 #include "messages/clusterlog.h"
 #include "messages/detectorinfo.h"
 #include "messages/detectorlog.h"
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
+
+#include <muonpi/link/mqtt.h>
+#include <muonpi/sink/base.h>
+
+#include <muonpi/gnss.h>
+#include <muonpi/log.h>
+#include <muonpi/utility.h>
+#include <muonpi/units.h>
 
 #include <ctime>
 #include <iomanip>
@@ -100,31 +101,27 @@ void mqtt<cluster_log_t>::get(cluster_log_t log)
     std::time_t time { std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) };
     std::ostringstream stream {};
     stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
-    if (!(
-            m_link.publish((construct(stream.str(), "timeout") << log.timeout).str())
-            && m_link.publish((construct(stream.str(), "timebase") << log.timebase).str())
-            && m_link.publish((construct(stream.str(), "uptime") << log.uptime).str())
-            && m_link.publish((construct(stream.str(), "frequency_in") << log.frequency.single_in).str())
-            && m_link.publish((construct(stream.str(), "frequency_l1_out") << log.frequency.l1_out).str())
-            && m_link.publish((construct(stream.str(), "buffer_length") << log.buffer_length).str())
-            && m_link.publish((construct(stream.str(), "total_detectors") << log.total_detectors).str())
-            && m_link.publish((construct(stream.str(), "reliable_detectors") << log.reliable_detectors).str())
-            && m_link.publish((construct(stream.str(), "max_coincidences") << log.maximum_n).str())
-            && m_link.publish((construct(stream.str(), "cpu_load") << log.system_cpu_load).str())
-            && m_link.publish((construct(stream.str(), "process_cpu_load") << log.process_cpu_load).str())
-            && m_link.publish((construct(stream.str(), "memory_usage") << log.memory_usage).str())
-            && m_link.publish((construct(stream.str(), "incoming") << log.incoming).str()))) {
-        log::warning() << "Could not publish MQTT message.";
-        return;
-    }
+    m_link.publish((construct(stream.str(), "timeout") << log.timeout).str());
+    m_link.publish((construct(stream.str(), "version") << Version::dnp::string()).str());
+    m_link.publish((construct(stream.str(), "timebase") << log.timebase).str());
+    m_link.publish((construct(stream.str(), "uptime") << log.uptime).str());
+    m_link.publish((construct(stream.str(), "frequency_in") << log.frequency.single_in).str());
+    m_link.publish((construct(stream.str(), "frequency_l1_out") << log.frequency.l1_out).str());
+    m_link.publish((construct(stream.str(), "buffer_length") << log.buffer_length).str());
+    m_link.publish((construct(stream.str(), "total_detectors") << log.total_detectors).str());
+    m_link.publish((construct(stream.str(), "reliable_detectors") << log.reliable_detectors).str());
+    m_link.publish((construct(stream.str(), "max_coincidences") << log.maximum_n).str());
+    m_link.publish((construct(stream.str(), "cpu_load") << log.system_cpu_load).str());
+    m_link.publish((construct(stream.str(), "process_cpu_load") << log.process_cpu_load).str());
+    m_link.publish((construct(stream.str(), "memory_usage") << log.memory_usage).str());
+    m_link.publish((construct(stream.str(), "plausibility_level") << log.plausibility_level).str());
+    m_link.publish((construct(stream.str(), "incoming") << log.incoming).str());
+
     for (auto& [level, n] : log.outgoing) {
         if (level == 1) {
             continue;
         }
-        if (!m_link.publish((construct(stream.str(), "outgoing_" + std::to_string(level)) << n).str())) {
-            log::warning() << "Could not publish MQTT message.";
-            return;
-        }
+        m_link.publish((construct(stream.str(), "outgoing_" + std::to_string(level)) << n).str());
     }
 }
 
@@ -136,16 +133,14 @@ void mqtt<detector_summary_t>::get(detector_summary_t log)
     stream << std::put_time(std::gmtime(&time), "%F_%H-%M-%S");
 
     std::string name { log.userinfo.username + " " + log.userinfo.station_id };
-    if (!(
-            m_link.publish((construct(stream.str(), name + " eventrate") << log.mean_eventrate).str())
-            && m_link.publish((construct(stream.str(), name + " eventrate_stddev") << log.stddev_eventrate).str())
-            && m_link.publish((construct(stream.str(), name + " time_acc") << log.mean_time_acc).str())
-            && m_link.publish((construct(stream.str(), name + " pulselength") << log.mean_pulselength).str())
-            && m_link.publish((construct(stream.str(), name + " incoming") << log.incoming).str())
-            && m_link.publish((construct(stream.str(), name + " ublox_counter_progess") << log.ublox_counter_progress).str())
-            && m_link.publish((construct(stream.str(), name + " deadtime_factor") << log.deadtime).str()))) {
-        log::warning() << "Could not publish MQTT message.";
-    }
+
+    m_link.publish((construct(stream.str(), name + " eventrate") << log.mean_eventrate).str());
+    m_link.publish((construct(stream.str(), name + " eventrate_stddev") << log.stddev_eventrate).str());
+    m_link.publish((construct(stream.str(), name + " time_acc") << log.mean_time_acc).str());
+    m_link.publish((construct(stream.str(), name + " pulselength") << log.mean_pulselength).str());
+    m_link.publish((construct(stream.str(), name + " incoming") << log.incoming).str());
+    m_link.publish((construct(stream.str(), name + " ublox_counter_progess") << log.ublox_counter_progress).str());
+    m_link.publish((construct(stream.str(), name + " deadtime_factor") << log.deadtime).str());
 }
 
 template <>
@@ -160,10 +155,12 @@ void mqtt<event_t>::get(event_t event)
     for (auto& evt : event.events) {
         location_t loc = evt.location;
         // calculate the geohash up to 5 digits, this should avoid a precise tracking of the detector location
-        std::string geohash = geohash::from_coordinates(loc.lon, loc.lat, loc.max_geohash_length);
+        std::string geohash = coordinate::hash<double>::from_geodetic(coordinate::geodetic<double> { loc.lon * units::degree, loc.lat * units::degree }, loc.max_geohash_length);
         message_constructor message { ' ' };
         message.add_field(uuid.to_string()); // UUID for the L1Event
-        message.add_field(int_to_hex(evt.hash)); // the hashed detector id
+        std::stringstream ss;
+        ss << std::setfill('0') << std::setw(sizeof(evt.hash) * 2) << std::hex << (evt.hash | 0);
+        message.add_field(ss.str()); // the hashed detector id
         message.add_field(geohash); // the geohash of the detector's location
         message.add_field(std::to_string(evt.time_acc)); // station's time accuracy
         message.add_field(std::to_string(event.n())); // event multiplicity (coinc level)
@@ -175,15 +172,13 @@ void mqtt<event_t>::get(event_t event)
         message.add_field(std::to_string(evt.fix)); // if the station had a valid GNSS fix at the time of the event
         message.add_field(std::to_string(evt.start)); // the timestamp of the stations hit
         message.add_field(std::to_string(evt.utc)); //if the station uses utc
+        message.add_field(event.conflicting ? "conflicting" : "valid"); // if the event is conflicting or not
+        message.add_field(std::to_string(event.true_e)); // The number of true edges in the event graph
 
         if (m_detailed) {
-            if (!m_link.publish(evt.user + "/" + evt.station_id, message.get_string())) {
-                log::warning() << "Could not publish MQTT message.";
-            }
+            m_link.publish(evt.user + "/" + evt.station_id, message.get_string());
         } else {
-            if (!m_link.publish(message.get_string())) {
-                log::warning() << "Could not publish MQTT message.";
-            }
+            m_link.publish(message.get_string());
         }
     }
 }
@@ -198,17 +193,8 @@ void mqtt<trigger::detector>::get(trigger::detector trigger)
         << ' ' << detector_status::to_string(trigger.status)
         << ' ' << detector_status::to_string(trigger.reason);
 
-    if (!m_link.publish(trigger.userinfo.username + "/" + trigger.userinfo.station_id, stream.str())) {
-        log::warning() << "Could not publish MQTT message.";
-    }
+    m_link.publish(trigger.userinfo.username + "/" + trigger.userinfo.station_id, stream.str());
 }
-
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 template <>
 void mqtt<detector_log_t>::get(detector_log_t log)
@@ -220,23 +206,17 @@ void mqtt<detector_log_t>::get(detector_log_t log)
     while (!log.items.empty()) {
         detector_log_t::item item { log.get() };
         auto constr { construct(stream.str(), item.name) };
-        std::visit(overloaded {
-                       [&](std::string value) { constr << value; },
-                       [&](std::int_fast64_t value) { constr << value; },
-                       [&](std::size_t value) { constr << value; },
-                       [&](std::uint8_t value) { constr << value; },
-                       [&](std::uint16_t value) { constr << value; },
-                       [&](std::uint32_t value) { constr << value; },
-                       [&](bool value) { constr << value; },
-                       [&](double value) { constr << value; } },
-            item.value);
+        if (item.type == detector_log_t::item::Type::Double) {
+            constr << item.value_d;
+        } else if (item.type == detector_log_t::item::Type::Int) {
+            constr << item.value_i;
+        } else {
+            constr << item.value_s;
+        }
         if (!item.unit.empty()) {
             constr << item.unit;
         }
-        if (!m_link.publish(log.userinfo.username + "/" + log.userinfo.station_id, constr.str())) {
-            log::warning() << "Could not publish MQTT message.";
-            return;
-        }
+        m_link.publish(log.userinfo.username + "/" + log.userinfo.station_id, constr.str());
     }
 }
 

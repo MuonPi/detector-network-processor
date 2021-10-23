@@ -5,8 +5,9 @@
 #include "messages/detectorsummary.h"
 #include "messages/event.h"
 #include "messages/trigger.h"
-#include "sink/base.h"
-#include "utility/utility.h"
+
+#include <muonpi/sink/base.h>
+#include <muonpi/utility.h>
 
 #include <iostream>
 #include <memory>
@@ -56,7 +57,9 @@ void ascii<event_t>::get(event_t event)
     guid uuid { event.data.hash, static_cast<std::uint64_t>(event.data.start) };
     const std::int64_t cluster_coinc_time = event.duration();
     std::ostringstream out {};
-    out << "Combined event_t: (" << event.n() << "): coinc_time: " << cluster_coinc_time;
+    double max_e { static_cast<double>(event.n() * event.n() - event.n()) * 0.5 };
+
+    out << "Combined event_t: (" << event.n() << ": " << static_cast<double>(event.true_e) / max_e << ")" << ((event.conflicting) ? " C " : "") << ": coinc_time: " << cluster_coinc_time;
     for (const auto& evt : event.events) {
         const std::int64_t evt_coinc_time = evt.start - event.data.start;
         out
@@ -84,6 +87,7 @@ void ascii<cluster_log_t>::get(cluster_log_t log)
 
     out
         << "Cluster Log:"
+        << "\n\tversion: " << Version::dnp::string()
         << "\n\ttimeout: " << log.timeout << " ms"
         << "\n\ttimebase: " << log.timebase << " ms"
         << "\n\tuptime: " << log.uptime << " min"
@@ -94,6 +98,7 @@ void ascii<cluster_log_t>::get(cluster_log_t log)
         << "\n\tcpu load: " << log.system_cpu_load
         << "\n\tprocess cpu load: " << log.process_cpu_load
         << "\n\tmemory usage: " << log.memory_usage
+        << "\n\tplausibility level: " << log.plausibility_level
         << "\n\tout in interval: ";
 
     for (auto& [n, i] : log.outgoing) {
@@ -135,10 +140,9 @@ void ascii<trigger::detector>::get(trigger::detector trigger)
     std::ostringstream stream {};
     stream << trigger.userinfo.username << ' ' << trigger.userinfo.station_id
            << ' ' << detector_status::to_string(trigger.status)
-           << ' ' << detector_status::to_string(trigger.reason);
+           << ' ' << detector_status::to_string(trigger.reason) << '\n';
 
-    m_ostream << stream.str() << '\n'
-              << std::flush;
+    m_ostream << stream.str() << std::flush;
 }
 
 }

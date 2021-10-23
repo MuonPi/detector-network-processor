@@ -2,11 +2,10 @@
 
 #include "supervision/station.h"
 
-#include "utility/coordinatemodel.h"
-#include "utility/utility.h"
-
-#include "utility/log.h"
-#include "utility/units.h"
+#include <muonpi/gnss.h>
+#include <muonpi/log.h>
+#include <muonpi/units.h>
+#include <muonpi/utility.h>
 
 #include <algorithm>
 #include <filesystem>
@@ -14,10 +13,11 @@
 
 namespace muonpi {
 
-station_coincidence::station_coincidence(std::string data_directory, supervision::station& stationsupervisor)
+station_coincidence::station_coincidence(std::string data_directory, supervision::station& stationsupervisor, configuration config)
     : thread_runner { "muon::coinc" }
     , m_stationsupervisor { stationsupervisor }
     , m_data_directory { std::move(data_directory) }
+    , m_config { std::move(config) }
 {
     reset();
     start();
@@ -27,7 +27,7 @@ auto station_coincidence::step() -> int
 {
     std::mutex mx;
     std::unique_lock<std::mutex> lock { mx };
-    m_condition.wait_for(lock, config::singleton()->interval.histogram_sample_time);
+    m_condition.wait_for(lock, m_config.histogram_sample_time);
     if (!m_quit) {
         save();
     }
@@ -113,8 +113,8 @@ void station_coincidence::save()
     const auto now { std::chrono::system_clock::now() };
     constexpr static double grace_factor { 0.9 };
     const auto duration { now - m_last_save };
-    if (duration < (config::singleton()->interval.histogram_sample_time * grace_factor)) {
-        log::warning() << "Last histogram store was too recent. Refusing to save now.";
+    if (duration < (m_config.histogram_sample_time * grace_factor)) {
+        log::warning("coincidence analysis") << "Last histogram store was too recent. Refusing to save now.";
         return;
     }
     if (!std::filesystem::exists(m_data_directory)) {
@@ -123,7 +123,7 @@ void station_coincidence::save()
     const std::string filename { std::to_string(std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count()) };
 
     m_last_save = now;
-    log::debug() << "Saving histogram data.";
+    log::debug("coincidence analysis") << "Saving histogram data.";
     m_saving = true;
 
     std::ofstream stationfile { m_data_directory + "/" + filename + ".stations" };
@@ -193,7 +193,7 @@ void station_coincidence::save()
             << "sample_time " << std::to_string(std::chrono::duration_cast<std::chrono::minutes>(duration).count()) << "min\n";
         metadata_file.close();
         data.uptime = 0;
-        data.hist.clear();
+        data.hist.reset();
     }
     std::ofstream adjacentfile { m_data_directory + "/" + filename + ".adj" };
     for (const auto& [hash, row] : row_vector) {
@@ -226,7 +226,7 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
     const auto x { m_data.increase() };
     m_stations.emplace_back(std::make_pair(userinfo, location));
     if (x > 0) {
-        coordinate::geodetic<double> first { location.lat * units::degree, location.lon * units::degree, location.h };
+        coordinate::geodetic<double> first { location.lat * units::degree, location.lon * units::degree, location.h * units::meter };
         for (std::size_t y { 0 }; y < x; y++) {
             const auto& [user, loc] { m_stations.at(y) };
             const auto distance { coordinate::transformation<double, coordinate::WGS84>::straight_distance(first, { loc.lat * units::degree, loc.lon * units::degree, loc.h }) };
@@ -234,7 +234,7 @@ void station_coincidence::add_station(const userinfo_t& userinfo, const location
             const std::int32_t bin_width { static_cast<std::int32_t>(std::clamp((2.0 * time_of_flight) / static_cast<double>(s_bins), 1.0, s_total_width / static_cast<double>(s_bins))) };
             const std::int32_t min { bin_width * -static_cast<std::int32_t>(s_bins * 0.5) };
             const std::int32_t max { bin_width * static_cast<std::int32_t>(s_bins * 0.5) };
-            m_data.emplace(x, y, { userinfo.hash(), user.hash(), static_cast<float>(distance), histogram_t { min, max } });
+            m_data.emplace(x, y, { userinfo.hash(), user.hash(), static_cast<float>(distance), histogram_t { s_bins, min, max } });
         }
     }
 }

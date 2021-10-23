@@ -22,6 +22,8 @@ private:
 
     std::unique_ptr<supervision::state> m_supervisor;
 
+    config m_config;
+
     const static std::unique_ptr<application> s_singleton;
 
     friend void wrapper_signal_handler(int signal);

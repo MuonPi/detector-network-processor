@@ -1,6 +1,6 @@
 #include "analysis/eventconstructor.h"
 #include "analysis/criterion.h"
-#include "utility/log.h"
+#include <muonpi/log.h>
 
 namespace muonpi {
 

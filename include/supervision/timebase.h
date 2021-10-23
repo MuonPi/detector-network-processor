@@ -1,9 +1,9 @@
 #ifndef TIMEBASESUPERVISOR_H
 #define TIMEBASESUPERVISOR_H
 
-#include "pipeline/base.h"
-
 #include "messages/event.h"
+
+#include <muonpi/pipeline/base.h>
 
 #include <chrono>
 #include <memory>
@@ -42,7 +42,7 @@ private:
     std::chrono::system_clock::time_point m_sample_start { std::chrono::system_clock::now() };
 
     std::int_fast64_t m_start { std::numeric_limits<std::int_fast64_t>::max() };
-    std::int_fast64_t m_end { std::numeric_limits<std::int_fast64_t>::min() };
+    std::int_fast64_t m_end { 0 };
 
     std::chrono::system_clock::duration m_current { s_minimum };
 };
